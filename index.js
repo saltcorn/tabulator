@@ -1,4 +1,6 @@
 const Field = require("@saltcorn/data/models/field");
+const FieldRepeat = require("@saltcorn/data/models/fieldrepeat");
+
 const Table = require("@saltcorn/data/models/table");
 const Form = require("@saltcorn/data/models/form");
 const View = require("@saltcorn/data/models/view");
@@ -58,14 +60,33 @@ const configuration_workflow = () =>
     ],
   });
 
-const view_configuration_workflow = () =>
+const view_configuration_workflow = (req) =>
   new Workflow({
     steps: [
       {
-        name: "views",
+        name: "Columns",
         form: async (context) => {
+          const table = await Table.findOne(
+            context.table_id
+              ? { id: context.table_id }
+              : { name: context.exttable_name }
+          );
+          //console.log(context);
+          const field_picker_repeat = await field_picker_fields({
+            table,
+            viewname: context.viewname,
+            req,
+          });
+          const use_field_picker_repeat = field_picker_repeat.filter(
+            (f) => !["state_field"].includes(f.name)
+          );
           return new Form({
-            fields: [],
+            fields: [
+              new FieldRepeat({
+                name: "columns",
+                fields: use_field_picker_repeat,
+              }),
+            ],
           });
         },
       },
@@ -83,7 +104,13 @@ const get_state_fields = async (table_id, viewname, { show_view }) => {
     });
 };
 
-const run = async (table_id, viewname, { default_state }, state, extraArgs) => {
+const run = async (
+  table_id,
+  viewname,
+  { columns, default_state },
+  state,
+  extraArgs
+) => {
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
   readState(state, fields);
@@ -95,10 +122,11 @@ const run = async (table_id, viewname, { default_state }, state, extraArgs) => {
     q.orderBy = (default_state && default_state._order_field) || table.pk_name;
   if (!q.orderDesc) q.orderDesc = default_state && default_state._descending;
   const current_page = parseInt(state._page) || 1;
+  const { joinFields, aggregations } = picked_fields_to_query(columns, fields);
   let rows = await table.getJoinedRows({
     where,
-    //joinFields,
-    //aggregations,
+    joinFields,
+    aggregations,
     ...q,
   });
   //console.log(table);
