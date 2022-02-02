@@ -1,0 +1,12 @@
+{
+  "name": "@saltcorn/tabulator",
+  "version": "0.1.0",
+  "description": "Grid editing view based on Tabulator",
+  "main": "index.js",
+  "dependencies": {
+    "@saltcorn/markup": "^0.6.0",
+    "@saltcorn/data": "^0.6.0"
+  },
+  "author": "Tom Nielsen",
+  "license": "MIT"
+}
