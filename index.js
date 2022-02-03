@@ -103,7 +103,127 @@ const get_state_fields = async (table_id, viewname, { show_view }) => {
       return sf;
     });
 };
+//copy from server/routes/list.js
+const typeToGridType = (t, field) => {
+  const jsgField = { field: field.name, title: field.label, editor: true };
+  if (t.name === "String" && field.attributes && field.attributes.options) {
+    jsgField.editor = "select";
 
+    const values = field.attributes.options.split(",").map((o) => o.trim());
+    if (!field.required) values.unshift("");
+
+    jsgField.editorParams = { values };
+  } else if (t === "Key" || t === "File") {
+    jsgField.editor = "select";
+    const values = {};
+
+    field.options.forEach(({ label, value }) => (values[value] = label));
+    jsgField.editorParams = { values };
+    jsgField.formatterParams = { values };
+    jsgField.formatter = "__lookupIntToString";
+  } else if (t.name === "Float" || t.name === "Integer") {
+    jsgField.editor = "number";
+    jsgField.sorter = "number";
+    jsgField.hozAlign = "right";
+    jsgField.headerHozAlign = "right";
+    jsgField.editorParams = {
+      step: t.name === "Integer" ? 1 : undefined,
+      min:
+        typeof field.attributes.min !== "undefined"
+          ? field.attributes.min
+          : undefined,
+      max:
+        typeof field.attributes.max !== "undefined"
+          ? field.attributes.max
+          : undefined,
+    };
+  } else if (t.name === "Bool") {
+    jsgField.editor = "tickCross";
+    jsgField.formatter = "tickCross";
+    jsgField.hozAlign = "center";
+    jsgField.vertAlign = "center";
+    jsgField.editorParams = field.required ? {} : { tristate: true };
+    jsgField.formatterParams = field.required ? {} : { allowEmpty: true };
+  } else if (t.name === "Date") {
+    jsgField.sorter = "date";
+    jsgField.editor = "__flatpickerEditor";
+    jsgField.formatter = "__isoDateTimeFormatter";
+  } else if (t.name === "Color") {
+    jsgField.editor = "__colorEditor";
+    jsgField.formatter = "__colorFormatter";
+    jsgField.hozAlign = "center";
+    jsgField.vertAlign = "center";
+  } else if (t.name === "JSON") {
+    jsgField.formatter = "__jsonFormatter";
+    jsgField.editor = "__jsonEditor";
+  }
+
+  if (field.calculated) {
+    jsgField.editor = false;
+  }
+  if (field.primary_key) {
+    jsgField.editor = false;
+  }
+  return jsgField;
+};
+
+const get_tabulator_columns = async (
+  viewname,
+  table,
+  fields,
+  columns,
+  isShow,
+  req
+) => {
+  const tabcols = [];
+  for (const column of columns) {
+    const role = req.user ? req.user.role_id : 10;
+    const user_id = req.user ? req.user.id : null;
+    const setWidth = column.col_width
+      ? { width: `${column.col_width}${column.col_width_units}` }
+      : {};
+    let tcol = {};
+    if (column.type === "Field") {
+      let f = fields.find((fld) => fld.name === column.field_name);
+      if (!f) return {};
+      tcol = typeToGridType(f.type, f);
+    } else if (column.type === "JoinField") {
+      tcol.editor = false;
+      let refNm, targetNm, through, key, type;
+      if (column.join_field.includes("->")) {
+        const [relation, target] = column.join_field.split("->");
+        const [ontable, ref] = relation.split(".");
+        targetNm = target;
+        refNm = ref;
+        key = `${ref}_${ontable}_${target}`;
+      } else {
+        const keypath = column.join_field.split(".");
+        if (keypath.length === 2) {
+          [refNm, targetNm] = keypath;
+          key = `${refNm}_${targetNm}`;
+        } else {
+          [refNm, through, targetNm] = keypath;
+          key = `${refNm}_${through}_${targetNm}`;
+        }
+      }
+      tcol.field = key;
+    } else if (column.type === "Aggregation") {
+      const [table, fld] = column.agg_relation.split(".");
+      const targetNm = (
+        column.stat.replace(" ", "") +
+        "_" +
+        table +
+        "_" +
+        fld +
+        db.sqlsanitize(column.aggwhere || "")
+      ).toLowerCase();
+      tcol.field = targetNm;
+    }
+    if (column.header_label) tcol.title = column.header_label;
+    tabcols.push(tcol);
+  }
+  return tabcols;
+};
 const run = async (
   table_id,
   viewname,
@@ -129,17 +249,31 @@ const run = async (
     aggregations,
     ...q,
   });
+  const tfields = await get_tabulator_columns(
+    viewname,
+    table,
+    fields,
+    columns,
+    false,
+    extraArgs.req
+  );
   //console.log(table);
   return div(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
     script(
       domReady(`
+      const columns=${JSON.stringify(tfields)};          
+      columns.forEach(col=>{
+        Object.entries(col).forEach(([k,v])=>{
+          if(typeof v === "string" && v.startsWith("__"))
+            col[k] = window[v.substring(2)];
+        })
+      })   
     window.tabulator_table = new Tabulator("#jsGrid", {
         data: ${JSON.stringify(rows)},
         layout:"fitColumns", 
-        //columns,
-        autoColumns:true,
+        columns,
         height:"100%",
         pagination:true,
         paginationSize:20,
