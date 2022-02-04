@@ -29,6 +29,13 @@ const {
   i,
   text_attr,
 } = require("@saltcorn/markup/tags");
+const {
+  action_url,
+  view_linker,
+  parse_view_select,
+  action_link,
+  splitUniques,
+} = require("@saltcorn/data/base-plugin/viewtemplates/viewable_fields");
 
 const configuration_workflow = () =>
   new Workflow({
@@ -176,6 +183,7 @@ const get_tabulator_columns = async (
   req
 ) => {
   const tabcols = [];
+  const calculators = [];
   for (const column of columns) {
     const role = req.user ? req.user.role_id : 10;
     const user_id = req.user ? req.user.id : null;
@@ -218,11 +226,18 @@ const get_tabulator_columns = async (
         db.sqlsanitize(column.aggwhere || "")
       ).toLowerCase();
       tcol.field = targetNm;
+    } else if (column.type === "ViewLink") {
+      tcol.formatter = "html";
+      const { key } = view_linker(column, fields);
+      calculators.push((row) => {
+        row[column.view] = key(row);
+      });
+      tcol.field = column.view;
     }
     if (column.header_label) tcol.title = column.header_label;
     tabcols.push(tcol);
   }
-  return tabcols;
+  return { tabcolumns: tabcols, calculators };
 };
 const run = async (
   table_id,
@@ -249,7 +264,7 @@ const run = async (
     aggregations,
     ...q,
   });
-  const tfields = await get_tabulator_columns(
+  const { tabcolumns, calculators } = await get_tabulator_columns(
     viewname,
     table,
     fields,
@@ -257,13 +272,16 @@ const run = async (
     false,
     extraArgs.req
   );
+  calculators.forEach((f) => {
+    rows.forEach(f);
+  });
   //console.log(table);
   return div(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
     script(
       domReady(`
-      const columns=${JSON.stringify(tfields)};          
+      const columns=${JSON.stringify(tabcolumns)};          
       columns.forEach(col=>{
         Object.entries(col).forEach(([k,v])=>{
           if(typeof v === "string" && v.startsWith("__"))
