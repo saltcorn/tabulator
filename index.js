@@ -34,6 +34,7 @@ const {
   view_linker,
   parse_view_select,
   action_link,
+  make_link,
   splitUniques,
 } = require("@saltcorn/data/base-plugin/viewtemplates/viewable_fields");
 
@@ -233,6 +234,19 @@ const get_tabulator_columns = async (
         row[column.view] = key(row);
       });
       tcol.field = column.view;
+    } else if (column.type === "Link") {
+      tcol.formatter = "html";
+      const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+
+      const { key } = make_link(column, fields);
+      calculators.push((row) => {
+        row[rndid] = key(row);
+      });
+      tcol.field = rndid;
+    } else if (column.type === "Action") {
+      tcol.formatter = "html";
+
+      tcol.field = column.view;
     }
     if (column.header_label) tcol.title = column.header_label;
     tabcols.push(tcol);
@@ -329,7 +343,43 @@ const run = async (
     div({ id: "jsGrid" })
   );
 };
+const run_action = async (
+  table_id,
+  viewname,
+  { columns, layout },
+  body,
+  { req, res }
+) => {
+  const col = columns.find(
+    (c) =>
+      c.type === "Action" &&
+      c.action_name === body.action_name &&
+      body.action_name
+  );
 
+  const table = await Table.findOne({ id: table_id });
+  const row = await table.getRow({ id: body.id });
+  const state_action = getState().actions[col.action_name];
+  col.configuration = col.configuration || {};
+  if (state_action) {
+    const cfgFields = await getActionConfigFields(state_action, table);
+    cfgFields.forEach(({ name }) => {
+      col.configuration[name] = col[name];
+    });
+  }
+  try {
+    const result = await run_action_column({
+      col,
+      req,
+      table,
+      row,
+      referrer: req.get("Referrer"),
+    });
+    return { json: { success: "ok", ...(result || {}) } };
+  } catch (e) {
+    return { json: { error: e.message || e } };
+  }
+};
 module.exports = {
   headers: ({ stylesheet }) => [
     {
@@ -352,6 +402,7 @@ module.exports = {
       get_state_fields,
       configuration_workflow: view_configuration_workflow,
       run,
+      routes: { run_action },
     },
   ],
 };
