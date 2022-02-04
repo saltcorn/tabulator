@@ -297,6 +297,9 @@ const run = async (
 ) => {
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
+  for (const field of fields) {
+    await field.fill_fkey_options();
+  }
   readState(state, fields);
   const where = await stateFieldsToWhere({ fields, state });
   const q = await stateFieldsToQuery({ state, fields, prefix: "a." });
