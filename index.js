@@ -98,6 +98,30 @@ const view_configuration_workflow = (req) =>
           });
         },
       },
+      {
+        name: "Options",
+        form: async (context) => {
+          return new Form({
+            fields: [
+              {
+                name: "fit",
+                label: "Layout Fit",
+                type: "String",
+                required: true,
+                attributes: {
+                  options: [
+                    "Columns",
+                    "Data",
+                    "DataFill",
+                    "DataStretch",
+                    "DataTable",
+                  ],
+                },
+              },
+            ],
+          });
+        },
+      },
     ],
   });
 
@@ -267,7 +291,7 @@ const get_tabulator_columns = async (
 const run = async (
   table_id,
   viewname,
-  { columns, default_state },
+  { columns, default_state, fit },
   state,
   extraArgs
 ) => {
@@ -300,7 +324,6 @@ const run = async (
   calculators.forEach((f) => {
     rows.forEach(f);
   });
-  //console.log(table);
   return div(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
@@ -315,7 +338,7 @@ const run = async (
       })   
     window.tabulator_table = new Tabulator("#jsGrid", {
         data: ${JSON.stringify(rows)},
-        layout:"fitColumns", 
+        layout:"fit${fit || "Columns"}", 
         columns,
         height:"100%",
         pagination:true,
