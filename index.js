@@ -245,8 +245,19 @@ const get_tabulator_columns = async (
       tcol.field = rndid;
     } else if (column.type === "Action") {
       tcol.formatter = "html";
-
-      tcol.field = column.view;
+      const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+      calculators.push((row) => {
+        const url = action_url(
+          viewname,
+          table,
+          column.action_name,
+          row,
+          rndid,
+          "rndid"
+        );
+        row[rndid] = action_link(url, req, column);
+      });
+      tcol.field = rndid;
     }
     if (column.header_label) tcol.title = column.header_label;
     tabcols.push(tcol);
