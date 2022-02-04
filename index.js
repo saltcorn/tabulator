@@ -2,6 +2,7 @@ const Field = require("@saltcorn/data/models/field");
 const FieldRepeat = require("@saltcorn/data/models/fieldrepeat");
 
 const Table = require("@saltcorn/data/models/table");
+const { getState } = require("@saltcorn/data/db/state");
 const Form = require("@saltcorn/data/models/form");
 const View = require("@saltcorn/data/models/view");
 const Workflow = require("@saltcorn/data/models/workflow");
@@ -199,6 +200,35 @@ const typeToGridType = (t, field) => {
   return jsgField;
 };
 
+const set_join_fieldviews = async ({ columns, fields }) => {
+  for (const segment of columns) {
+    const { join_field, join_fieldview } = segment;
+    if (!join_fieldview) continue;
+    const keypath = join_field.split(".");
+    if (keypath.length === 2) {
+      const [refNm, targetNm] = keypath;
+      const ref = fields.find((f) => f.name === refNm);
+      if (!ref) continue;
+      const table = await Table.findOne({ name: ref.reftable_name });
+      if (!table) continue;
+      const reffields = await table.getFields();
+      const field = reffields.find((f) => f.name === targetNm);
+      segment.field_obj = field;
+      if (field && field.type === "File") segment.field_type = "File";
+      else if (
+        field &&
+        field.type &&
+        field.type.name &&
+        field.type.fieldviews &&
+        field.type.fieldviews[join_fieldview]
+      )
+        segment.field_type = field.type.name;
+    } else {
+      //const [refNm, through, targetNm] = keypath;
+    }
+  }
+};
+
 const get_tabulator_columns = async (
   viewname,
   table,
@@ -221,7 +251,6 @@ const get_tabulator_columns = async (
       if (!f) return {};
       tcol = typeToGridType(f.type, f);
     } else if (column.type === "JoinField") {
-      tcol.editor = false;
       let refNm, targetNm, through, key, type;
       if (column.join_field.includes("->")) {
         const [relation, target] = column.join_field.split("->");
@@ -239,7 +268,14 @@ const get_tabulator_columns = async (
           key = `${refNm}_${through}_${targetNm}`;
         }
       }
+      if (column.field_type && column.field_obj) {
+        tcol = typeToGridType(
+          getState().types[column.field_type],
+          column.field_obj
+        );
+      }
       tcol.field = key;
+      tcol.editor = false;
     } else if (column.type === "Aggregation") {
       const [table, fld] = column.agg_relation.split(".");
       const targetNm = (
@@ -310,6 +346,8 @@ const run = async (
   if (!q.orderDesc) q.orderDesc = default_state && default_state._descending;
   const current_page = parseInt(state._page) || 1;
   const { joinFields, aggregations } = picked_fields_to_query(columns, fields);
+  await set_join_fieldviews({ columns, fields });
+
   let rows = await table.getJoinedRows({
     where,
     joinFields,
