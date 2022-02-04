@@ -249,7 +249,16 @@ const get_tabulator_columns = async (
     if (column.type === "Field") {
       let f = fields.find((fld) => fld.name === column.field_name);
       if (!f) return {};
-      tcol = typeToGridType(f.type, f);
+      console.log(column);
+      if (column.fieldview === "subfield") {
+        tcol.editor = false;
+        const key = `${column.field_name}_${column.key}`;
+        calculators.push((row) => {
+          row[key] = (row[column.field_name] || {})[column.key];
+        });
+        tcol.field = key;
+        tcol.title = column.key;
+      } else tcol = typeToGridType(f.type, f);
     } else if (column.type === "JoinField") {
       let refNm, targetNm, through, key, type;
       if (column.join_field.includes("->")) {
