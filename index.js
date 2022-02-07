@@ -179,8 +179,14 @@ const typeToGridType = (t, field) => {
     jsgField.formatterParams = field.required ? {} : { allowEmpty: true };
   } else if (t.name === "Date") {
     jsgField.sorter = "date";
-    jsgField.editor = "__flatpickerEditor";
-    jsgField.formatter = "__isoDateTimeFormatter";
+
+    if (field.fieldview === "showDay") {
+      jsgField.editor = "__flatpickerEditor";
+      jsgField.formatter = "__isoDateFormatter";
+    } else {
+      jsgField.editor = "__flatpickerEditor";
+      jsgField.formatter = "__isoDateTimeFormatter";
+    }
   } else if (t.name === "Color") {
     jsgField.editor = "__colorEditor";
     jsgField.formatter = "__colorFormatter";
@@ -247,9 +253,10 @@ const get_tabulator_columns = async (
       : {};
     let tcol = {};
     if (column.type === "Field") {
+      console.log({ column });
       let f = fields.find((fld) => fld.name === column.field_name);
       if (!f) return {};
-      console.log(column);
+      f.fieldview = column.fieldview;
       if (column.fieldview === "subfield") {
         tcol.editor = false;
         const key = `${column.field_name}_${column.key}`;
@@ -393,9 +400,9 @@ const run = async (
         height:"100%",
         pagination:true,
         paginationSize:20,
-        initialSort:[
-          {column:"id", dir:"asc"},
-        ],
+        //initialSort:[
+        //  {column:"id", dir:"asc"},
+        //],
         ajaxResponse:function(url, params, response){                    
   
           return response.success; //return the tableData property of a response json object
@@ -468,6 +475,12 @@ module.exports = {
   headers: ({ stylesheet }) => [
     {
       script: "/plugins/public/tabulator/tabulator.min.js",
+    },
+    //  {
+    //  script: "/plugins/public/tabulator/luxon.min.js",
+    //},
+    {
+      script: "/flatpickr.min.js",
     },
     {
       script: "/gridedit.js",
