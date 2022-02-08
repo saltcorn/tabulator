@@ -472,6 +472,13 @@ const run = async (
   calculators.forEach((f) => {
     rows.forEach(f);
   });
+  if (selectable)
+    tabcolumns.unshift({
+      formatter: "rowSelection",
+      titleFormatter: "rowSelection",
+      align: "center",
+      headerSort: false,
+    });
   return div(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
@@ -505,6 +512,7 @@ const run = async (
         type: "POST",
         url: "/api/${table.name}/" + (row.id||""),
         data: row,
+        selectable:${!!selectable},
         headers: {
           "CSRF-Token": _sc_globalCsrf,
         },
