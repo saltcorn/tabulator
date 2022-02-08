@@ -27,7 +27,11 @@ const {
   script,
   pre,
   domReady,
+  button,
   i,
+  form,
+  input,
+  label,
   text_attr,
 } = require("@saltcorn/markup/tags");
 const {
@@ -118,6 +122,27 @@ const view_configuration_workflow = (req) =>
                     "DataTable",
                   ],
                 },
+              },
+              {
+                name: "hideColsBtn",
+                label: "Show/hide columns",
+                type: "Bool",
+                sublabel: "Display drop-down menu to select shown columns",
+              },
+              {
+                name: "addRowBtn",
+                label: "Add row button",
+                type: "Bool",
+              },
+              {
+                name: "selectable",
+                label: "Selectable",
+                type: "Bool",
+              },
+              {
+                name: "download_csv",
+                label: "Download CSV",
+                type: "Bool",
               },
             ],
           });
@@ -348,10 +373,68 @@ const get_tabulator_columns = async (
   }
   return { tabcolumns: tabcols, calculators };
 };
+
+const addRowButton = () =>
+  button(
+    {
+      class: "btn btn-sm btn-primary mr-2",
+      onClick: "add_tabulator_row()",
+    },
+    i({ class: "fas fa-plus mr-1" }),
+    "Add row"
+  );
+
+const hideShowColsBtn = (tabcolumns) =>
+  div(
+    { class: "dropdown d-inline" },
+    button(
+      {
+        class: "btn btn-sm btn-outline-secondary dropdown-toggle",
+        "data-boundary": "viewport",
+        type: "button",
+        id: "btnHideCols",
+        "data-toggle": "dropdown",
+        "aria-haspopup": "true",
+        "aria-expanded": "false",
+      },
+      "Show/hide fields"
+    ),
+    div(
+      {
+        class: "dropdown-menu",
+        "aria-labelledby": "btnHideCols",
+      },
+      form(
+        { class: "px-2" },
+        tabcolumns.map(
+          (f) =>
+            f.field &&
+            div(
+              { class: "form-check" },
+              input({
+                type: "checkbox",
+                onChange: `showHideCol('${f.field}', this)`,
+                class: "form-check-input",
+                checked: true,
+              }),
+              label(f.title || f.field)
+            )
+        )
+      )
+    )
+  );
 const run = async (
   table_id,
   viewname,
-  { columns, default_state, fit },
+  {
+    columns,
+    default_state,
+    fit,
+    hideColsBtn,
+    addRowBtn,
+    selectable,
+    download_csv,
+  },
   state,
   extraArgs
 ) => {
@@ -438,7 +521,9 @@ const run = async (
     window.tabulator_table_name="${table.name}";`)
     ),
     div({ id: "jsGridNotify" }),
+    addRowBtn && addRowButton(),
 
+    hideColsBtn && hideShowColsBtn(tabcolumns),
     div({ id: "jsGrid" })
   );
 };
