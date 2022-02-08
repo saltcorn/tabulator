@@ -476,11 +476,14 @@ module.exports = {
     {
       script: "/plugins/public/tabulator/tabulator.min.js",
     },
-    //  {
-    //  script: "/plugins/public/tabulator/luxon.min.js",
-    //},
+    {
+      script: "/plugins/public/tabulator/luxon.min.js",
+    },
     {
       script: "/flatpickr.min.js",
+    },
+    {
+      css: `/flatpickr.min.css`,
     },
     {
       script: "/gridedit.js",
