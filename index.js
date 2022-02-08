@@ -180,12 +180,20 @@ const typeToGridType = (t, field) => {
   } else if (t.name === "Date") {
     jsgField.sorter = "date";
 
+    jsgField.sorter = "date";
+    jsgField.sorterParams = {
+      format: "iso",
+    };
+    jsgField.editor = "__flatpickerEditor";
+
     if (field.fieldview === "showDay") {
-      jsgField.editor = "__flatpickerEditor";
+      jsgField.editorParams = { dayOnly: true };
       jsgField.formatter = "__isoDateFormatter";
     } else {
-      jsgField.editor = "__flatpickerEditor";
-      jsgField.formatter = "__isoDateTimeFormatter";
+      jsgField.formatter = "datetime";
+      jsgField.formatterParams = {
+        inputFormat: "iso",
+      };
     }
   } else if (t.name === "Color") {
     jsgField.editor = "__colorEditor";
