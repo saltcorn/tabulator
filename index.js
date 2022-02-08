@@ -286,7 +286,6 @@ const get_tabulator_columns = async (
       : {};
     let tcol = {};
     if (column.type === "Field") {
-      console.log({ column });
       let f = fields.find((fld) => fld.name === column.field_name);
       if (!f) return {};
       f.fieldview = column.fieldview;
@@ -476,8 +475,8 @@ const run = async (
     tabcolumns.unshift({
       formatter: "rowSelection",
       titleFormatter: "rowSelection",
-      align: "center",
       headerSort: false,
+      width: "20",
     });
   return div(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
@@ -526,12 +525,31 @@ const run = async (
 
       });
     });
-    window.tabulator_table_name="${table.name}";`)
+    window.tabulator_table_name="${table.name}";
+    ${
+      download_csv
+        ? `document.getElementById("tabulator-download-csv").addEventListener("click", function(){
+            const selectedData = window.tabulator_table.getSelectedData();
+            window.tabulator_table.download("csv", "${viewname}.csv",{}, selectedData.length>0 ? "selected" : "all");
+          });`
+        : ""
+    }`)
     ),
     div({ id: "jsGridNotify" }),
-    addRowBtn && addRowButton(),
-
-    hideColsBtn && hideShowColsBtn(tabcolumns),
+    div(
+      { class: "d-flex justify-content-end w-100 mb-1" },
+      download_csv &&
+        button(
+          {
+            class: "btn btn-sm btn-primary mr-2",
+            id: "tabulator-download-csv",
+          },
+          i({ class: "fas fa-download mr-1" }),
+          "Download"
+        ),
+      addRowBtn && addRowButton(),
+      hideColsBtn && hideShowColsBtn(tabcolumns)
+    ),
     div({ id: "jsGrid" })
   );
 };
