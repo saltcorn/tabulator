@@ -565,36 +565,40 @@ const run = async (
           return response.success; //return the tableData property of a response json object
         },
     });
-    function save_row_from_cell( cell) {
-       const row = cell.getRow().getData();
+    function save_row_from_cell( row, cell, noid) {
        $.ajax({
         type: "POST",
-        url: "/api/${table.name}/" + (row.id||""),
+        url: "/api/${table.name}/" + (noid?'':(row.id||"")),
         data: row,
         headers: {
           "CSRF-Token": _sc_globalCsrf,
         },
         error: tabulator_error_handler,
       }).done(function (resp) {
-        if(resp.success &&typeof resp.success ==="number" && !row.id) {
+        if(resp.success &&typeof resp.success ==="number" && !row.id && cell) {
           window.tabulator_table.updateRow(cell.getRow(), {id: resp.success});
         }
       });
     }
     window.tabulator_table.on("cellEdited", function(cell){
-      save_row_from_cell(cell)
+      save_row_from_cell(cell.getRow().getData(), cell)
     });
     window.tabulator_table.on("historyUndo", function(action, component, data){
+      
       switch (action) {
         case "cellEdit": 
-          save_row_from_cell(component)
+          save_row_from_cell(component.getRow().getData(), component)
+          break;
+        case "rowDelete": 
+          const {id, ...delRow} = data.data
+          save_row_from_cell( data.data, undefined, true)
           break;
       }
     })
     window.tabulator_table.on("historyRedo", function(action, component, data){
       switch (action) {
         case "cellEdit": 
-          save_row_from_cell(component)
+          save_row_from_cell(component.getRow().getData(), component)
           break;
       }
     })
