@@ -160,6 +160,11 @@ const view_configuration_workflow = (req) =>
                 type: "Bool",
               },
               {
+                name: "history",
+                label: "History (undo/redo)",
+                type: "Bool",
+              },
+              {
                 name: "pagination_size",
                 label: "Pagination size",
                 type: "Integer",
@@ -469,6 +474,7 @@ const run = async (
     header_filters,
     pagination_size,
     movable_cols,
+    history,
   },
   state,
   extraArgs
@@ -541,6 +547,7 @@ const run = async (
         persistence:true, 
         persistenceID:"tabview_${viewname}",
         movableColumns: ${!!movable_cols},
+        history: ${!!history},
         //initialSort:[
         //  {column:"id", dir:"asc"},
         //],
@@ -549,26 +556,39 @@ const run = async (
           return response.success; //return the tableData property of a response json object
         },
     });
-    window.tabulator_table.on("cellEdited", function(cell){
-      const row = cell.getRow().getData()
-      $.ajax({
+    function save_row_from_cell( cell) {
+       const row = cell.getRow().getData();
+       $.ajax({
         type: "POST",
         url: "/api/${table.name}/" + (row.id||""),
         data: row,
-        selectable:${!!selectable},
         headers: {
           "CSRF-Token": _sc_globalCsrf,
         },
         error: tabulator_error_handler,
       }).done(function (resp) {
-        //if (item._versions) item._versions = +item._versions + 1;
-        //data.resolve(fixKeys(item));
         if(resp.success &&typeof resp.success ==="number" && !row.id) {
           window.tabulator_table.updateRow(cell.getRow(), {id: resp.success});
         }
-
       });
+    }
+    window.tabulator_table.on("cellEdited", function(cell){
+      save_row_from_cell(cell)
     });
+    window.tabulator_table.on("historyUndo", function(action, component, data){
+      switch (action) {
+        case "cellEdit": 
+          save_row_from_cell(component)
+          break;
+      }
+    })
+    window.tabulator_table.on("historyRedo", function(action, component, data){
+      switch (action) {
+        case "cellEdit": 
+          save_row_from_cell(component)
+          break;
+      }
+    })
     window.tabulator_table_name="${table.name}";
     ${
       download_csv
@@ -582,6 +602,24 @@ const run = async (
     div({ id: "jsGridNotify" }),
     div(
       { class: "d-flex justify-content-end w-100 mb-1" },
+      history &&
+        button(
+          {
+            class: "btn btn-sm btn-primary mr-2",
+            title: "Undo",
+            onClick: "window.tabulator_table.undo()",
+          },
+          i({ class: "fas fa-undo" })
+        ),
+      history &&
+        button(
+          {
+            class: "btn btn-sm btn-primary mr-2",
+            title: "Redo",
+            onClick: "window.tabulator_table.redo()",
+          },
+          i({ class: "fas fa-redo" })
+        ),
       download_csv &&
         button(
           {
@@ -597,6 +635,7 @@ const run = async (
     div({ id: "jsGrid" })
   );
 };
+
 const run_action = async (
   table_id,
   viewname,
@@ -670,4 +709,4 @@ module.exports = {
   ],
 };
 
-// need: history, group by
+// need: history, group by, delete action is special
