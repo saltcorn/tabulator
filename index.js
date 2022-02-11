@@ -161,7 +161,7 @@ const view_configuration_workflow = (req) =>
     ],
   });
 
-// need: filter in header, clipboard, history, persistent cfg, group by, frozen cols
+// need: clipboard, history, persistent cfg, group by, frozen cols
 
 const get_state_fields = async (table_id, viewname, { show_view }) => {
   const table_fields = await Field.find({ table_id });
@@ -362,6 +362,7 @@ const get_tabulator_columns = async (
         row[column.view] = key(row);
       });
       tcol.field = column.view;
+      tcol.clipboard = false;
     } else if (column.type === "Link") {
       tcol.formatter = "html";
       const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
@@ -371,6 +372,7 @@ const get_tabulator_columns = async (
         row[rndid] = key(row);
       });
       tcol.field = rndid;
+      tcol.clipboard = false;
     } else if (column.type === "Action") {
       tcol.formatter = "html";
       const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
@@ -386,6 +388,7 @@ const get_tabulator_columns = async (
         row[rndid] = action_link(url, req, column);
       });
       tcol.field = rndid;
+      tcol.clipboard = false;
     }
     if (column.header_label) tcol.title = column.header_label;
     tabcols.push(tcol);
@@ -499,6 +502,7 @@ const run = async (
       titleFormatter: "rowSelection",
       headerSort: false,
       width: "20",
+      clipboard: false,
     });
 
   return div(
@@ -520,6 +524,7 @@ const run = async (
         height:"100%",
         pagination:true,
         paginationSize:20,
+        clipboard:true,
         //initialSort:[
         //  {column:"id", dir:"asc"},
         //],
