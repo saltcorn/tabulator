@@ -90,6 +90,11 @@ const view_configuration_workflow = (req) =>
             viewname: context.viewname,
             req,
           });
+          field_picker_repeat.push({
+            name: "frozen",
+            label: "Frozen",
+            type: "Bool",
+          });
           const use_field_picker_repeat = field_picker_repeat.filter(
             (f) => !["state_field"].includes(f.name)
           );
@@ -161,8 +166,6 @@ const view_configuration_workflow = (req) =>
       },
     ],
   });
-
-// need: history, group by, frozen cols
 
 const get_state_fields = async (table_id, viewname, { show_view }) => {
   const table_fields = await Field.find({ table_id });
@@ -392,6 +395,7 @@ const get_tabulator_columns = async (
       tcol.clipboard = false;
     }
     if (column.header_label) tcol.title = column.header_label;
+    if (column.frozen) tcol.frozen = true;
     tabcols.push(tcol);
   }
   return { tabcolumns: tabcols, calculators };
@@ -505,6 +509,7 @@ const run = async (
       headerSort: false,
       width: "20",
       clipboard: false,
+      frozen: tabcolumns[0].frozen,
     });
 
   return div(
@@ -657,3 +662,5 @@ module.exports = {
     },
   ],
 };
+
+// need: history, group by, reorder cols by drag
