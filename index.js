@@ -144,12 +144,24 @@ const view_configuration_workflow = (req) =>
                 label: "Download CSV",
                 type: "Bool",
               },
+              {
+                name: "download_csv",
+                label: "Download CSV",
+                type: "Bool",
+              },
+              {
+                name: "header_filters",
+                label: "Header filters",
+                type: "Bool",
+              },
             ],
           });
         },
       },
     ],
   });
+
+// need: filter in header, clipboard, history, persistent cfg, group by, frozen cols
 
 const get_state_fields = async (table_id, viewname, { show_view }) => {
   const table_fields = await Field.find({ table_id });
@@ -162,7 +174,7 @@ const get_state_fields = async (table_id, viewname, { show_view }) => {
     });
 };
 //copy from server/routes/list.js
-const typeToGridType = (t, field) => {
+const typeToGridType = (t, field, header_filters) => {
   const jsgField = { field: field.name, title: field.label, editor: true };
   if (t.name === "String" && field.attributes && field.attributes.options) {
     jsgField.editor = "select";
@@ -171,6 +183,9 @@ const typeToGridType = (t, field) => {
     if (!field.required) values.unshift("");
 
     jsgField.editorParams = { values };
+    jsgField.headerFilter = true;
+  } else if (t.name === "String") {
+    jsgField.headerFilter = true;
   } else if (t === "Key" || t === "File") {
     jsgField.editor = "select";
     const values = {};
@@ -179,6 +194,7 @@ const typeToGridType = (t, field) => {
     jsgField.editorParams = { values };
     jsgField.formatterParams = { values };
     jsgField.formatter = "__lookupIntToString";
+    jsgField.headerFilter = true;
   } else if (t.name === "Float" || t.name === "Integer") {
     jsgField.editor = "number";
     jsgField.sorter = "number";
@@ -195,6 +211,7 @@ const typeToGridType = (t, field) => {
           ? field.attributes.max
           : undefined,
     };
+    jsgField.headerFilter = true;
   } else if (t.name === "Bool") {
     jsgField.editor = "tickCross";
     jsgField.formatter = "tickCross";
@@ -202,6 +219,7 @@ const typeToGridType = (t, field) => {
     jsgField.vertAlign = "center";
     jsgField.editorParams = field.required ? {} : { tristate: true };
     jsgField.formatterParams = field.required ? {} : { allowEmpty: true };
+    jsgField.headerFilter = true;
   } else if (t.name === "Date") {
     jsgField.sorter = "date";
 
@@ -220,6 +238,7 @@ const typeToGridType = (t, field) => {
         inputFormat: "iso",
       };
     }
+    jsgField.headerFilter = true;
   } else if (t.name === "Color") {
     jsgField.editor = "__colorEditor";
     jsgField.formatter = "__colorFormatter";
@@ -274,7 +293,8 @@ const get_tabulator_columns = async (
   fields,
   columns,
   isShow,
-  req
+  req,
+  header_filters
 ) => {
   const tabcols = [];
   const calculators = [];
@@ -297,7 +317,7 @@ const get_tabulator_columns = async (
         });
         tcol.field = key;
         tcol.title = column.key;
-      } else tcol = typeToGridType(f.type, f);
+      } else tcol = typeToGridType(f.type, f, header_filters);
     } else if (column.type === "JoinField") {
       let refNm, targetNm, through, key, type;
       if (column.join_field.includes("->")) {
@@ -433,6 +453,7 @@ const run = async (
     addRowBtn,
     selectable,
     download_csv,
+    header_filters,
   },
   state,
   extraArgs
@@ -466,7 +487,8 @@ const run = async (
     fields,
     columns,
     false,
-    extraArgs.req
+    extraArgs.req,
+    header_filters
   );
   calculators.forEach((f) => {
     rows.forEach(f);
@@ -478,6 +500,7 @@ const run = async (
       headerSort: false,
       width: "20",
     });
+
   return div(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
