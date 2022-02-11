@@ -111,6 +111,34 @@ const view_configuration_workflow = (req) =>
       {
         name: "Options",
         form: async (context) => {
+          const table = await Table.findOne(
+            context.table_id
+              ? { id: context.table_id }
+              : { name: context.exttable_name }
+          );
+          const fields = await table.getFields();
+          for (const field of fields) {
+            await field.fill_fkey_options();
+          }
+          const { tabcolumns } = await get_tabulator_columns(
+            context.viewname,
+            table,
+            fields,
+            context.columns,
+            false,
+            undefined,
+            false
+          );
+          const colFields = tabcolumns
+            .filter((c) =>
+              ["Field", "JoinField", "Aggregation"].includes(c.type)
+            )
+            .map((c) => c.field)
+            .filter((s) => s);
+          const groupByOptions = new Set([
+            ...colFields,
+            ...fields.map((f) => f.name),
+          ]);
           return new Form({
             fields: [
               {
@@ -126,6 +154,14 @@ const view_configuration_workflow = (req) =>
                     "DataStretch",
                     "DataTable",
                   ],
+                },
+              },
+              {
+                name: "groupBy",
+                label: "Group by",
+                type: "String",
+                attributes: {
+                  options: [...groupByOptions],
                 },
               },
               {
@@ -313,11 +349,6 @@ const get_tabulator_columns = async (
   const tabcols = [];
   const calculators = [];
   for (const column of columns) {
-    const role = req.user ? req.user.role_id : 10;
-    const user_id = req.user ? req.user.id : null;
-    const setWidth = column.col_width
-      ? { width: `${column.col_width}${column.col_width_units}` }
-      : {};
     let tcol = {};
     if (column.type === "Field") {
       let f = fields.find((fld) => fld.name === column.field_name);
@@ -484,6 +515,7 @@ const run = async (
     pagination_size,
     movable_cols,
     history,
+    groupBy,
   },
   state,
   extraArgs
@@ -557,6 +589,7 @@ const run = async (
         persistenceID:"tabview_${viewname}",
         movableColumns: ${!!movable_cols},
         history: ${!!history},
+        ${groupBy ? `groupBy: "${groupBy}",` : ""}
         //initialSort:[
         //  {column:"id", dir:"asc"},
         //],
@@ -721,5 +754,3 @@ module.exports = {
     },
   ],
 };
-
-// need: history, group by
