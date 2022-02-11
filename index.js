@@ -155,6 +155,11 @@ const view_configuration_workflow = (req) =>
                 type: "Bool",
               },
               {
+                name: "movable_cols",
+                label: "Movable columns",
+                type: "Bool",
+              },
+              {
                 name: "pagination_size",
                 label: "Pagination size",
                 type: "Integer",
@@ -463,6 +468,7 @@ const run = async (
     download_csv,
     header_filters,
     pagination_size,
+    movable_cols,
   },
   state,
   extraArgs
@@ -534,6 +540,7 @@ const run = async (
         clipboard:true,
         persistence:true, 
         persistenceID:"tabview_${viewname}",
+        movableColumns: ${!!movable_cols},
         //initialSort:[
         //  {column:"id", dir:"asc"},
         //],
@@ -663,4 +670,4 @@ module.exports = {
   ],
 };
 
-// need: history, group by, reorder cols by drag
+// need: history, group by
