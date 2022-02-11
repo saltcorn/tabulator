@@ -145,14 +145,15 @@ const view_configuration_workflow = (req) =>
                 type: "Bool",
               },
               {
-                name: "download_csv",
-                label: "Download CSV",
-                type: "Bool",
-              },
-              {
                 name: "header_filters",
                 label: "Header filters",
                 type: "Bool",
+              },
+              {
+                name: "pagination_size",
+                label: "Pagination size",
+                type: "Integer",
+                default: 20,
               },
             ],
           });
@@ -161,7 +162,7 @@ const view_configuration_workflow = (req) =>
     ],
   });
 
-// need: clipboard, history, persistent cfg, group by, frozen cols
+// need: history, persistent cfg, group by, frozen cols
 
 const get_state_fields = async (table_id, viewname, { show_view }) => {
   const table_fields = await Field.find({ table_id });
@@ -457,6 +458,7 @@ const run = async (
     selectable,
     download_csv,
     header_filters,
+    pagination_size,
   },
   state,
   extraArgs
@@ -523,7 +525,7 @@ const run = async (
         columns,
         height:"100%",
         pagination:true,
-        paginationSize:20,
+        paginationSize:${pagination_size || 20},
         clipboard:true,
         //initialSort:[
         //  {column:"id", dir:"asc"},
