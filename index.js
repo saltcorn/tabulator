@@ -387,6 +387,15 @@ const get_tabulator_columns = async (
       });
       tcol.field = rndid;
       tcol.clipboard = false;
+    } else if (column.type === "Action" && column.action_name === "Delete") {
+      tcol = {
+        formatter: "buttonCross",
+        title: i({ class: "far fa-trash-alt" }),
+        width: 40,
+        hozAlign: "center",
+        headerSort: false,
+        cellClick: "__delete_tabulator_row",
+      };
     } else if (column.type === "Action") {
       tcol.formatter = "html";
       const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
@@ -709,4 +718,4 @@ module.exports = {
   ],
 };
 
-// need: history, group by, delete action is special
+// need: history, group by
