@@ -425,6 +425,7 @@ const get_tabulator_columns = async (
         width: 40,
         hozAlign: "center",
         headerSort: false,
+        clipboard: false,
         cellClick: "__delete_tabulator_row",
       };
     } else if (column.type === "Action") {
