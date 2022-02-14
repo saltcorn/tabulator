@@ -234,9 +234,9 @@ const typeToGridType = (t, field, header_filters) => {
     if (!field.required) values.unshift("");
 
     jsgField.editorParams = { values };
-    jsgField.headerFilter = true;
+    jsgField.headerFilter = !!header_filters;
   } else if (t.name === "String") {
-    jsgField.headerFilter = true;
+    jsgField.headerFilter = !!header_filters;
   } else if (t === "Key" || t === "File") {
     jsgField.editor = "select";
     const values = {};
@@ -245,7 +245,7 @@ const typeToGridType = (t, field, header_filters) => {
     jsgField.editorParams = { values };
     jsgField.formatterParams = { values };
     jsgField.formatter = "__lookupIntToString";
-    jsgField.headerFilter = true;
+    jsgField.headerFilter = !!header_filters;
   } else if (t.name === "Float" || t.name === "Integer") {
     jsgField.editor = "number";
     jsgField.sorter = "number";
@@ -262,7 +262,7 @@ const typeToGridType = (t, field, header_filters) => {
           ? field.attributes.max
           : undefined,
     };
-    jsgField.headerFilter = true;
+    jsgField.headerFilter = !!header_filters;
   } else if (t.name === "Bool") {
     jsgField.editor = "tickCross";
     jsgField.formatter = "tickCross";
@@ -270,7 +270,7 @@ const typeToGridType = (t, field, header_filters) => {
     jsgField.vertAlign = "center";
     jsgField.editorParams = field.required ? {} : { tristate: true };
     jsgField.formatterParams = field.required ? {} : { allowEmpty: true };
-    jsgField.headerFilter = true;
+    jsgField.headerFilter = !!header_filters;
   } else if (t.name === "Date") {
     jsgField.sorter = "date";
 
@@ -289,7 +289,7 @@ const typeToGridType = (t, field, header_filters) => {
         inputFormat: "iso",
       };
     }
-    jsgField.headerFilter = true;
+    jsgField.headerFilter = !!header_filters;
   } else if (t.name === "Color") {
     jsgField.editor = "__colorEditor";
     jsgField.formatter = "__colorFormatter";
@@ -545,6 +545,7 @@ const run = async (
     aggregations,
     ...q,
   });
+  console.log({ header_filters });
   const { tabcolumns, calculators } = await get_tabulator_columns(
     viewname,
     table,
