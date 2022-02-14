@@ -3,6 +3,7 @@ const FieldRepeat = require("@saltcorn/data/models/fieldrepeat");
 
 const Table = require("@saltcorn/data/models/table");
 const { getState } = require("@saltcorn/data/db/state");
+const db = require("@saltcorn/data/db");
 const Form = require("@saltcorn/data/models/form");
 const View = require("@saltcorn/data/models/view");
 const Workflow = require("@saltcorn/data/models/workflow");
