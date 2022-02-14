@@ -197,6 +197,11 @@ const view_configuration_workflow = (req) =>
                 type: "Bool",
               },
               {
+                name: "vert_col_headers",
+                label: "Vertical column headers",
+                type: "Bool",
+              },
+              {
                 name: "history",
                 label: "History (undo/redo)",
                 type: "Bool",
@@ -345,7 +350,8 @@ const get_tabulator_columns = async (
   columns,
   isShow,
   req,
-  header_filters
+  header_filters,
+  vert_col_headers
 ) => {
   const tabcols = [];
   const calculators = [];
@@ -448,6 +454,7 @@ const get_tabulator_columns = async (
     }
     if (column.header_label) tcol.title = column.header_label;
     if (column.frozen) tcol.frozen = true;
+    if (vert_col_headers) tcol.headerVertical = true;
     tabcols.push(tcol);
   }
   return { tabcolumns: tabcols, calculators };
@@ -518,6 +525,7 @@ const run = async (
     movable_cols,
     history,
     groupBy,
+    vert_col_headers,
   },
   state,
   extraArgs
@@ -553,7 +561,8 @@ const run = async (
     columns,
     false,
     extraArgs.req,
-    header_filters
+    header_filters,
+    vert_col_headers
   );
   calculators.forEach((f) => {
     rows.forEach(f);
