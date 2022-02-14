@@ -553,7 +553,6 @@ const run = async (
     aggregations,
     ...q,
   });
-  console.log({ header_filters });
   const { tabcolumns, calculators } = await get_tabulator_columns(
     viewname,
     table,
