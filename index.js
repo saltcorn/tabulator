@@ -464,10 +464,10 @@ const get_tabulator_columns = async (
 const addRowButton = () =>
   button(
     {
-      class: "btn btn-sm btn-primary mr-2",
+      class: "btn btn-sm btn-primary me-2",
       onClick: "add_tabulator_row()",
     },
-    i({ class: "fas fa-plus mr-1" }),
+    i({ class: "fas fa-plus me-1" }),
     "Add row"
   );
 
@@ -663,7 +663,7 @@ const run = async (
       history &&
         button(
           {
-            class: "btn btn-sm btn-primary mr-2",
+            class: "btn btn-sm btn-primary me-2",
             title: "Undo",
             onClick: "window.tabulator_table.undo()",
           },
@@ -672,7 +672,7 @@ const run = async (
       history &&
         button(
           {
-            class: "btn btn-sm btn-primary mr-2",
+            class: "btn btn-sm btn-primary me-2",
             title: "Redo",
             onClick: "window.tabulator_table.redo()",
           },
@@ -681,10 +681,10 @@ const run = async (
       download_csv &&
         button(
           {
-            class: "btn btn-sm btn-primary mr-2",
+            class: "btn btn-sm btn-primary me-2",
             id: "tabulator-download-csv",
           },
-          i({ class: "fas fa-download mr-1" }),
+          i({ class: "fas fa-download me-1" }),
           "Download"
         ),
       addRowBtn && addRowButton(),
