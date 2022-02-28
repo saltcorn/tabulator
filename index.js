@@ -539,8 +539,8 @@ const run = async (
   readState(state, fields);
   const where = await stateFieldsToWhere({ fields, state });
   const q = await stateFieldsToQuery({ state, fields, prefix: "a." });
-  const rows_per_page = (default_state && default_state._rows_per_page) || 20;
-  if (!q.limit) q.limit = rows_per_page;
+  const rows_per_page = default_state && default_state._rows_per_page;
+  if (!q.limit && rows_per_page) q.limit = rows_per_page;
   if (!q.orderBy)
     q.orderBy = (default_state && default_state._order_field) || table.pk_name;
   if (!q.orderDesc) q.orderDesc = default_state && default_state._descending;
