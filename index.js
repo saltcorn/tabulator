@@ -96,9 +96,16 @@ const view_configuration_workflow = (req) =>
             label: "Frozen",
             type: "Bool",
           });
+          field_picker_repeat.push({
+            name: "disable_edit",
+            label: "Disable editing",
+            type: "Bool",
+            showIf: { type: "Field" },
+          });
           const use_field_picker_repeat = field_picker_repeat.filter(
             (f) => !["state_field"].includes(f.name)
           );
+
           return new Form({
             fields: [
               new FieldRepeat({
@@ -455,6 +462,7 @@ const get_tabulator_columns = async (
     }
     if (column.header_label) tcol.title = column.header_label;
     if (column.frozen) tcol.frozen = true;
+    if (column.disable_edit) tcol.editor = false;
     if (vert_col_headers) tcol.headerVertical = true;
     tabcols.push(tcol);
   }
