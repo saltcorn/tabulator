@@ -437,7 +437,7 @@ const get_tabulator_columns = async (
       };
     } else if (column.type === "Action") {
       tcol.formatter = "html";
-      console.log(column);
+      //console.log(column);
       const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
       calculators.push((row) => {
         const url = action_url(
@@ -480,7 +480,7 @@ const hideShowColsBtn = (tabcolumns) =>
         "data-boundary": "viewport",
         type: "button",
         id: "btnHideCols",
-        "data-toggle": "dropdown",
+        "data-bs-toggle": "dropdown",
         "aria-haspopup": "true",
         "aria-expanded": "false",
       },
@@ -707,7 +707,7 @@ const run_action = async (
       c.action_name === body.action_name &&
       body.action_name
   );
-  console.log({ col, body });
+  //console.log({ col, body });
   const table = await Table.findOne({ id: table_id });
   const row = await table.getRow({ id: body.id });
   const state_action = getState().actions[col.action_name];
