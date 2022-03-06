@@ -362,6 +362,7 @@ const get_tabulator_columns = async (
 ) => {
   const tabcols = [];
   const calculators = [];
+  const dropdown_actions = [];
   for (const column of columns) {
     let tcol = {};
     if (column.type === "Field") {
@@ -432,7 +433,11 @@ const get_tabulator_columns = async (
       });
       tcol.field = rndid;
       tcol.clipboard = false;
-    } else if (column.type === "Action" && column.action_name === "Delete") {
+    } else if (
+      column.type === "Action" &&
+      column.action_name === "Delete" &&
+      !column.in_dropdown
+    ) {
       tcol = {
         formatter: "buttonCross",
         title: i({ class: "far fa-trash-alt" }),
@@ -459,12 +464,37 @@ const get_tabulator_columns = async (
       });
       tcol.field = rndid;
       tcol.clipboard = false;
+      if (column.in_dropdown) {
+        dropdown_actions.push(rndid);
+        tcol = false;
+      }
     }
+    if (!tcol) continue;
     if (column.header_label) tcol.title = column.header_label;
     if (column.frozen) tcol.frozen = true;
     if (column.disable_edit) tcol.editor = false;
     if (vert_col_headers) tcol.headerVertical = true;
     tabcols.push(tcol);
+  }
+  if (dropdown_actions.length > 0) {
+    const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+    calculators.push((row) => {
+      row[rndid] = `
+      <div class="dropdown">
+  <button class="btn btn-secondary dropdown-toggle" type="button" id="dd${rndid}" data-bs-toggle="dropdown" aria-expanded="false">
+    Actions
+  </button>
+  <div class="dropdown-menu" aria-labelledby="dd${rndid}">
+    ${dropdown_actions.map((rid) => row[rid]).join("")}
+  </div>
+</div>
+      `;
+    });
+    tabcols.push({
+      formatter: "html",
+      field: rndid,
+      clipboard: false,
+    });
   }
   return { tabcolumns: tabcols, calculators };
 };
