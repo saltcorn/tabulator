@@ -460,7 +460,7 @@ const get_tabulator_columns = async (
           column.action_name,
           "action_name"
         );
-        row[rndid] = action_link(url, req, column);
+        row[rndid] = column.in_dropdown ? url : action_link(url, req, column);
       });
       tcol.field = rndid;
       tcol.clipboard = false;
@@ -479,8 +479,9 @@ const get_tabulator_columns = async (
     if (vert_col_headers) tcol.headerVertical = true;
     tabcols.push(tcol);
   }
+  let arndid;
   if (dropdown_actions.length > 0) {
-    const arndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+    arndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
     calculators.push((row) => {
       row[arndid] = "Actions";
     });
@@ -500,7 +501,12 @@ const get_tabulator_columns = async (
       cssClass: "tabu_action_dd",
     });
   }
-  return { tabcolumns: tabcols, calculators };
+  return {
+    tabcolumns: tabcols,
+    calculators,
+    dropdown_id: arndid,
+    dropdown_actions,
+  };
 };
 
 const addRowButton = () =>
@@ -596,7 +602,12 @@ const run = async (
     aggregations,
     ...q,
   });
-  const { tabcolumns, calculators } = await get_tabulator_columns(
+  const {
+    tabcolumns,
+    calculators,
+    dropdown_id,
+    dropdown_actions,
+  } = await get_tabulator_columns(
     viewname,
     table,
     fields,
@@ -632,7 +643,7 @@ const run = async (
             col[k] = window[v.substring(2)];
         })
       })   
-    window.tabulator_table = new Tabulator("#jsGrid", {
+    window.tabulator_table = new Tabulator("#tabgrid${viewname}", {
         data: ${JSON.stringify(rows)},
         layout:"fit${fit || "Columns"}", 
         columns,
@@ -668,8 +679,28 @@ const run = async (
         }
       });
     }
+    const dropdown_actions = ${JSON.stringify(dropdown_actions)};
     window.tabulator_table.on("cellEdited", function(cell){
-      save_row_from_cell(cell.getRow().getData(), cell)
+      const row=cell.getRow().getData();
+      if(cell.getField()==="${dropdown_id}"){
+        const val = cell.getValue();
+        const action= row[val]
+        if(typeof action==="string") {
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = action;
+          const hiddenField = document.createElement('input');
+          hiddenField.type = 'hidden';
+          hiddenField.name = '_csrf';
+          hiddenField.value = _sc_globalCsrf;
+          form.appendChild(hiddenField);
+          document.body.appendChild(form);
+          form.submit();
+        }         
+        if(action && action.javascript)
+          eval(action.javascript)        
+      }
+      else save_row_from_cell(row, cell)
     });
     window.tabulator_table.on("historyUndo", function(action, component, data){
       
@@ -733,7 +764,7 @@ const run = async (
       addRowBtn && addRowButton(),
       hideColsBtn && hideShowColsBtn(tabcolumns)
     ),
-    div({ id: "jsGrid" })
+    div({ id: `tabgrid${viewname}` })
   );
 };
 
