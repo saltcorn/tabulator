@@ -465,7 +465,10 @@ const get_tabulator_columns = async (
       tcol.field = rndid;
       tcol.clipboard = false;
       if (column.in_dropdown) {
-        dropdown_actions.push(rndid);
+        dropdown_actions.push({
+          rndid,
+          label: column.label || column.action_name,
+        });
         tcol = false;
       }
     }
@@ -477,23 +480,24 @@ const get_tabulator_columns = async (
     tabcols.push(tcol);
   }
   if (dropdown_actions.length > 0) {
-    const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+    const arndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
     calculators.push((row) => {
-      row[rndid] = `
-      <div class="dropdown">
-  <button class="btn btn-secondary dropdown-toggle" type="button" id="dd${rndid}" data-bs-toggle="dropdown" aria-expanded="false">
-    Actions
-  </button>
-  <div class="dropdown-menu" aria-labelledby="dd${rndid}">
-    ${dropdown_actions.map((rid) => row[rid]).join("")}
-  </div>
-</div>
-      `;
+      row[arndid] = "Actions";
+    });
+    const values = {};
+    dropdown_actions.forEach(({ label, rndid }) => {
+      values[rndid] = label;
     });
     tabcols.push({
       formatter: "html",
-      field: rndid,
+      field: arndid,
+      title: "Actions",
       clipboard: false,
+      editor: "select",
+      editorParams: { values },
+      headerSort: false,
+      clipboard: false,
+      cssClass: "tabu_action_dd",
     });
   }
   return { tabcolumns: tabcols, calculators };
@@ -618,6 +622,7 @@ const run = async (
   return div(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
+    style(`.tabulator-cell.tabu_action_dd:after {content: "\\25bc";}`),
     script(
       domReady(`
       const columns=${JSON.stringify(tabcolumns)};          
