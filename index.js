@@ -179,6 +179,13 @@ const view_configuration_workflow = (req) =>
                 sublabel: "Display drop-down menu to select shown columns",
               },
               {
+                name: "hide_null_columns",
+                label: "Hide null columns",
+                sublabel:
+                  "Do not display a column if it contains entirely missing values",
+                type: "Bool",
+              },
+              {
                 name: "addRowBtn",
                 label: "Add row button",
                 type: "Bool",
@@ -566,6 +573,7 @@ const run = async (
     default_state,
     fit,
     hideColsBtn,
+    hide_null_columns,
     addRowBtn,
     selectable,
     download_csv,
@@ -629,14 +637,23 @@ const run = async (
       clipboard: false,
       frozen: tabcolumns[0].frozen,
     });
-
+  const use_tabcolumns = hide_null_columns
+    ? tabcolumns.filter(
+        (c) =>
+          !c.field ||
+          rows.some(
+            (row) =>
+              row[c.field] !== null && typeof row[c.field] !== "undefined"
+          )
+      )
+    : tabcolumns;
   return div(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
     style(`.tabulator-cell.tabu_action_dd:after {content: "\\25bc";}`),
     script(
       domReady(`
-      const columns=${JSON.stringify(tabcolumns)};          
+      const columns=${JSON.stringify(use_tabcolumns)};          
       columns.forEach(col=>{
         Object.entries(col).forEach(([k,v])=>{
           if(typeof v === "string" && v.startsWith("__"))
