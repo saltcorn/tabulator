@@ -196,6 +196,12 @@ const view_configuration_workflow = (req) =>
                 type: "Bool",
               },
               {
+                name: "remove_unselected_btn",
+                label: "Remove unselected button",
+                type: "Bool",
+                showIf: { selectable: true },
+              },
+              {
                 name: "download_csv",
                 label: "Download CSV",
                 type: "Bool",
@@ -576,6 +582,7 @@ const run = async (
     hide_null_columns,
     addRowBtn,
     selectable,
+    remove_unselected_btn,
     download_csv,
     header_filters,
     pagination_size,
@@ -739,6 +746,15 @@ const run = async (
       }
     })
     window.tabulator_table_name="${table.name}";
+    window.tab_remove_unselected = () =>{
+      const selected = new Set(window.tabulator_table.getSelectedRows().map(r=>r.getIndex()));
+      const rows = window.tabulator_table.getRows();
+      const to_delete=[]
+      for(const row of rows) 
+        if(!selected.has(row.getIndex()))
+          to_delete.push(row);          
+      to_delete.forEach(r=>r.delete())
+    }
     ${
       download_csv
         ? `document.getElementById("tabulator-download-csv").addEventListener("click", function(){
@@ -768,6 +784,15 @@ const run = async (
             onClick: "window.tabulator_table.redo()",
           },
           i({ class: "fas fa-redo" })
+        ),
+      remove_unselected_btn &&
+        button(
+          {
+            class: "btn btn-sm btn-primary me-2",
+            title: "Redo",
+            onClick: `tab_remove_unselected()`,
+          },
+          "Remove unselected"
         ),
       download_csv &&
         button(
