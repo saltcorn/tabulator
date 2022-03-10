@@ -227,6 +227,12 @@ const view_configuration_workflow = (req) =>
                 type: "Bool",
               },
               {
+                name: "persistent",
+                label: "Persistent configuration",
+                type: "Bool",
+              },
+
+              {
                 name: "pagination_size",
                 label: "Pagination size",
                 type: "Integer",
@@ -588,6 +594,7 @@ const run = async (
     pagination_size,
     movable_cols,
     history,
+    persistent,
     groupBy,
     vert_col_headers,
   },
@@ -617,21 +624,17 @@ const run = async (
     aggregations,
     ...q,
   });
-  const {
-    tabcolumns,
-    calculators,
-    dropdown_id,
-    dropdown_actions,
-  } = await get_tabulator_columns(
-    viewname,
-    table,
-    fields,
-    columns,
-    false,
-    extraArgs.req,
-    header_filters,
-    vert_col_headers
-  );
+  const { tabcolumns, calculators, dropdown_id, dropdown_actions } =
+    await get_tabulator_columns(
+      viewname,
+      table,
+      fields,
+      columns,
+      false,
+      extraArgs.req,
+      header_filters,
+      vert_col_headers
+    );
   calculators.forEach((f) => {
     rows.forEach(f);
   });
@@ -675,7 +678,7 @@ const run = async (
         pagination:true,
         paginationSize:${pagination_size || 20},
         clipboard:true,
-        persistence:true, 
+        persistence:${!!persistent}, 
         persistenceID:"tabview_${viewname}",
         movableColumns: ${!!movable_cols},
         history: ${!!history},
