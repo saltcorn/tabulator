@@ -633,7 +633,6 @@ const run = async (
     aggregations,
     ...q,
   });
-  console.log(rows);
   const { tabcolumns, calculators, dropdown_id, dropdown_actions } =
     await get_tabulator_columns(
       viewname,
