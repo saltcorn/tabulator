@@ -618,6 +618,18 @@ const run = async (
   const current_page = parseInt(state._page) || 1;
   const { joinFields, aggregations } = picked_fields_to_query(columns, fields);
   await set_join_fieldviews({ columns, fields });
+  let groupBy1 = groupBy;
+  if (groupBy) {
+    const groupField = fields.find((f) => f.name === groupBy);
+    if (groupField && groupField.is_fkey) {
+      groupBy1 = `${groupBy}_${groupField?.attributes?.summary_field || "id"}`;
+      if (!joinFields[groupBy1])
+        joinFields[groupBy1] = {
+          ref: groupBy,
+          target: groupField?.attributes?.summary_field || "id",
+        };
+    }
+  }
 
   let rows = await table.getJoinedRows({
     where,
@@ -683,7 +695,7 @@ const run = async (
         persistenceID:"tabview_${viewname}",
         movableColumns: ${!!movable_cols},
         history: ${!!history},
-        ${groupBy ? `groupBy: "${groupBy}",` : ""}
+        ${groupBy1 ? `groupBy: "${groupBy1}",` : ""}
         //initialSort:[
         //  {column:"id", dir:"asc"},
         //],
