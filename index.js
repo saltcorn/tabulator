@@ -408,13 +408,9 @@ const get_tabulator_columns = async (
         key = `${ref}_${ontable}_${target}`;
       } else {
         const keypath = column.join_field.split(".");
-        if (keypath.length === 2) {
-          [refNm, targetNm] = keypath;
-          key = `${refNm}_${targetNm}`;
-        } else {
-          [refNm, through, targetNm] = keypath;
-          key = `${refNm}_${through}_${targetNm}`;
-        }
+        refNm = keypath[0];
+        targetNm = keypath[keypath.length - 1];
+        key = keypath.join("_");
       }
       if (column.field_type && column.field_obj) {
         tcol = typeToGridType(
@@ -637,6 +633,7 @@ const run = async (
     aggregations,
     ...q,
   });
+  console.log(rows);
   const { tabcolumns, calculators, dropdown_id, dropdown_actions } =
     await get_tabulator_columns(
       viewname,
