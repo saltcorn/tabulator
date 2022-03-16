@@ -110,6 +110,7 @@ const view_configuration_workflow = (req) =>
             fields: [
               new FieldRepeat({
                 name: "columns",
+                fancyMenuEditor: true,
                 fields: use_field_picker_repeat,
               }),
             ],
