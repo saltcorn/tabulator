@@ -232,6 +232,11 @@ const view_configuration_workflow = (req) =>
                 label: "Persistent configuration",
                 type: "Bool",
               },
+              {
+                name: "dropdown_frozen",
+                label: "Action dropdown column frozen",
+                type: "Bool",
+              },
 
               {
                 name: "pagination_size",
@@ -378,7 +383,8 @@ const get_tabulator_columns = async (
   isShow,
   req,
   header_filters,
-  vert_col_headers
+  vert_col_headers,
+  dropdown_frozen
 ) => {
   const tabcols = [];
   const calculators = [];
@@ -515,6 +521,7 @@ const get_tabulator_columns = async (
       headerSort: false,
       clipboard: false,
       cssClass: "tabu_action_dd",
+      frozen: !!dropdown_frozen,
     });
   }
   return {
@@ -593,6 +600,7 @@ const run = async (
     history,
     persistent,
     groupBy,
+    dropdown_frozen,
     vert_col_headers,
   },
   state,
@@ -642,7 +650,8 @@ const run = async (
       false,
       extraArgs.req,
       header_filters,
-      vert_col_headers
+      vert_col_headers,
+      dropdown_frozen
     );
   calculators.forEach((f) => {
     rows.forEach(f);
