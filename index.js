@@ -233,6 +233,13 @@ const view_configuration_workflow = (req) =>
                 type: "Bool",
               },
               {
+                name: "reset_persistent_btn",
+                label: "Reset persistent button",
+                sublabel: "Show button to reset persistent configuration",
+                type: "Bool",
+                showIf: { persistent: true },
+              },
+              {
                 name: "dropdown_frozen",
                 label: "Action dropdown column frozen",
                 type: "Bool",
@@ -602,6 +609,7 @@ const run = async (
     groupBy,
     dropdown_frozen,
     vert_col_headers,
+    reset_persistent_btn,
   },
   state,
   extraArgs
@@ -776,6 +784,11 @@ const run = async (
           to_delete.push(row);          
       to_delete.forEach(r=>r.delete())
     }
+    window.tab_reset_persistcfg = () =>{
+      localStorage.removeItem('tabulator-tabview_${viewname}-columns');
+      localStorage.removeItem('tabulator-tabview_${viewname}-sort');
+      location.reload();
+    }
     ${
       download_csv
         ? `document.getElementById("tabulator-download-csv").addEventListener("click", function(){
@@ -823,6 +836,15 @@ const run = async (
           },
           i({ class: "fas fa-download me-1" }),
           "Download"
+        ),
+      reset_persistent_btn &&
+        button(
+          {
+            class: "btn btn-sm btn-primary me-2",
+            title: "Reset",
+            onClick: `tab_reset_persistcfg()`,
+          },
+          "Reset"
         ),
       addRowBtn && addRowButton(),
       hideColsBtn && hideShowColsBtn(tabcolumns)
