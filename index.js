@@ -174,6 +174,19 @@ const view_configuration_workflow = (req) =>
                 },
               },
               {
+                name: "def_order_field",
+                label: req.__("Default order by"),
+                type: "String",
+                attributes: {
+                  options: fields.map((f) => f.name),
+                },
+              },
+              {
+                name: "def_order_descending",
+                label: req.__("Default order descending?"),
+                type: "Bool",
+              },
+              {
                 name: "hideColsBtn",
                 label: "Show/hide columns",
                 type: "Bool",
@@ -610,6 +623,8 @@ const run = async (
     dropdown_frozen,
     vert_col_headers,
     reset_persistent_btn,
+    def_order_field,
+    def_order_descending,
   },
   state,
   extraArgs
@@ -709,9 +724,15 @@ const run = async (
         movableColumns: ${!!movable_cols},
         history: ${!!history},
         ${groupBy1 ? `groupBy: "${groupBy1}",` : ""}
-        //initialSort:[
-        //  {column:"id", dir:"asc"},
-        //],
+        ${
+          def_order_field
+            ? `initialSort:[
+          {column:"${def_order_field}", dir:"${
+                def_order_descending ? "desc" : "asc"
+              }"},
+        ],`
+            : ""
+        }
         ajaxResponse:function(url, params, response){                    
   
           return response.success; //return the tableData property of a response json object
