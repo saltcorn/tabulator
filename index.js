@@ -806,8 +806,10 @@ const run = async (
       to_delete.forEach(r=>r.delete())
     }
     window.tab_reset_persistcfg = () =>{
-      localStorage.removeItem('tabulator-tabview_${viewname}-columns');
-      localStorage.removeItem('tabulator-tabview_${viewname}-sort');
+      for (const key in localStorage){
+        if(key.startsWith('tabulator-tabview_${viewname}-'))
+          localStorage.removeItem(key);
+      }
       location.reload();
     }
     ${
