@@ -282,7 +282,7 @@ const get_state_fields = async (table_id, viewname, { show_view }) => {
     });
 };
 //copy from server/routes/list.js
-const typeToGridType = (t, field, header_filters) => {
+const typeToGridType = (t, field, header_filters, column) => {
   const jsgField = { field: field.name, title: field.label, editor: true };
   if (t.name === "String" && field.attributes && field.attributes.options) {
     jsgField.editor = "select";
@@ -353,8 +353,14 @@ const typeToGridType = (t, field, header_filters) => {
     jsgField.hozAlign = "center";
     jsgField.vertAlign = "center";
   } else if (t.name === "JSON") {
-    jsgField.formatter = "__jsonFormatter";
-    jsgField.editor = "__jsonEditor";
+    if (field.fieldview === "keys_expand_columns") {
+      const fv = t.fieldviews.keys_expand_columns;
+      const ex = fv.expandColumns(field, column, column);
+      jsgField.subcolumns = ex;
+    } else {
+      jsgField.formatter = "__jsonFormatter";
+      jsgField.editor = "__jsonEditor";
+    }
   }
 
   if (field.calculated) {
@@ -423,7 +429,7 @@ const get_tabulator_columns = async (
         });
         tcol.field = key;
         tcol.title = column.key;
-      } else tcol = typeToGridType(f.type, f, header_filters);
+      } else tcol = typeToGridType(f.type, f, header_filters, column);
     } else if (column.type === "JoinField") {
       let refNm, targetNm, through, key, type;
       if (column.join_field.includes("->")) {
@@ -441,7 +447,9 @@ const get_tabulator_columns = async (
       if (column.field_type && column.field_obj) {
         tcol = typeToGridType(
           getState().types[column.field_type],
-          column.field_obj
+          column.field_obj,
+          header_filters,
+          column
         );
       }
       tcol.field = key;
@@ -515,6 +523,21 @@ const get_tabulator_columns = async (
       }
     }
     if (!tcol) continue;
+    if (tcol.subcolumns) {
+      for (const { label, row_key } of tcol.subcolumns) {
+        const [fld, subfld] = row_key;
+        const scol = {};
+        scol.editor = false;
+        const key = `${fld}_${subfld}`;
+        calculators.push((row) => {
+          row[key] = (row[fld] || {})[subfld];
+        });
+        scol.field = key;
+        scol.title = subfld;
+        tabcols.push(scol);
+      }
+      continue;
+    }
     if (column.header_label) tcol.title = column.header_label;
     if (column.frozen) tcol.frozen = true;
     if (column.disable_edit) tcol.editor = false;
