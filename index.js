@@ -821,15 +821,23 @@ const run = async (
     })
     window.tabulator_table_name="${table.name}";
     window.tab_remove_unselected = () =>{
-      const selected = new Set(window.tabulator_table.getSelectedRows().map(r=>r.getIndex()));
-      const rows = window.tabulator_table.getRows();
-      const to_delete=[]
-      for(const row of rows) 
-        if(!selected.has(row.getIndex())) 
-          //row.delete()
-          to_delete.push(row);   
-      window.tabulator_table.deleteRow(to_delete);     
-
+      const allRowCount = window.tabulator_table.getDataCount();
+      const selRowCount = window.tabulator_table.getDataCount("selected");
+      if(selRowCount < allRowCount/2) {
+        const rows = window.tabulator_table.getData("selected");
+        window.tabulator_table.clearData();
+        for(const row of rows) 
+          window.tabulator_table.addRow(row);
+      } else {
+        const selected = new Set(window.tabulator_table.getSelectedRows().map(r=>r.getIndex()));
+        const rows = window.tabulator_table.getRows();
+        const to_delete=[]
+        for(const row of rows) 
+          if(!selected.has(row.getIndex())) 
+            to_delete.push(row);   
+        
+        window.tabulator_table.deleteRow(to_delete);
+      }
     }
     window.tab_reset_persistcfg = () =>{
       for (const key in localStorage){
