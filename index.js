@@ -211,7 +211,7 @@ const view_configuration_workflow = (req) =>
               },
               {
                 name: "remove_unselected_btn",
-                label: "Remove unselected button",
+                label: "Show selection button",
                 type: "Bool",
                 showIf: { selectable: true },
               },
@@ -872,7 +872,7 @@ const run = async (
             title: "Redo",
             onClick: `tab_remove_unselected()`,
           },
-          "Remove unselected"
+          "Show selection"
         ),
       download_csv &&
         button(
