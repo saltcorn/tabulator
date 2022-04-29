@@ -824,8 +824,9 @@ const run = async (
       const rows = window.tabulator_table.getRows();
       const to_delete=[]
       for(const row of rows) 
-        if(!selected.has(row.getIndex()))
-          to_delete.push(row.getIndex());   
+        if(!selected.has(row.getIndex())) 
+          //row.delete()
+          to_delete.push(row);   
       window.tabulator_table.deleteRow(to_delete);     
 
     }
