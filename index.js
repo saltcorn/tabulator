@@ -825,8 +825,9 @@ const run = async (
       const to_delete=[]
       for(const row of rows) 
         if(!selected.has(row.getIndex()))
-          to_delete.push(row);          
-      to_delete.forEach(r=>r.delete())
+          to_delete.push(row.getIndex());   
+      window.tabulator_table.deleteRow(to_delete);     
+
     }
     window.tab_reset_persistcfg = () =>{
       for (const key in localStorage){
