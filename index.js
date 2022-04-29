@@ -59,6 +59,7 @@ const configuration_workflow = () =>
                 required: true,
                 attributes: {
                   options: [
+                    "bootstrap5",
                     "bootstrap4",
                     "midnight",
                     "modern",
