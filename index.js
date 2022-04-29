@@ -608,6 +608,9 @@ const hideShowColsBtn = (tabcolumns) =>
       },
       form(
         { class: "px-2" },
+        a({ onclick: `allnonecols(true,this)`, href: "javascript:;" }, "All"),
+        " | ",
+        a({ onclick: `allnonecols(false,this)`, href: "javascript:;" }, "None"),
         tabcolumns.map(
           (f) =>
             f.field &&
@@ -845,6 +848,13 @@ const run = async (
           localStorage.removeItem(key);
       }
       location.reload();
+    }
+    window.allnonecols= (do_show, e) =>{
+      columns.forEach(col=>{
+        if (do_show) window.tabulator_table.showColumn(col.field);
+        else window.tabulator_table.hideColumn(col.field);
+        $(e).closest("form").find("input").prop("checked", do_show)
+      })
     }
     ${
       download_csv
