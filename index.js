@@ -294,6 +294,7 @@ const typeToGridType = (t, field, header_filters, column) => {
     if (!field.required) values.unshift("");
 
     jsgField.editorParams = { values };
+    if (header_filters) jsgField.headerFilterParams = { values };
     jsgField.headerFilter = !!header_filters;
   } else if (t.name === "String") {
     jsgField.headerFilter = !!header_filters;
@@ -304,6 +305,7 @@ const typeToGridType = (t, field, header_filters, column) => {
     field.options.forEach(({ label, value }) => (values[value] = label));
     jsgField.editorParams = { values };
     jsgField.formatterParams = { values };
+    if (header_filters) jsgField.headerFilterParams = { values };
     jsgField.formatter = "__lookupIntToString";
     jsgField.headerFilter = !!header_filters;
   } else if (t.name === "Float" || t.name === "Integer") {
