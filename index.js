@@ -476,6 +476,15 @@ const get_tabulator_columns = async (
       });
       tcol.field = column.view;
       tcol.clipboard = false;
+      if (column.in_dropdown) {
+        dropdown_actions.push({
+          column,
+          rndid: column.view,
+          wholeLink: true,
+          label: column.label || column.action_name,
+        });
+        tcol = false;
+      }
     } else if (column.type === "Link") {
       tcol.formatter = "html";
       const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
@@ -486,6 +495,15 @@ const get_tabulator_columns = async (
       });
       tcol.field = rndid;
       tcol.clipboard = false;
+      if (column.in_dropdown) {
+        dropdown_actions.push({
+          column,
+          rndid,
+          wholeLink: true,
+          label: column.label || column.action_name,
+        });
+        tcol = false;
+      }
     } else if (
       column.type === "Action" &&
       column.action_name === "Delete" &&
@@ -561,10 +579,11 @@ const get_tabulator_columns = async (
         },
         "Action"
       );
-      dropdown_actions.forEach(({ label, column, rndid }) => {
+      dropdown_actions.forEach(({ label, column, rndid, wholeLink }) => {
         const action = row[rndid];
         if (action.javascript)
           html += a({ href: `javascript:${action.javascript}` }, label);
+        else if (wholeLink) html += action;
         else
           html += post_btn(action, label, req.csrfToken(), {
             small: true,
