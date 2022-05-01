@@ -546,25 +546,26 @@ const get_tabulator_columns = async (
     tabcols.push(tcol);
   }
   let arndid;
+
   if (dropdown_actions.length > 0) {
     arndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
     calculators.push((row) => {
       row[arndid] = "Actions";
+      row._dropdown = `The even <i>better</i> popup: ${row.id}`;
     });
-    const values = {};
-    dropdown_actions.forEach(({ label, rndid }) => {
-      values[rndid] = label;
-    });
+    //const values = {};
+    //dropdown_actions.forEach(({ label, rndid }) => {
+    //  values[rndid] = label;
+    //});
+
     tabcols.push({
-      formatter: "html",
       field: arndid,
       title: "Actions",
       clipboard: false,
-      editor: "select",
-      editorParams: { values },
+      //editorParams: { values },
       headerSort: false,
       clipboard: false,
-      cssClass: "tabu_action_dd",
+      clickPopup: "__actionPopup",
       frozen: !!dropdown_frozen,
     });
   }
@@ -731,11 +732,17 @@ const run = async (
     style(`.tabulator-cell.tabu_action_dd:after {content: "\\25bc";}`),
     script(
       domReady(`
-      const columns=${JSON.stringify(use_tabcolumns)};          
+      const columns=${JSON.stringify(use_tabcolumns)};   
+      const dropdown_actions = ${JSON.stringify(dropdown_actions)};
+      window.actionPopup = (e, row) => {
+        return row.getRow().getData()._dropdown;
+      }     
       columns.forEach(col=>{
         Object.entries(col).forEach(([k,v])=>{
-          if(typeof v === "string" && v.startsWith("__"))
+          if(typeof v === "string" && v.startsWith("__")) {
             col[k] = window[v.substring(2)];
+            console.log("replacing", k, col.field, window[v.substring(2)])
+          }
         })
       })   
     window.tabulator_table = new Tabulator("#tabgrid${viewname}", {
@@ -780,7 +787,6 @@ const run = async (
         }
       });
     }
-    const dropdown_actions = ${JSON.stringify(dropdown_actions)};
     window.tabulator_table.on("cellEdited", function(cell){
       const row=cell.getRow().getData();
       if(cell.getField()==="${dropdown_id}"){
