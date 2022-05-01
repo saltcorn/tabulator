@@ -563,8 +563,8 @@ const get_tabulator_columns = async (
       );
       dropdown_actions.forEach(({ label, column, rndid }) => {
         const action = row[rndid];
-        if (action.javascipt)
-          html += a({ href: `javascript:${action.javascipt}` }, label);
+        if (action.javascript)
+          html += a({ href: `javascript:${action.javascript}` }, label);
         else
           html += post_btn(action, label, req.csrfToken(), {
             small: true,
@@ -766,7 +766,6 @@ const run = async (
         Object.entries(col).forEach(([k,v])=>{
           if(typeof v === "string" && v.startsWith("__")) {
             col[k] = window[v.substring(2)];
-            console.log("replacing", k, col.field, window[v.substring(2)])
           }
         })
       })   
