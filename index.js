@@ -35,6 +35,8 @@ const {
   label,
   text_attr,
 } = require("@saltcorn/markup/tags");
+const { post_btn } = require("@saltcorn/markup");
+
 const {
   action_url,
   view_linker,
@@ -517,6 +519,7 @@ const get_tabulator_columns = async (
       tcol.clipboard = false;
       if (column.in_dropdown) {
         dropdown_actions.push({
+          column,
           rndid,
           label: column.label || column.action_name,
         });
@@ -550,8 +553,22 @@ const get_tabulator_columns = async (
   if (dropdown_actions.length > 0) {
     arndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
     calculators.push((row) => {
+      let html = "";
       row[arndid] = "Actions";
-      row._dropdown = `The even <i>better</i> popup: ${row.id}`;
+      dropdown_actions.forEach(({ label, column, rndid }) => {
+        const action = row[rndid];
+        if (action.javascipt)
+          html += a({ href: `javascript:${action.javascipt}` }, label);
+        else
+          html += post_btn(action, label, req.csrfToken(), {
+            small: true,
+            ajax: true,
+            reload_on_done: true,
+            confirm: column.confirm,
+            req,
+          });
+      });
+      row._dropdown = html;
     });
     //const values = {};
     //dropdown_actions.forEach(({ label, rndid }) => {
