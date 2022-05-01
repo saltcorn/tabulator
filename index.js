@@ -323,6 +323,9 @@ const typeToGridType = (t, field, header_filters, column) => {
           : undefined,
     };
     jsgField.headerFilter = !!header_filters;
+    jsgField.headerFilter = "__minMaxFilterEditor";
+    jsgField.headerFilterFunc = "__minMaxFilterFunction";
+    jsgField.headerFilterLiveFilter = false;
   } else if (t.name === "Bool") {
     jsgField.editor = "tickCross";
     jsgField.formatter = "tickCross";
@@ -1010,6 +1013,9 @@ module.exports = {
   headers: ({ stylesheet }) => [
     {
       script: "/plugins/public/tabulator/tabulator.min.js",
+    },
+    {
+      script: "/plugins/public/tabulator/custom.js",
     },
     {
       script: "/plugins/public/tabulator/luxon.min.js",
