@@ -554,7 +554,13 @@ const get_tabulator_columns = async (
     arndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
     calculators.push((row) => {
       let html = "";
-      row[arndid] = "Actions";
+      row[arndid] = button(
+        {
+          class: "btn btn-sm btn-outline-secondary dropdown-toggle",
+          disabled: true,
+        },
+        "Action"
+      );
       dropdown_actions.forEach(({ label, column, rndid }) => {
         const action = row[rndid];
         if (action.javascipt)
@@ -564,6 +570,7 @@ const get_tabulator_columns = async (
             small: true,
             ajax: true,
             reload_on_done: true,
+            btnClass: "dropdown-item",
             confirm: column.confirm,
             req,
           });
@@ -580,6 +587,7 @@ const get_tabulator_columns = async (
       title: "Actions",
       clipboard: false,
       //editorParams: { values },
+      formatter: "html",
       headerSort: false,
       clipboard: false,
       clickPopup: "__actionPopup",
@@ -746,7 +754,7 @@ const run = async (
   return div(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
-    style(`.tabulator-cell.tabu_action_dd:after {content: "\\25bc";}`),
+    style(`.tabulator-popup-container {background: white}`),
     script(
       domReady(`
       const columns=${JSON.stringify(use_tabcolumns)};   
