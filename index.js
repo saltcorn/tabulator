@@ -196,6 +196,12 @@ const view_configuration_workflow = (req) =>
                 sublabel: "Display drop-down menu to select shown columns",
               },
               {
+                name: "column_visibility_presets",
+                label: "Column visibility presets",
+                type: "Bool",
+                showIf: { hideColsBtn: true },
+              },
+              {
                 name: "hide_null_columns",
                 label: "Hide null columns",
                 sublabel:
@@ -636,7 +642,13 @@ const addRowButton = () =>
     "Add row"
   );
 
-const hideShowColsBtn = (tabcolumns) =>
+const hideShowColsBtn = (
+  tabcolumns,
+  column_visibility_presets,
+  presets,
+  role,
+  viewname
+) =>
   div(
     { class: "dropdown d-inline" },
     button(
@@ -657,10 +669,34 @@ const hideShowColsBtn = (tabcolumns) =>
         "aria-labelledby": "btnHideCols",
       },
       form(
-        { class: "px-2" },
+        { class: "px-2 tabShowHideCols" },
         a({ onclick: `allnonecols(true,this)`, href: "javascript:;" }, "All"),
         " | ",
         a({ onclick: `allnonecols(false,this)`, href: "javascript:;" }, "None"),
+        !!column_visibility_presets && div("Presets:"),
+        column_visibility_presets &&
+          Object.entries(presets || {}).map(([k, v]) =>
+            a(
+              {
+                class: "d-block",
+                href: `javascript:activate_preset('${encodeURIComponent(
+                  JSON.stringify(v)
+                )}');`,
+              },
+              k
+            )
+          ),
+        role === 1 &&
+          !!column_visibility_presets &&
+          a(
+            {
+              class: "d-block",
+              href: `javascript:add_preset('${viewname}');`,
+            },
+            i({ class: "fas fa-plus" }),
+            "Add"
+          ),
+
         tabcolumns.map(
           (f) =>
             f.field &&
@@ -671,6 +707,7 @@ const hideShowColsBtn = (tabcolumns) =>
                 onChange: `showHideCol('${f.field}', this)`,
                 class: "form-check-input",
                 checked: true,
+                "data-fieldname": f.field,
               }),
               label(f.title || f.field)
             )
@@ -702,6 +739,8 @@ const run = async (
     reset_persistent_btn,
     def_order_field,
     def_order_descending,
+    column_visibility_presets,
+    presets,
   },
   state,
   extraArgs
@@ -968,10 +1007,33 @@ const run = async (
           "Reset"
         ),
       addRowBtn && addRowButton(),
-      hideColsBtn && hideShowColsBtn(tabcolumns)
+      hideColsBtn &&
+        hideShowColsBtn(
+          tabcolumns,
+          column_visibility_presets,
+          presets,
+          extraArgs.req?.user?.role_id || 10,
+          viewname
+        )
     ),
     div({ id: `tabgrid${viewname}` })
   );
+};
+
+const add_preset = async (
+  table_id,
+  viewname,
+  { presets },
+  body,
+  { req, res }
+) => {
+  const newPresets = presets || {};
+  newPresets[body.name] = body.preset;
+  const view = await View.findOne({ name: viewname });
+  const newConfig = {
+    configuration: { ...view.configuration, presets: newPresets },
+  };
+  await View.update(newConfig, view.id);
 };
 
 const run_action = async (
@@ -1045,7 +1107,7 @@ module.exports = {
       get_state_fields,
       configuration_workflow: view_configuration_workflow,
       run,
-      routes: { run_action },
+      routes: { run_action, add_preset },
     },
   ],
 };

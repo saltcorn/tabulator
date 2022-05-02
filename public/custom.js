@@ -79,3 +79,31 @@ function minMaxFilterFunction(headerValue, rowValue, rowData, filterParams) {
 
   return true; //must return a boolean, true if it passes the filter.
 }
+
+function add_preset(viewname) {
+  let name = prompt("Name of new preset");
+  if (!name) return;
+  const preset = {};
+  $(".tabShowHideCols")
+    .find("input[data-fieldname]")
+    .each(function () {
+      preset[$(this).attr("data-fieldname")] = !!$(this).prop("checked");
+    });
+  view_post(viewname, "add_preset", {
+    name,
+    preset,
+  });
+}
+
+function activate_preset(encPreset) {
+  const preset = JSON.parse(decodeURIComponent(encPreset));
+  $(".tabShowHideCols")
+    .find("input[data-fieldname]")
+    .each(function () {
+      const name = $(this).attr("data-fieldname");
+      const do_show = preset[name];
+      if (do_show) window.tabulator_table.showColumn(name);
+      else window.tabulator_table.hideColumn(name);
+      $(this).prop("checked", do_show);
+    });
+}
