@@ -95,6 +95,12 @@ function add_preset(viewname) {
   });
 }
 
+function delete_preset(viewname, name) {
+  view_post(viewname, "delete_preset", {
+    name,
+  });
+}
+
 function activate_preset(encPreset) {
   const preset = JSON.parse(decodeURIComponent(encPreset));
   $(".tabShowHideCols")

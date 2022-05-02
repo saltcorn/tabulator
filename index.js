@@ -676,14 +676,22 @@ const hideShowColsBtn = (
         !!column_visibility_presets && div("Presets:"),
         column_visibility_presets &&
           Object.entries(presets || {}).map(([k, v]) =>
-            a(
-              {
-                class: "d-block",
-                href: `javascript:activate_preset('${encodeURIComponent(
-                  JSON.stringify(v)
-                )}');`,
-              },
-              k
+            div(
+              a(
+                {
+                  href: `javascript:activate_preset('${encodeURIComponent(
+                    JSON.stringify(v)
+                  )}');`,
+                },
+                k
+              ),
+              role === 1 &&
+                a(
+                  {
+                    href: `javascript:delete_preset('${viewname}','${k}');`,
+                  },
+                  i({ class: "fas fa-trash-alt" })
+                )
             )
           ),
         role === 1 &&
@@ -1036,6 +1044,22 @@ const add_preset = async (
   await View.update(newConfig, view.id);
 };
 
+const delete_preset = async (
+  table_id,
+  viewname,
+  { presets },
+  body,
+  { req, res }
+) => {
+  const newPresets = presets || {};
+  delete newPresets[body.name];
+  const view = await View.findOne({ name: viewname });
+  const newConfig = {
+    configuration: { ...view.configuration, presets: newPresets },
+  };
+  await View.update(newConfig, view.id);
+};
+
 const run_action = async (
   table_id,
   viewname,
@@ -1107,7 +1131,7 @@ module.exports = {
       get_state_fields,
       configuration_workflow: view_configuration_workflow,
       run,
-      routes: { run_action, add_preset },
+      routes: { run_action, add_preset, delete_preset },
     },
   ],
 };
