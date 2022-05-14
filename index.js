@@ -371,6 +371,7 @@ const typeToGridType = (t, field, header_filters, column) => {
       const fv = t.fieldviews.keys_expand_columns;
       const ex = fv.expandColumns(field, column, column);
       jsgField.subcolumns = ex;
+      jsgField.field = field;
     } else {
       jsgField.formatter = "__jsonFormatter";
       jsgField.editor = "__jsonEditor";
@@ -415,6 +416,30 @@ const set_join_fieldviews = async ({ columns, fields }) => {
   }
 };
 
+const set_json_col = (tcol, field, key) => {
+  if (field?.attributes?.hasSchema && field.attributes.schema) {
+    const schemaType = field.attributes.schema.find((t) => t.key === key);
+    switch (schemaType?.type) {
+      case "Integer":
+      case "Float":
+        tcol.sorter = "number";
+        tcol.hozAlign = "right";
+        tcol.headerHozAlign = "right";
+        tcol.headerFilter = "__minMaxFilterEditor";
+        tcol.headerFilterFunc = "__minMaxFilterFunction";
+        tcol.headerFilterLiveFilter = false;
+        break;
+      case "Bool":
+        tcol.formatter = "tickCross";
+        tcol.hozAlign = "center";
+        tcol.vertAlign = "center";
+
+      default:
+        break;
+    }
+  }
+};
+
 const get_tabulator_columns = async (
   viewname,
   table,
@@ -444,30 +469,7 @@ const get_tabulator_columns = async (
         tcol.field = key;
         tcol.title = column.key;
         tcol.headerFilter = !!header_filters;
-
-        if (f.attributes?.hasSchema && f.attributes.schema) {
-          const schemaType = f.attributes.schema.find(
-            (t) => t.key === column.key
-          );
-          switch (schemaType?.type) {
-            case "Integer":
-            case "Float":
-              tcol.sorter = "number";
-              tcol.hozAlign = "right";
-              tcol.headerHozAlign = "right";
-              tcol.headerFilter = "__minMaxFilterEditor";
-              tcol.headerFilterFunc = "__minMaxFilterFunction";
-              tcol.headerFilterLiveFilter = false;
-              break;
-            case "Bool":
-              tcol.formatter = "tickCross";
-              tcol.hozAlign = "center";
-              tcol.vertAlign = "center";
-
-            default:
-              break;
-          }
-        }
+        set_json_col(tcol, f, column.key);
       } else tcol = typeToGridType(f.type, f, header_filters, column);
     } else if (column.type === "JoinField") {
       let refNm, targetNm, through, key, type;
@@ -592,6 +594,7 @@ const get_tabulator_columns = async (
         });
         scol.field = key;
         scol.title = subfld;
+        set_json_col(scol, tcol.field, subfld);
         tabcols.push(scol);
       }
       continue;
