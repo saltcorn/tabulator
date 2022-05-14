@@ -443,6 +443,31 @@ const get_tabulator_columns = async (
         });
         tcol.field = key;
         tcol.title = column.key;
+        tcol.headerFilter = !!header_filters;
+
+        if (f.attributes?.hasSchema && f.attributes.schema) {
+          const schemaType = f.attributes.schema.find(
+            (t) => t.key === column.key
+          );
+          switch (schemaType?.type) {
+            case "Integer":
+            case "Float":
+              tcol.sorter = "number";
+              tcol.hozAlign = "right";
+              tcol.headerHozAlign = "right";
+              tcol.headerFilter = "__minMaxFilterEditor";
+              tcol.headerFilterFunc = "__minMaxFilterFunction";
+              tcol.headerFilterLiveFilter = false;
+              break;
+            case "Bool":
+              tcol.formatter = "tickCross";
+              tcol.hozAlign = "center";
+              tcol.vertAlign = "center";
+
+            default:
+              break;
+          }
+        }
       } else tcol = typeToGridType(f.type, f, header_filters, column);
     } else if (column.type === "JoinField") {
       let refNm, targetNm, through, key, type;
