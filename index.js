@@ -1,4 +1,5 @@
 const Field = require("@saltcorn/data/models/field");
+const User = require("@saltcorn/data/models/user");
 const FieldRepeat = require("@saltcorn/data/models/fieldrepeat");
 
 const Table = require("@saltcorn/data/models/table");
@@ -151,6 +152,8 @@ const view_configuration_workflow = (req) =>
             ...colFields,
             ...fields.map((f) => f.name),
           ]);
+          const roles = await User.get_roles();
+
           return new Form({
             fields: [
               {
@@ -200,6 +203,14 @@ const view_configuration_workflow = (req) =>
                 label: "Column visibility presets",
                 type: "Bool",
                 showIf: { hideColsBtn: true },
+              },
+              {
+                name: "min_role_preset_edit",
+                label: "Role to edit",
+                sublabel: "Role required to edit presets",
+                input_type: "select",
+                showIf: { hideColsBtn: true, column_visibility_presets: true },
+                options: roles.map((r) => ({ value: r.id, label: r.role })),
               },
               {
                 name: "hide_null_columns",
@@ -674,7 +685,7 @@ const hideShowColsBtn = (
   tabcolumns,
   column_visibility_presets,
   presets,
-  role,
+  can_edit,
   viewname
 ) =>
   div(
@@ -713,7 +724,7 @@ const hideShowColsBtn = (
                 },
                 k
               ),
-              role === 1 &&
+              can_edit &&
                 a(
                   {
                     href: `javascript:delete_preset('${viewname}','${k}');`,
@@ -722,7 +733,7 @@ const hideShowColsBtn = (
                 )
             )
           ),
-        role === 1 &&
+        can_edit &&
           !!column_visibility_presets &&
           a(
             {
@@ -777,6 +788,7 @@ const run = async (
     def_order_descending,
     column_visibility_presets,
     presets,
+    min_role_preset_edit,
   },
   state,
   extraArgs
@@ -1048,7 +1060,7 @@ const run = async (
           tabcolumns,
           column_visibility_presets,
           presets,
-          extraArgs.req?.user?.role_id || 10,
+          extraArgs.req?.user?.role_id || 10 <= (min_role_preset_edit || 1),
           viewname
         )
     ),
@@ -1059,10 +1071,14 @@ const run = async (
 const add_preset = async (
   table_id,
   viewname,
-  { presets },
+  { presets, min_role_preset_edit },
   body,
   { req, res }
 ) => {
+  if ((req.user?.role_id || 10) > (min_role_preset_edit || 1)) {
+    console.log("not authorized", min_role_preset_edit);
+    return;
+  }
   const newPresets = presets || {};
   newPresets[body.name] = body.preset;
   const view = await View.findOne({ name: viewname });
@@ -1075,10 +1091,15 @@ const add_preset = async (
 const delete_preset = async (
   table_id,
   viewname,
-  { presets },
+  { presets, min_role_preset_edit },
   body,
   { req, res }
 ) => {
+  if (req.user?.role_id || 10 > (min_role_preset_edit || 1)) {
+    console.log("not authorized");
+    return;
+  }
+
   const newPresets = presets || {};
   delete newPresets[body.name];
   const view = await View.findOne({ name: viewname });
