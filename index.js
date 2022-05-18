@@ -3,7 +3,7 @@ const User = require("@saltcorn/data/models/user");
 const FieldRepeat = require("@saltcorn/data/models/fieldrepeat");
 
 const Table = require("@saltcorn/data/models/table");
-const { getState } = require("@saltcorn/data/db/state");
+const { getState, features } = require("@saltcorn/data/db/state");
 const db = require("@saltcorn/data/db");
 const Form = require("@saltcorn/data/models/form");
 const View = require("@saltcorn/data/models/view");
@@ -1167,7 +1167,9 @@ module.exports = {
       script: "/gridedit.js",
     },
     {
-      css: `/plugins/public/tabulator/tabulator_${stylesheet}.min.css`,
+      css: `/plugins/public/tabulator${
+        features?.version_plugin_serve_path ? "@0.2.3" : ""
+      }/tabulator_${stylesheet}.min.css`,
     },
   ],
   sc_plugin_api_version: 1,
