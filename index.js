@@ -440,6 +440,9 @@ const set_json_col = (tcol, field, key) => {
         tcol.headerFilterFunc = "__minMaxFilterFunction";
         tcol.headerFilterLiveFilter = false;
         break;
+      case "String":
+        tcol.headerFilter = "input";
+        break;
       case "Bool":
         tcol.formatter = "tickCross";
         tcol.hozAlign = "center";
