@@ -62,7 +62,6 @@ function minMaxFilterFunction(headerValue, rowValue, rowData, filterParams) {
   //rowValue - the value of the column in this row
   //rowData - the data for the row being filtered
   //filterParams - params object passed to the headerFilterFuncParams property
-
   if (rowValue) {
     if (headerValue.start != "") {
       if (headerValue.end != "") {
@@ -77,7 +76,7 @@ function minMaxFilterFunction(headerValue, rowValue, rowData, filterParams) {
     }
   }
 
-  return true; //must return a boolean, true if it passes the filter.
+  return headerValue?.start !== "" || headerValue?.end !== "" ? false : true; //must return a boolean, true if it passes the filter.
 }
 
 function add_preset(viewname) {
