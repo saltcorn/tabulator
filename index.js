@@ -1155,7 +1155,9 @@ module.exports = {
       script: "/plugins/public/tabulator/tabulator.min.js",
     },
     {
-      script: "/plugins/public/tabulator/custom.js",
+      script: `/plugins/public/tabulator${
+        features?.version_plugin_serve_path ? "@0.2.7" : ""
+      }/custom.js`,
     },
     {
       script: "/plugins/public/tabulator/luxon.min.js",
