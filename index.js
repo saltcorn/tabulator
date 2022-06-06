@@ -341,8 +341,7 @@ const typeToGridType = (t, field, header_filters, column) => {
           ? field.attributes.max
           : undefined,
     };
-    jsgField.headerFilter = !!header_filters;
-    jsgField.headerFilter = "__minMaxFilterEditor";
+    jsgField.headerFilter = !!header_filters && "__minMaxFilterEditor";
     jsgField.headerFilterFunc = "__minMaxFilterFunction";
     jsgField.headerFilterLiveFilter = false;
   } else if (t.name === "Bool") {
