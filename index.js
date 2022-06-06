@@ -486,7 +486,6 @@ const get_tabulator_columns = async (
         set_json_col(tcol, f, column.key);
       } else tcol = typeToGridType(f.type, f, header_filters, column);
     } else if (column.type === "JoinField") {
-      console.log(column);
       let refNm, targetNm, through, key, type;
       if (column.join_field.includes("->")) {
         const [relation, target] = column.join_field.split("->");
