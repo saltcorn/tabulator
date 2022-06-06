@@ -402,48 +402,28 @@ const set_join_fieldviews = async ({ columns, fields }) => {
     const { join_field, join_fieldview } = segment;
     if (!join_fieldview) continue;
     const keypath = join_field.split(".");
-    if (keypath.length === 2) {
-      const [refNm, targetNm] = keypath;
-      const ref = fields.find((f) => f.name === refNm);
-      if (!ref) continue;
-      const table = await Table.findOne({ name: ref.reftable_name });
-      if (!table) continue;
-      const reffields = await table.getFields();
-      const field = reffields.find((f) => f.name === targetNm);
-      segment.field_obj = field;
-      if (field && field.type === "File") segment.field_type = "File";
-      else if (
-        field &&
-        field.type &&
-        field.type.name &&
-        field.type.fieldviews &&
-        field.type.fieldviews[join_fieldview]
-      )
-        segment.field_type = field.type.name;
-    } else if (keypath.length > 2) {
-      let field,
-        theFields = fields;
-      for (let i = 0; i < keypath.length; i++) {
-        const refNm = keypath[i];
-        field = theFields.find((f) => f.name === refNm);
-        if (!field || !field.reftable_name) break;
-        const table = await Table.findOne({ name: field.reftable_name });
-        if (!table) break;
-        theFields = await table.getFields();
-      }
-      //const targetNm = keypath[keypath.length - 1];
-      if (!field) continue;
-      segment.field_obj = field;
-      if (field && field.type === "File") segment.field_type = "File";
-      else if (
-        field &&
-        field.type &&
-        field.type.name &&
-        field.type.fieldviews &&
-        field.type.fieldviews[join_fieldview]
-      )
-        segment.field_type = field.type.name;
+
+    let field,
+      theFields = fields;
+    for (let i = 0; i < keypath.length; i++) {
+      const refNm = keypath[i];
+      field = theFields.find((f) => f.name === refNm);
+      if (!field || !field.reftable_name) break;
+      const table = await Table.findOne({ name: field.reftable_name });
+      if (!table) break;
+      theFields = await table.getFields();
     }
+    if (!field) continue;
+    segment.field_obj = field;
+    if (field && field.type === "File") segment.field_type = "File";
+    else if (
+      field &&
+      field.type &&
+      field.type.name &&
+      field.type.fieldviews &&
+      field.type.fieldviews[join_fieldview]
+    )
+      segment.field_type = field.type.name;
   }
 };
 
