@@ -420,8 +420,29 @@ const set_join_fieldviews = async ({ columns, fields }) => {
         field.type.fieldviews[join_fieldview]
       )
         segment.field_type = field.type.name;
-    } else {
-      //const [refNm, through, targetNm] = keypath;
+    } else if (keypath.length > 2) {
+      let field,
+        theFields = fields;
+      for (let i = 0; i < keypath.length; i++) {
+        const refNm = keypath[i];
+        field = theFields.find((f) => f.name === refNm);
+        if (!field || !field.reftable_name) break;
+        const table = await Table.findOne({ name: field.reftable_name });
+        if (!table) break;
+        theFields = await table.getFields();
+      }
+      //const targetNm = keypath[keypath.length - 1];
+      if (!field) continue;
+      segment.field_obj = field;
+      if (field && field.type === "File") segment.field_type = "File";
+      else if (
+        field &&
+        field.type &&
+        field.type.name &&
+        field.type.fieldviews &&
+        field.type.fieldviews[join_fieldview]
+      )
+        segment.field_type = field.type.name;
     }
   }
 };
@@ -485,6 +506,7 @@ const get_tabulator_columns = async (
         set_json_col(tcol, f, column.key);
       } else tcol = typeToGridType(f.type, f, header_filters, column);
     } else if (column.type === "JoinField") {
+      console.log(column);
       let refNm, targetNm, through, key, type;
       if (column.join_field.includes("->")) {
         const [relation, target] = column.join_field.split("->");
