@@ -528,6 +528,7 @@ const get_tabulator_columns = async (
       });
       tcol.field = column.view;
       tcol.clipboard = false;
+      tcol.headerFilter = !!header_filters && "input";
       if (column.in_dropdown) {
         dropdown_actions.push({
           column,
