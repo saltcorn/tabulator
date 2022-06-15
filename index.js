@@ -302,7 +302,7 @@ const get_state_fields = async (table_id, viewname, { show_view }) => {
     });
 };
 //copy from server/routes/list.js
-const typeToGridType = (t, field, header_filters, column) => {
+const typeToGridType = (t, field, header_filters, column, calculators) => {
   const jsgField = { field: field.name, title: field.label, editor: true };
   if (t.name === "String" && field.attributes && field.attributes.options) {
     jsgField.editor = "select";
@@ -386,6 +386,22 @@ const typeToGridType = (t, field, header_filters, column) => {
       jsgField.formatter = "__jsonFormatter";
       jsgField.editor = "__jsonEditor";
     }
+  } else if (t.name === "SharedFileLink") {
+    console.log(t, column);
+    jsgField.formatter = "html";
+    const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+    const fv = t.fieldviews[column.fieldview];
+
+    calculators.push((row) => {
+      row[rndid] =
+        fv && row[column.field_name]
+          ? fv.run(row[column.field_name], undefined, field.attributes)
+          : "";
+    });
+    jsgField.field = rndid;
+    jsgField.clipboard = false;
+    jsgField.headerFilter = !!header_filters && "input";
+    jsgField.editor = false;
   }
 
   if (field.calculated) {
@@ -484,7 +500,8 @@ const get_tabulator_columns = async (
         tcol.title = column.key;
         tcol.headerFilter = !!header_filters;
         set_json_col(tcol, f, column.key);
-      } else tcol = typeToGridType(f.type, f, header_filters, column);
+      } else
+        tcol = typeToGridType(f.type, f, header_filters, column, calculators);
     } else if (column.type === "JoinField") {
       let refNm, targetNm, through, key, type;
       if (column.join_field.includes("->")) {
@@ -504,7 +521,8 @@ const get_tabulator_columns = async (
           getState().types[column.field_type],
           column.field_obj,
           header_filters,
-          column
+          column,
+          calculators
         );
       }
       tcol.field = key;
