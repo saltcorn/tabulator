@@ -647,7 +647,7 @@ const get_tabulator_columns = async (
       let html = "";
       row[arndid] = button(
         {
-          class: "btn btn-sm btn-outline-secondary dropdown-toggle",
+          class: "btn btn-sm btn-xs btn-outline-secondary dropdown-toggle",
           disabled: true,
         },
         "Action"
