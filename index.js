@@ -1176,7 +1176,9 @@ module.exports = {
     },
     {
       script: `/plugins/public/tabulator${
-        features?.version_plugin_serve_path ? "@0.2.7" : ""
+        features?.version_plugin_serve_path
+          ? "@" + require("./package.json").version
+          : ""
       }/custom.js`,
     },
     {
@@ -1193,7 +1195,9 @@ module.exports = {
     },
     {
       css: `/plugins/public/tabulator${
-        features?.version_plugin_serve_path ? "@0.2.3" : ""
+        features?.version_plugin_serve_path
+          ? "@" + require("./package.json").version
+          : ""
       }/tabulator_${stylesheet}.min.css`,
     },
   ],
