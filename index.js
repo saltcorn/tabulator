@@ -387,7 +387,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.editor = "__jsonEditor";
     }
   } else if (t.name === "SharedFileLink") {
-    console.log(t, column);
+    //console.log(t, column);
     jsgField.formatter = "html";
     const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
     const fv = t.fieldviews[column.fieldview];
@@ -585,6 +585,7 @@ const get_tabulator_columns = async (
         formatter: "buttonCross",
         title: i({ class: "far fa-trash-alt" }),
         width: 40,
+        formatterParams: { confirm: column.confirm },
         hozAlign: "center",
         headerSort: false,
         clipboard: false,
