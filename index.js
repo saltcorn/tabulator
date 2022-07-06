@@ -364,6 +364,11 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
     if (field.fieldview === "showDay") {
       jsgField.editorParams = { dayOnly: true };
       jsgField.formatter = "__isoDateFormatter";
+    } else if (field.fieldview === "format") {
+      jsgField.formatter = "__isoDateFormatter";
+      jsgField.formatterParams = {
+        format: field.attributes.format,
+      };
     } else {
       jsgField.formatter = "datetime";
       jsgField.formatterParams = {
@@ -489,6 +494,7 @@ const get_tabulator_columns = async (
     if (column.type === "Field") {
       let f = fields.find((fld) => fld.name === column.field_name);
       if (!f) return {};
+      Object.assign(f.attributes, column);
       f.fieldview = column.fieldview;
       if (column.fieldview === "subfield") {
         tcol.editor = false;
@@ -1173,7 +1179,11 @@ const run_action = async (
 module.exports = {
   headers: ({ stylesheet }) => [
     {
-      script: "/plugins/public/tabulator/tabulator.min.js",
+      script: `/plugins/public/tabulator${
+        features?.version_plugin_serve_path
+          ? "@" + require("./package.json").version
+          : ""
+      }/tabulator.min.js`,
     },
     {
       script: `/plugins/public/tabulator${
