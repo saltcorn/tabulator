@@ -318,8 +318,10 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
   } else if (t === "Key" || t === "File") {
     jsgField.editor = "select";
     const values = {};
-
-    field.options.forEach(({ label, value }) => (values[value] = label));
+    //console.log(column);
+    (field.options || []).forEach(
+      ({ label, value }) => (values[value] = label)
+    );
     jsgField.editorParams = { values };
     jsgField.formatterParams = { values };
     if (header_filters) jsgField.headerFilterParams = { values };
