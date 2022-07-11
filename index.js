@@ -165,7 +165,12 @@ const view_configuration_workflow = (req) =>
             ...fields.map((f) => f.name),
           ]);
           const roles = await User.get_roles();
-
+          let tree_field_options = [];
+          //self join
+          for (const field of fields) {
+            if (field.is_fkey && field.reftable_name == table.name)
+              tree_field_options.push(field.name);
+          }
           return new Form({
             fields: [
               {
@@ -189,6 +194,14 @@ const view_configuration_workflow = (req) =>
                 type: "String",
                 attributes: {
                   options: [...groupByOptions],
+                },
+              },
+              {
+                name: "tree_field",
+                label: "Tree field",
+                type: "String",
+                attributes: {
+                  options: tree_field_options,
                 },
               },
               {
@@ -838,6 +851,7 @@ const run = async (
     column_visibility_presets,
     presets,
     min_role_preset_edit,
+    tree_field,
   },
   state,
   extraArgs
@@ -911,6 +925,21 @@ const run = async (
           )
       )
     : tabcolumns;
+  if (tree_field) {
+    const my_ids = new Set(rows.map((r) => r.id));
+    for (const row of rows) {
+      if (row[tree_field] && my_ids.has(row[tree_field]))
+        row._parent = row[tree_field];
+      else row._parent = null;
+    }
+    //https://stackoverflow.com/a/55241491
+    const nest = (items, id = null) =>
+      items
+        .filter((item) => item._parent === id)
+        .map((item) => ({ ...item, _children: nest(items, item.id) }));
+    //const old_rows = [...rows];
+    rows = nest(rows);
+  }
   return div(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
@@ -941,6 +970,7 @@ const run = async (
         persistenceID:"tabview_${viewname}",
         movableColumns: ${!!movable_cols},
         history: ${!!history},
+        ${tree_field ? "dataTree:true,dataTreeStartExpanded:true," : ""}
         ${groupBy1 ? `groupBy: "${groupBy1}",` : ""}
         ${
           def_order_field
