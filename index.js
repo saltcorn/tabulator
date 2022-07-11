@@ -106,6 +106,18 @@ const view_configuration_workflow = (req) =>
             type: "Bool",
             showIf: { type: "Field" },
           });
+          field_picker_repeat.push({
+            name: "column_calculation",
+            label: "Column Calculation",
+            type: "String",
+            attributes: { options: ["avg", "max", "min", "sum", "count"] },
+          });
+          field_picker_repeat.push({
+            name: "calc_dps",
+            label: "Calculation decimal places",
+            type: "Integer",
+            showIf: { column_calculation: ["avg", "max", "min", "sum"] },
+          });
           const use_field_picker_repeat = field_picker_repeat.filter(
             (f) => !["state_field"].includes(f.name)
           );
@@ -646,6 +658,11 @@ const get_tabulator_columns = async (
     if (column.frozen) tcol.frozen = true;
     if (column.disable_edit) tcol.editor = false;
     if (vert_col_headers) tcol.headerVertical = true;
+    if (column.column_calculation) {
+      tcol.bottomCalc = column.column_calculation;
+      if (column.calc_dps)
+        tcol.bottomCalcParams = { precision: column.calc_dps };
+    }
     tabcols.push(tcol);
   }
   let arndid;
