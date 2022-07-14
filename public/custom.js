@@ -107,7 +107,7 @@ function activate_preset(encPreset) {
     .each(function () {
       const name = $(this).attr("data-fieldname");
       const do_show = preset[name];
-      if (do_show) window.tabulator_table.showColumn(name);
+      if (do_show !== false) window.tabulator_table.showColumn(name);
       else window.tabulator_table.hideColumn(name);
       $(this).prop("checked", do_show);
     });

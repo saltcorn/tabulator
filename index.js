@@ -817,6 +817,7 @@ const hideShowColsBtn = (
         tabcolumns.map(
           (f) =>
             f.field &&
+            !f.frozen &&
             div(
               { class: "form-check" },
               input({
