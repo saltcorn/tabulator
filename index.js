@@ -1193,7 +1193,7 @@ const delete_preset = async (
   body,
   { req, res }
 ) => {
-  if (req.user?.role_id || 10 > (min_role_preset_edit || 1)) {
+  if ((req.user?.role_id || 10) > +(min_role_preset_edit || 1)) {
     console.log("not authorized");
     return;
   }
