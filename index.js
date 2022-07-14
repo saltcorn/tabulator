@@ -948,6 +948,16 @@ const run = async (
     //const old_rows = [...rows];
     rows = nest(rows);
   }
+  const pgSz = pagination_size || 20;
+  const paginationSizeChoices = [
+    Math.round(pgSz / 2),
+    Math.round(pgSz * 0.75),
+    pgSz,
+    Math.round(pgSz * 1.5),
+    pgSz * 2,
+    pgSz * 3,
+    true,
+  ];
   return div(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
@@ -973,6 +983,7 @@ const run = async (
         height:"100%",
         pagination:true,
         paginationSize:${pagination_size || 20},
+        paginationSizeSelector: ${JSON.stringify(paginationSizeChoices)},
         clipboard:true,
         persistence:${!!persistent}, 
         persistenceID:"tabview_${viewname}",
