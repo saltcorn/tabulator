@@ -1012,6 +1012,13 @@ const run = async (
         movableColumns: ${!!movable_cols},
         history: ${!!history},
         ${tree_field ? "dataTree:true,dataTreeStartExpanded:true," : ""}
+        ${
+          tree_field && selectable
+            ? `dataTreeElementColumn:"${
+                use_tabcolumns.find((c) => c.field).field
+              }",`
+            : ""
+        }
         ${groupBy1 ? `groupBy: "${groupBy1}",` : ""}
         ${
           def_order_field
