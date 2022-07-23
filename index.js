@@ -121,8 +121,10 @@ const view_configuration_workflow = (req) =>
             showIf: { column_calculation: ["avg", "max", "min", "sum"] },
           });
           const use_field_picker_repeat = field_picker_repeat.filter(
-            (f) => !["state_field"].includes(f.name)
+            (f) => !["state_field", "col_width_units"].includes(f.name)
           );
+          field_picker_repeat.find((c) => c.name === "col_width").label =
+            "Column width (px)";
 
           return new Form({
             fields: [
@@ -687,6 +689,7 @@ const get_tabulator_columns = async (
       if (column.calc_dps)
         tcol.bottomCalcParams = { precision: column.calc_dps };
     }
+    if (column.col_width) tcol.width = column.col_width;
     tabcols.push(tcol);
   }
   let arndid;
