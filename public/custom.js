@@ -112,3 +112,8 @@ function activate_preset(encPreset) {
       $(this).prop("checked", do_show);
     });
 }
+
+function tabUserGroupBy(e) {
+  console.log(e.value);
+  window.tabulator_table.setGroupBy(e.value);
+}

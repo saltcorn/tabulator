@@ -35,6 +35,8 @@ const {
   input,
   label,
   text_attr,
+  select,
+  option,
 } = require("@saltcorn/markup/tags");
 const { post_btn } = require("@saltcorn/markup");
 
@@ -163,6 +165,7 @@ const view_configuration_workflow = (req) =>
           const groupByOptions = new Set([
             ...colFields,
             ...fields.map((f) => f.name),
+            "Selected by user",
           ]);
           const roles = await User.get_roles();
           let tree_field_options = [];
@@ -751,6 +754,24 @@ const addRowButton = () =>
     "Add row"
   );
 
+const selectGroupBy = (fields, columns) => {
+  const colFields = columns
+    .filter((c) => ["Field", "JoinField", "Aggregation"].includes(c.type))
+    .map((c) => c.field)
+    .filter((s) => s);
+  const groupByOptions = new Set([...colFields, ...fields.map((f) => f.name)]);
+  return select(
+    {
+      onChange: "tabUserGroupBy(this)",
+      class: "mx-1 form-select",
+      style: "width:unset",
+    },
+    option({ value: "", disabled: true, selected: true }, "Group by..."),
+    option({ value: "" }, "No grouping"),
+    [...groupByOptions].map((o) => option(o))
+  );
+};
+
 const hideShowColsBtn = (
   tabcolumns,
   column_visibility_presets,
@@ -1126,6 +1147,8 @@ const run = async (
           },
           i({ class: "fas fa-redo" })
         ),
+      groupBy === "Selected by user" && selectGroupBy(fields, columns),
+
       remove_unselected_btn &&
         button(
           {
