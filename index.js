@@ -3,6 +3,7 @@ const User = require("@saltcorn/data/models/user");
 const FieldRepeat = require("@saltcorn/data/models/fieldrepeat");
 
 const Table = require("@saltcorn/data/models/table");
+const Trigger = require("@saltcorn/data/models/trigger");
 const { getState, features } = require("@saltcorn/data/db/state");
 const db = require("@saltcorn/data/db");
 const Form = require("@saltcorn/data/models/form");
@@ -176,6 +177,13 @@ const view_configuration_workflow = (req) =>
             if (field.is_fkey && field.reftable_name == table.name)
               tree_field_options.push(field.name);
           }
+
+          const action_options = (
+            await Trigger.find({
+              when_trigger: { or: ["API call", "Never"] },
+            })
+          ).map((tr) => tr.name);
+
           return new Form({
             fields: [
               {
@@ -313,6 +321,14 @@ const view_configuration_workflow = (req) =>
                 label: "Pagination size",
                 type: "Integer",
                 default: 20,
+              },
+              {
+                name: "selected_rows_action",
+                label: "Selected rows action",
+                type: "String",
+                attributes: {
+                  options: [...action_options],
+                },
               },
             ],
           });
@@ -885,6 +901,7 @@ const run = async (
     presets,
     min_role_preset_edit,
     tree_field,
+    selected_rows_action,
   },
   state,
   extraArgs
@@ -983,6 +1000,11 @@ const run = async (
     pgSz * 3,
     true,
   ];
+  const selected_rows_action_name = selected_rows_action
+    ? ((x) => x.description || x.name)(
+        getState().triggers.find((tr) => tr.name === selected_rows_action)
+      )
+    : "";
   return div(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
@@ -1158,6 +1180,15 @@ const run = async (
           i({ class: "fas fa-redo" })
         ),
       groupBy === "Selected by user" && selectGroupBy(fields, columns),
+      selected_rows_action &&
+        button(
+          {
+            class: "btn btn-sm btn-primary me-2",
+            title: "on selected rows",
+            onClick: `run_selected_rows_action('${viewname}', ${selectable})`,
+          },
+          selected_rows_action_name
+        ),
 
       remove_unselected_btn &&
         button(
@@ -1278,6 +1309,24 @@ const run_action = async (
     return { json: { error: e.message || e } };
   }
 };
+
+const run_selected_rows_action = async (
+  table_id,
+  viewname,
+  { selected_rows_action },
+  { rows },
+  { req, res }
+) => {
+  const table = await Table.findOne({ id: table_id });
+
+  const trigger = await Trigger.findOne({ name: selected_rows_action });
+  const action = getState().actions[trigger.action];
+  let result;
+  for (const row of rows) {
+    result = await action.run({ row, configuration: trigger.configuration });
+  }
+  return { json: { success: "ok", ...(result || {}) } };
+};
 module.exports = {
   headers: ({ stylesheet }) => [
     {
@@ -1324,7 +1373,12 @@ module.exports = {
       get_state_fields,
       configuration_workflow: view_configuration_workflow,
       run,
-      routes: { run_action, add_preset, delete_preset },
+      routes: {
+        run_action,
+        run_selected_rows_action,
+        add_preset,
+        delete_preset,
+      },
     },
   ],
 };
