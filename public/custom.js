@@ -118,9 +118,7 @@ function tabUserGroupBy(e) {
 }
 
 function run_selected_rows_action(viewname, selectable) {
-  const rows0 = window.tabulator_table.getRows(
-    selectable ? "active" : undefined
-  );
+  const rows0 = window.tabulator_table.getRows("active");
   const rows1 = selectable ? rows0.filter((r) => r.isSelected()) : rows0;
   const rows = rows1.map((r) => r.getData());
   view_post(viewname, "run_selected_rows_action", {
