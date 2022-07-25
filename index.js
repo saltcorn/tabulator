@@ -1327,6 +1327,7 @@ const run_selected_rows_action = async (
       row,
       referrer: req.get("Referrer"),
       table,
+      req,
       Table,
       configuration: trigger.configuration,
     });
