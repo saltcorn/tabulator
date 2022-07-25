@@ -114,13 +114,14 @@ function activate_preset(encPreset) {
 }
 
 function tabUserGroupBy(e) {
-  console.log(e.value);
   window.tabulator_table.setGroupBy(e.value);
 }
 
 function run_selected_rows_action(viewname, selectable) {
-  const rows0 = window.tabulator_table.getRows();
-  const rows = rows0.map((r) => r.getData(selectable ? "selected" : undefined));
+  const rows0 = window.tabulator_table.getRows(
+    selectable ? "selected" : undefined
+  );
+  const rows = rows0.map((r) => r.getData());
   view_post(viewname, "run_selected_rows_action", {
     rows,
   });

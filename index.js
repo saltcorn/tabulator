@@ -1323,7 +1323,13 @@ const run_selected_rows_action = async (
   const action = getState().actions[trigger.action];
   let result;
   for (const row of rows) {
-    result = await action.run({ row, configuration: trigger.configuration });
+    result = await action.run({
+      row,
+      referrer: req.get("Referrer"),
+      table,
+      Table,
+      configuration: trigger.configuration,
+    });
   }
   return { json: { success: "ok", ...(result || {}) } };
 };
