@@ -1302,6 +1302,7 @@ const run_action = async (
       req,
       table,
       row,
+      user: req.user,
       referrer: req.get("Referrer"),
     });
     return { json: { success: "ok", ...(result || {}) } };
@@ -1329,6 +1330,7 @@ const run_selected_rows_action = async (
       table,
       req,
       Table,
+      user: req.user,
       configuration: trigger.configuration,
     });
   }
