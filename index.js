@@ -393,7 +393,6 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
     jsgField.headerFilterFunc = "__minMaxFilterFunction";
     jsgField.headerFilterLiveFilter = false;
     if (field.fieldview === "show_star_rating") {
-      console.log(field);
       jsgField.formatter = "star";
       jsgField.formatterParams = {
         stars: (field.attributes?.max || 5) - (field.attributes?.min || 1) + 1,
