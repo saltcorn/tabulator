@@ -765,7 +765,7 @@ const get_tabulator_columns = async (
 const addRowButton = () =>
   button(
     {
-      class: "btn btn-sm btn-primary me-2",
+      class: "btn btn-sm btn-primary mx-1",
       onClick: "add_tabulator_row()",
     },
     i({ class: "fas fa-plus me-1" }),
@@ -798,7 +798,7 @@ const hideShowColsBtn = (
   viewname
 ) =>
   div(
-    { class: "dropdown d-inline" },
+    { class: "dropdown d-inline mx-1" },
     button(
       {
         class: "btn btn-sm btn-outline-secondary dropdown-toggle",
@@ -1004,7 +1004,7 @@ const run = async (
         getState().triggers.find((tr) => tr.name === selected_rows_action)
       )
     : "";
-  return div(
+  return fragment(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
     style(`.tabulator-popup-container {background: white}`),
@@ -1157,75 +1157,74 @@ const run = async (
         : ""
     }`)
     ),
-    div({ id: "jsGridNotify" }),
-    div(
-      { class: "d-flex justify-content-end w-100 mb-1" },
-      history &&
-        button(
-          {
-            class: "btn btn-sm btn-primary me-2",
-            title: "Undo",
-            onClick: "window.tabulator_table.undo()",
-          },
-          i({ class: "fas fa-undo" })
-        ),
-      history &&
-        button(
-          {
-            class: "btn btn-sm btn-primary me-2",
-            title: "Redo",
-            onClick: "window.tabulator_table.redo()",
-          },
-          i({ class: "fas fa-redo" })
-        ),
-      groupBy === "Selected by user" && selectGroupBy(fields, columns),
-      selected_rows_action &&
-        button(
-          {
-            class: "btn btn-sm btn-primary me-2",
-            title: "on selected rows",
-            onClick: `run_selected_rows_action('${viewname}', ${selectable})`,
-          },
-          selected_rows_action_name
-        ),
 
-      remove_unselected_btn &&
-        button(
-          {
-            class: "btn btn-sm btn-primary me-2",
-            title: "Redo",
-            onClick: `tab_remove_unselected()`,
-          },
-          "Show selection"
-        ),
-      download_csv &&
-        button(
-          {
-            class: "btn btn-sm btn-primary me-2",
-            id: "tabulator-download-csv",
-          },
-          i({ class: "fas fa-download me-1" }),
-          "Download"
-        ),
-      reset_persistent_btn &&
-        button(
-          {
-            class: "btn btn-sm btn-primary me-2",
-            title: "Reset",
-            onClick: `tab_reset_persistcfg()`,
-          },
-          "Reset"
-        ),
-      addRowBtn && addRowButton(),
-      hideColsBtn &&
-        hideShowColsBtn(
-          tabcolumns,
-          column_visibility_presets,
-          presets,
-          extraArgs.req?.user?.role_id || 10 <= (min_role_preset_edit || 1),
-          viewname
-        )
-    ),
+    history &&
+      button(
+        {
+          class: "btn btn-sm btn-primary mx-1",
+          title: "Undo",
+          onClick: "window.tabulator_table.undo()",
+        },
+        i({ class: "fas fa-undo" })
+      ),
+    history &&
+      button(
+        {
+          class: "btn btn-sm btn-primary mx-1",
+          title: "Redo",
+          onClick: "window.tabulator_table.redo()",
+        },
+        i({ class: "fas fa-redo" })
+      ),
+    groupBy === "Selected by user" && selectGroupBy(fields, columns),
+    selected_rows_action &&
+      button(
+        {
+          class: "btn btn-sm btn-primary mx-1",
+          title: "on selected rows",
+          onClick: `run_selected_rows_action('${viewname}', ${selectable})`,
+        },
+        selected_rows_action_name
+      ),
+
+    remove_unselected_btn &&
+      button(
+        {
+          class: "btn btn-sm btn-primary mx-1",
+          title: "Redo",
+          onClick: `tab_remove_unselected()`,
+        },
+        "Show selection"
+      ),
+    download_csv &&
+      button(
+        {
+          class: "btn btn-sm btn-primary mx-1",
+          id: "tabulator-download-csv",
+        },
+        i({ class: "fas fa-download me-1" }),
+        "Download"
+      ),
+    reset_persistent_btn &&
+      button(
+        {
+          class: "btn btn-sm btn-primary mx-1",
+          title: "Reset",
+          onClick: `tab_reset_persistcfg()`,
+        },
+        "Reset"
+      ),
+    addRowBtn && addRowButton(),
+    hideColsBtn &&
+      hideShowColsBtn(
+        tabcolumns,
+        column_visibility_presets,
+        presets,
+        extraArgs.req?.user?.role_id || 10 <= (min_role_preset_edit || 1),
+        viewname
+      ),
+    div({ id: "jsGridNotify", class: "my-1" }),
+
     div({ id: `tabgrid${viewname}` })
   );
 };
@@ -1390,3 +1389,5 @@ module.exports = {
     },
   ],
 };
+
+const fragment = (...args) => args.filter((s) => s).join("");
