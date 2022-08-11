@@ -823,35 +823,35 @@ const hideShowColsBtn = (
         a({ onclick: `allnonecols(false,this)`, href: "javascript:;" }, "None"),
         !!column_visibility_presets && div("Presets:"),
         column_visibility_presets &&
-          Object.entries(presets || {}).map(([k, v]) =>
-            div(
-              a(
-                {
-                  href: `javascript:activate_preset('${encodeURIComponent(
-                    JSON.stringify(v)
-                  )}');`,
-                },
-                k
-              ),
-              can_edit &&
-                a(
-                  {
-                    href: `javascript:delete_preset('${viewname}','${k}');`,
-                  },
-                  i({ class: "fas fa-trash-alt" })
-                )
+        Object.entries(presets || {}).map(([k, v]) =>
+          div(
+            a(
+              {
+                href: `javascript:activate_preset('${encodeURIComponent(
+                  JSON.stringify(v)
+                )}');`,
+              },
+              k
+            ),
+            can_edit &&
+            a(
+              {
+                href: `javascript:delete_preset('${viewname}','${k}');`,
+              },
+              i({ class: "fas fa-trash-alt" })
             )
-          ),
+          )
+        ),
         can_edit &&
-          !!column_visibility_presets &&
-          a(
-            {
-              class: "d-block",
-              href: `javascript:add_preset('${viewname}');`,
-            },
-            i({ class: "fas fa-plus" }),
-            "Add"
-          ),
+        !!column_visibility_presets &&
+        a(
+          {
+            class: "d-block",
+            href: `javascript:add_preset('${viewname}');`,
+          },
+          i({ class: "fas fa-plus" }),
+          "Add"
+        ),
 
         tabcolumns.map(
           (f) =>
@@ -966,13 +966,13 @@ const run = async (
     });
   const use_tabcolumns = hide_null_columns
     ? tabcolumns.filter(
-        (c) =>
-          !c.field ||
-          rows.some(
-            (row) =>
-              row[c.field] !== null && typeof row[c.field] !== "undefined"
-          )
-      )
+      (c) =>
+        !c.field ||
+        rows.some(
+          (row) =>
+            row[c.field] !== null && typeof row[c.field] !== "undefined"
+        )
+    )
     : tabcolumns;
   if (tree_field) {
     const my_ids = new Set(rows.map((r) => r.id));
@@ -1001,8 +1001,8 @@ const run = async (
   ];
   const selected_rows_action_name = selected_rows_action
     ? ((x) => x.description || x.name)(
-        getState().triggers.find((tr) => tr.name === selected_rows_action)
-      )
+      getState().triggers.find((tr) => tr.name === selected_rows_action)
+    )
     : "";
   return fragment(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
@@ -1036,22 +1036,18 @@ const run = async (
         movableColumns: ${!!movable_cols},
         history: ${!!history},
         ${tree_field ? "dataTree:true,dataTreeStartExpanded:true," : ""}
-        ${
-          tree_field && selectable
-            ? `dataTreeElementColumn:"${
-                use_tabcolumns.find((c) => c.field).field
-              }",`
-            : ""
+        ${tree_field && selectable
+          ? `dataTreeElementColumn:"${use_tabcolumns.find((c) => c.field).field
+          }",`
+          : ""
         }
         ${groupBy1 ? `groupBy: "${groupBy1}",` : ""}
-        ${
-          def_order_field
-            ? `initialSort:[
-          {column:"${def_order_field}", dir:"${
-                def_order_descending ? "desc" : "asc"
-              }"},
+        ${def_order_field
+          ? `initialSort:[
+          {column:"${def_order_field}", dir:"${def_order_descending ? "desc" : "asc"
+          }"},
         ],`
-            : ""
+          : ""
         }
         ajaxResponse:function(url, params, response){                    
   
@@ -1148,81 +1144,80 @@ const run = async (
         $(e).closest("form").find("input").prop("checked", do_show)
       })
     }
-    ${
-      download_csv
-        ? `document.getElementById("tabulator-download-csv").addEventListener("click", function(){
+    ${download_csv
+          ? `document.getElementById("tabulator-download-csv").addEventListener("click", function(){
             const selectedData = window.tabulator_table.getSelectedData();
             window.tabulator_table.download("csv", "${viewname}.csv",{}, selectedData.length>0 ? "selected" : "all");
           });`
-        : ""
-    }`)
+          : ""
+        }`)
     ),
 
     history &&
-      button(
-        {
-          class: "btn btn-sm btn-primary mx-1",
-          title: "Undo",
-          onClick: "window.tabulator_table.undo()",
-        },
-        i({ class: "fas fa-undo" })
-      ),
+    button(
+      {
+        class: "btn btn-sm btn-primary mx-1",
+        title: "Undo",
+        onClick: "window.tabulator_table.undo()",
+      },
+      i({ class: "fas fa-undo" })
+    ),
     history &&
-      button(
-        {
-          class: "btn btn-sm btn-primary mx-1",
-          title: "Redo",
-          onClick: "window.tabulator_table.redo()",
-        },
-        i({ class: "fas fa-redo" })
-      ),
+    button(
+      {
+        class: "btn btn-sm btn-primary mx-1",
+        title: "Redo",
+        onClick: "window.tabulator_table.redo()",
+      },
+      i({ class: "fas fa-redo" })
+    ),
     groupBy === "Selected by user" && selectGroupBy(fields, columns),
     selected_rows_action &&
-      button(
-        {
-          class: "btn btn-sm btn-primary mx-1",
-          title: "on selected rows",
-          onClick: `run_selected_rows_action('${viewname}', ${selectable})`,
-        },
-        selected_rows_action_name
-      ),
+    button(
+      {
+        class: "btn btn-sm btn-primary mx-1",
+        title: "on selected rows",
+        onClick: `run_selected_rows_action('${viewname}', ${selectable})`,
+      },
+      selected_rows_action_name
+    ),
 
     remove_unselected_btn &&
-      button(
-        {
-          class: "btn btn-sm btn-primary mx-1",
-          title: "Redo",
-          onClick: `tab_remove_unselected()`,
-        },
-        "Show selection"
-      ),
+    button(
+      {
+        class: "btn btn-sm btn-primary mx-1",
+        title: "Redo",
+        onClick: `tab_remove_unselected()`,
+      },
+      "Show selection"
+    ),
     download_csv &&
-      button(
-        {
-          class: "btn btn-sm btn-primary mx-1",
-          id: "tabulator-download-csv",
-        },
-        i({ class: "fas fa-download me-1" }),
-        "Download"
-      ),
+    button(
+      {
+        class: "btn btn-sm btn-primary mx-1",
+        id: "tabulator-download-csv",
+      },
+      i({ class: "fas fa-download me-1" }),
+      "Download"
+    ),
     reset_persistent_btn &&
-      button(
-        {
-          class: "btn btn-sm btn-primary mx-1",
-          title: "Reset",
-          onClick: `tab_reset_persistcfg()`,
-        },
-        "Reset"
-      ),
+    button(
+      {
+        class: "btn btn-sm btn-primary mx-1",
+        title: "Reset",
+        onClick: `tab_reset_persistcfg()`,
+      },
+      "Reset"
+    ),
     addRowBtn && addRowButton(),
     hideColsBtn &&
-      hideShowColsBtn(
-        tabcolumns,
-        column_visibility_presets,
-        presets,
-        extraArgs.req?.user?.role_id || 10 <= (min_role_preset_edit || 1),
-        viewname
-      ),
+    hideShowColsBtn(
+      tabcolumns,
+      column_visibility_presets,
+      presets,
+      extraArgs.req?.user?.role_id || 10 <= (min_role_preset_edit || 1),
+      viewname
+    ),
     div({ id: "jsGridNotify", class: "my-1" }),
 
     div({ id: `tabgrid${viewname}` })
@@ -1337,18 +1332,16 @@ const run_selected_rows_action = async (
 module.exports = {
   headers: ({ stylesheet }) => [
     {
-      script: `/plugins/public/tabulator${
-        features?.version_plugin_serve_path
+      script: `/plugins/public/tabulator${features?.version_plugin_serve_path
           ? "@" + require("./package.json").version
           : ""
-      }/tabulator.min.js`,
+        }/tabulator.min.js`,
     },
     {
-      script: `/plugins/public/tabulator${
-        features?.version_plugin_serve_path
+      script: `/plugins/public/tabulator${features?.version_plugin_serve_path
           ? "@" + require("./package.json").version
           : ""
-      }/custom.js`,
+        }/custom.js`,
     },
     {
       script: "/plugins/public/tabulator/luxon.min.js",
@@ -1363,11 +1356,10 @@ module.exports = {
       script: "/gridedit.js",
     },
     {
-      css: `/plugins/public/tabulator${
-        features?.version_plugin_serve_path
+      css: `/plugins/public/tabulator${features?.version_plugin_serve_path
           ? "@" + require("./package.json").version
           : ""
-      }/tabulator_${stylesheet}.min.css`,
+        }/tabulator_${stylesheet}.min.css`,
     },
   ],
   sc_plugin_api_version: 1,
