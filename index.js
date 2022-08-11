@@ -877,7 +877,6 @@ const run = async (
   viewname,
   {
     columns,
-    default_state,
     fit,
     hideColsBtn,
     hide_null_columns,
@@ -913,11 +912,11 @@ const run = async (
   readState(state, fields);
   const where = await stateFieldsToWhere({ fields, state });
   const q = await stateFieldsToQuery({ state, fields, prefix: "a." });
-  const rows_per_page = default_state && default_state._rows_per_page;
-  if (!q.limit && rows_per_page) q.limit = rows_per_page;
+  //const rows_per_page = default_state && default_state._rows_per_page;
+  //if (!q.limit && rows_per_page) q.limit = rows_per_page;
   if (!q.orderBy)
-    q.orderBy = (default_state && default_state._order_field) || table.pk_name;
-  if (!q.orderDesc) q.orderDesc = default_state && default_state._descending;
+    q.orderBy = table.pk_name;
+  //if (!q.orderDesc) q.orderDesc = default_state && default_state._descending;
   const current_page = parseInt(state._page) || 1;
   const { joinFields, aggregations } = picked_fields_to_query(columns, fields);
   await set_join_fieldviews({ columns, fields });
@@ -940,6 +939,7 @@ const run = async (
     aggregations,
     ...q,
   });
+  //console.log({ rows_len: rows.length, q, where, rows_per_page });
   const { tabcolumns, calculators, dropdown_id, dropdown_actions } =
     await get_tabulator_columns(
       viewname,
@@ -1333,14 +1333,14 @@ module.exports = {
   headers: ({ stylesheet }) => [
     {
       script: `/plugins/public/tabulator${features?.version_plugin_serve_path
-          ? "@" + require("./package.json").version
-          : ""
+        ? "@" + require("./package.json").version
+        : ""
         }/tabulator.min.js`,
     },
     {
       script: `/plugins/public/tabulator${features?.version_plugin_serve_path
-          ? "@" + require("./package.json").version
-          : ""
+        ? "@" + require("./package.json").version
+        : ""
         }/custom.js`,
     },
     {
@@ -1357,8 +1357,8 @@ module.exports = {
     },
     {
       css: `/plugins/public/tabulator${features?.version_plugin_serve_path
-          ? "@" + require("./package.json").version
-          : ""
+        ? "@" + require("./package.json").version
+        : ""
         }/tabulator_${stylesheet}.min.css`,
     },
   ],
