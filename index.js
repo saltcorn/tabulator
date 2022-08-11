@@ -601,17 +601,18 @@ const get_tabulator_columns = async (
       tcol.field = targetNm;
     } else if (column.type === "ViewLink") {
       tcol.formatter = "html";
+      const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
       const { key } = view_linker(column, fields);
       calculators.push((row) => {
-        row[column.view] = key(row);
+        row[rndid] = key(row);
       });
-      tcol.field = column.view;
+      tcol.field = rndid;
       tcol.clipboard = false;
       tcol.headerFilter = !!header_filters && "input";
       if (column.in_dropdown) {
         dropdown_actions.push({
           column,
-          rndid: column.view,
+          rndid,
           wholeLink: true,
           label: column.label || column.action_name,
         });
