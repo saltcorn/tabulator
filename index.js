@@ -782,7 +782,7 @@ const selectGroupBy = (fields, columns, rndid) => {
   return select(
     {
       onChange: `tabUserGroupBy(this, '${rndid}')`,
-      class: "mx-1 form-select",
+      class: "mx-1 form-select d-inline",
       style: "width:unset",
     },
     option({ value: "", disabled: true, selected: true }, "Group by..."),
