@@ -763,17 +763,17 @@ const get_tabulator_columns = async (
   };
 };
 
-const addRowButton = () =>
+const addRowButton = (rndid) =>
   button(
     {
       class: "btn btn-sm btn-primary mx-1",
-      onClick: "add_tabulator_row()",
+      onClick: `add_tabview_row('${rndid}')`,
     },
     i({ class: "fas fa-plus me-1" }),
     "Add row"
   );
 
-const selectGroupBy = (fields, columns) => {
+const selectGroupBy = (fields, columns, rndid) => {
   const colFields = columns
     .filter((c) => ["Field", "JoinField", "Aggregation"].includes(c.type))
     .map((c) => c.field)
@@ -781,7 +781,7 @@ const selectGroupBy = (fields, columns) => {
   const groupByOptions = new Set([...colFields, ...fields.map((f) => f.name)]);
   return select(
     {
-      onChange: "tabUserGroupBy(this)",
+      onChange: `tabUserGroupBy(this, '${rndid}')`,
       class: "mx-1 form-select",
       style: "width:unset",
     },
@@ -796,7 +796,7 @@ const hideShowColsBtn = (
   column_visibility_presets,
   presets,
   can_edit,
-  viewname
+  viewname, rndid
 ) =>
   div(
     { class: "dropdown d-inline mx-1" },
@@ -830,7 +830,7 @@ const hideShowColsBtn = (
               {
                 href: `javascript:activate_preset('${encodeURIComponent(
                   JSON.stringify(v)
-                )}');`,
+                )}', '${rndid}');`,
               },
               k
             ),
@@ -1005,6 +1005,8 @@ const run = async (
       getState().triggers.find((tr) => tr.name === selected_rows_action)
     )
     : "";
+  const rndid = Math.floor(Math.random() * 16777215).toString(16);
+
   return fragment(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
@@ -1023,7 +1025,7 @@ const run = async (
           }
         })
       })   
-    window.tabulator_table = new Tabulator("#tabgrid${viewname}", {
+    window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}", {
         data: ${JSON.stringify(rows)},
         layout:"fit${fit || "Columns"}", 
         columns,
@@ -1066,11 +1068,11 @@ const run = async (
         error: tabulator_error_handler,
       }).done(function (resp) {
         if(resp.success &&typeof resp.success ==="number" && !row.id && cell) {
-          window.tabulator_table.updateRow(cell.getRow(), {id: resp.success});
+          window.tabulator_table_${rndid}.updateRow(cell.getRow(), {id: resp.success});
         }
       });
     }
-    window.tabulator_table.on("cellEdited", function(cell){
+    window.tabulator_table_${rndid}.on("cellEdited", function(cell){
       const row=cell.getRow().getData();
       if(cell.getField()==="${dropdown_id}"){
         const val = cell.getValue();
@@ -1092,7 +1094,7 @@ const run = async (
       }
       else save_row_from_cell(row, cell)
     });
-    window.tabulator_table.on("historyUndo", function(action, component, data){
+    window.tabulator_table_${rndid}.on("historyUndo", function(action, component, data){
       
       switch (action) {
         case "cellEdit": 
@@ -1104,31 +1106,31 @@ const run = async (
           break;
       }
     })
-    window.tabulator_table.on("historyRedo", function(action, component, data){
+    window.tabulator_table_${rndid}.on("historyRedo", function(action, component, data){
       switch (action) {
         case "cellEdit": 
           save_row_from_cell(component.getRow().getData(), component)
           break;
       }
     })
-    window.tabulator_table_name="${table.name}";
+    window.tabulator_table_name_${rndid}="${table.name}";
     window.tab_remove_unselected = () =>{
-      const allRowCount = window.tabulator_table.getDataCount();
-      const selRowCount = window.tabulator_table.getDataCount("selected");
+      const allRowCount = window.tabulator_table_${rndid}.getDataCount();
+      const selRowCount = window.tabulator_table_${rndid}.getDataCount("selected");
       if(selRowCount < allRowCount/2) {
-        const rows = window.tabulator_table.getData("selected");
-        window.tabulator_table.clearData();
+        const rows = window.tabulator_table_${rndid}.getData("selected");
+        window.tabulator_table_${rndid}.clearData();
         for(const row of rows) 
-          window.tabulator_table.addRow(row);
+          window.tabulator_table_${rndid}.addRow(row);
       } else {
-        const selected = new Set(window.tabulator_table.getSelectedRows().map(r=>r.getIndex()));
-        const rows = window.tabulator_table.getRows();
+        const selected = new Set(window.tabulator_table_${rndid}.getSelectedRows().map(r=>r.getIndex()));
+        const rows = window.tabulator_table_${rndid}.getRows();
         const to_delete=[]
         for(const row of rows) 
           if(!selected.has(row.getIndex())) 
             to_delete.push(row);   
         
-        window.tabulator_table.deleteRow(to_delete);
+        window.tabulator_table_${rndid}.deleteRow(to_delete);
       }
     }
     window.tab_reset_persistcfg = () =>{
@@ -1140,15 +1142,15 @@ const run = async (
     }
     window.allnonecols= (do_show, e) =>{
       columns.forEach(col=>{
-        if (do_show) window.tabulator_table.showColumn(col.field);
-        else window.tabulator_table.hideColumn(col.field);
+        if (do_show) window.tabulator_table_${rndid}.showColumn(col.field);
+        else window.tabulator_table_${rndid}.hideColumn(col.field);
         $(e).closest("form").find("input").prop("checked", do_show)
       })
     }
     ${download_csv
           ? `document.getElementById("tabulator-download-csv").addEventListener("click", function(){
-            const selectedData = window.tabulator_table.getSelectedData();
-            window.tabulator_table.download("csv", "${viewname}.csv",{}, selectedData.length>0 ? "selected" : "all");
+            const selectedData = window.tabulator_table_${rndid}.getSelectedData();
+            window.tabulator_table_${rndid}.download("csv", "${viewname}.csv",{}, selectedData.length>0 ? "selected" : "all");
           });`
           : ""
         }`)
@@ -1159,7 +1161,7 @@ const run = async (
       {
         class: "btn btn-sm btn-primary mx-1",
         title: "Undo",
-        onClick: "window.tabulator_table.undo()",
+        onClick: `window.tabulator_table_${rndid}.undo()`,
       },
       i({ class: "fas fa-undo" })
     ),
@@ -1168,17 +1170,17 @@ const run = async (
       {
         class: "btn btn-sm btn-primary mx-1",
         title: "Redo",
-        onClick: "window.tabulator_table.redo()",
+        onClick: `window.tabulator_table_${rndid}.redo()`,
       },
       i({ class: "fas fa-redo" })
     ),
-    groupBy === "Selected by user" && selectGroupBy(fields, columns),
+    groupBy === "Selected by user" && selectGroupBy(fields, columns, rndid),
     selected_rows_action &&
     button(
       {
         class: "btn btn-sm btn-primary mx-1",
         title: "on selected rows",
-        onClick: `run_selected_rows_action('${viewname}', ${selectable})`,
+        onClick: `run_selected_rows_action('${viewname}', ${selectable}, '${rndid}')`,
       },
       selected_rows_action_name
     ),
@@ -1210,14 +1212,14 @@ const run = async (
       },
       "Reset"
     ),
-    addRowBtn && addRowButton(),
+    addRowBtn && addRowButton(rndid),
     hideColsBtn &&
     hideShowColsBtn(
       tabcolumns,
       column_visibility_presets,
       presets,
       extraArgs.req?.user?.role_id || 10 <= (min_role_preset_edit || 1),
-      viewname
+      viewname, rndid
     ),
     div({ id: "jsGridNotify", class: "my-1" }),
 

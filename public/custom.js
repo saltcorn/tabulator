@@ -100,28 +100,32 @@ function delete_preset(viewname, name) {
   });
 }
 
-function activate_preset(encPreset) {
+function activate_preset(encPreset, rndid) {
   const preset = JSON.parse(decodeURIComponent(encPreset));
   $(".tabShowHideCols")
     .find("input[data-fieldname]")
     .each(function () {
       const name = $(this).attr("data-fieldname");
       const do_show = preset[name];
-      if (do_show !== false) window.tabulator_table.showColumn(name);
-      else window.tabulator_table.hideColumn(name);
+      if (do_show !== false) window['tabulator_table_'+rndid].showColumn(name);
+      else window['tabulator_table_'+rndid].hideColumn(name);
       $(this).prop("checked", do_show);
     });
 }
 
-function tabUserGroupBy(e) {
-  window.tabulator_table.setGroupBy(e.value);
+function tabUserGroupBy(e, rndid) {
+  window['tabulator_table_'+rndid].setGroupBy(e.value);
 }
 
-function run_selected_rows_action(viewname, selectable) {
-  const rows0 = window.tabulator_table.getRows("active");
+function run_selected_rows_action(viewname, selectable, rndid) {
+  const rows0 = window['tabulator_table_'+rndid].getRows("active");
   const rows1 = selectable ? rows0.filter((r) => r.isSelected()) : rows0;
   const rows = rows1.map((r) => r.getData());
   view_post(viewname, "run_selected_rows_action", {
     rows,
   });
+}
+
+function add_tabview_row(rndid) {
+  window['tabulator_table_'+rndid].addRow({}, true);
 }
