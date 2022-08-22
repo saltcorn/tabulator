@@ -1036,7 +1036,7 @@ const run = async (
         persistenceID:"tabview_${viewname}",
         movableColumns: ${!!movable_cols},
         history: ${!!history},
-        ${tree_field ? "dataTree:true,dataTreeStartExpanded:true," : ""}
+        ${tree_field ? "dataTree:true,dataTreeStartExpanded:true,dataTreeSelectPropagate:true," : ""}
         ${tree_field && selectable
           ? `dataTreeElementColumn:"${use_tabcolumns.find((c) => c.field).field
           }",`
