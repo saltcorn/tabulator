@@ -1319,17 +1319,22 @@ const run_selected_rows_action = async (
   const trigger = await Trigger.findOne({ name: selected_rows_action });
   const action = getState().actions[trigger.action];
   let result;
-  for (const row of rows) {
-    result = await action.run({
-      row,
-      referrer: req.get("Referrer"),
-      table,
-      req,
-      Table,
-      user: req.user,
-      configuration: trigger.configuration,
-    });
+  const go = async (rows) => {
+    for (const row of rows) {
+      result = await action.run({
+        row,
+        referrer: req.get("Referrer"),
+        table,
+        req,
+        Table,
+        user: req.user,
+        configuration: trigger.configuration,
+      });
+      if (row._children && Array.isArray(row._children))
+        await go(row._children)
+    }
   }
+  await go(rows)
   return { json: { success: "ok", ...(result || {}) } };
 };
 module.exports = {
