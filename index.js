@@ -315,12 +315,17 @@ const view_configuration_workflow = (req) =>
                 label: "Action dropdown column frozen",
                 type: "Bool",
               },
-
+              {
+                name: "pagination_enabled",
+                label: "Pagination",
+                type: "Bool",
+              },
               {
                 name: "pagination_size",
                 label: "Pagination size",
                 type: "Integer",
                 default: 20,
+                showIf: { pagination_enabled: true }
               },
               {
                 name: "selected_rows_action",
@@ -886,6 +891,7 @@ const run = async (
     remove_unselected_btn,
     download_csv,
     header_filters,
+    pagination_enabled,
     pagination_size,
     movable_cols,
     history,
@@ -1030,7 +1036,7 @@ const run = async (
         layout:"fit${fit || "Columns"}", 
         columns,
         height:"100%",
-        pagination:true,
+        pagination:${!!pagination_enabled},
         paginationSize:${pagination_size || 20},
         paginationSizeSelector: ${JSON.stringify(paginationSizeChoices)},
         clipboard:true,
