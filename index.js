@@ -1066,10 +1066,13 @@ const run = async (
         },
     });
     function save_row_from_cell( row, cell, noid) {
+      const fld = cell.getField()
+      if(typeof row[fld]==="undefined") return;
+      const saveRow = {[fld]: row[fld]}
        $.ajax({
         type: "POST",
         url: "/api/${table.name}/" + (noid?'':(row.id||"")),
-        data: row,
+        data: saveRow,
         headers: {
           "CSRF-Token": _sc_globalCsrf,
         },
