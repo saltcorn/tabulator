@@ -107,19 +107,34 @@ function activate_preset(encPreset, rndid) {
     .each(function () {
       const name = $(this).attr("data-fieldname");
       const do_show = preset[name];
-      if (do_show !== false) window['tabulator_table_'+rndid].showColumn(name);
-      else window['tabulator_table_'+rndid].hideColumn(name);
+      if (do_show !== false) window['tabulator_table_' + rndid].showColumn(name);
+      else window['tabulator_table_' + rndid].hideColumn(name);
       $(this).prop("checked", do_show);
     });
 }
 
 function tabUserGroupBy(e, rndid) {
-  window['tabulator_table_'+rndid].setGroupBy(e.value);
+  window['tabulator_table_' + rndid].setGroupBy(e.value);
 }
 
 function run_selected_rows_action(viewname, selectable, rndid) {
-  const rows0 = window['tabulator_table_'+rndid].getRows("active");
-  const rows1 = selectable ? rows0.filter((r) => r.isSelected()) : rows0;
+  const rows0 = window['tabulator_table_' + rndid].getRows("active");
+  let rows1 = [];
+  if (!selectable)
+    rows1 = rows0
+  else {
+    const go = rows => {
+      rows.forEach(r => {
+        if (r.isSelected()) rows1.push(r);
+
+        const children = r.getTreeChildren();
+        if (children && children.length && children.length > 0)
+          go(children);
+      })
+
+    }
+    go(rows0)
+  }
   const rows = rows1.map((r) => r.getData());
   view_post(viewname, "run_selected_rows_action", {
     rows,
@@ -127,5 +142,5 @@ function run_selected_rows_action(viewname, selectable, rndid) {
 }
 
 function add_tabview_row(rndid) {
-  window['tabulator_table_'+rndid].addRow({}, true);
+  window['tabulator_table_' + rndid].addRow({}, true);
 }

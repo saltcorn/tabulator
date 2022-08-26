@@ -946,6 +946,8 @@ const run = async (
     aggregations,
     ...q,
   });
+  //console.log(rows[0]);
+  //console.log(columns[0]);
   //console.log({ rows_len: rows.length, q, where, rows_per_page });
   const { tabcolumns, calculators, dropdown_id, dropdown_actions } =
     await get_tabulator_columns(
@@ -1325,22 +1327,17 @@ const run_selected_rows_action = async (
   const trigger = await Trigger.findOne({ name: selected_rows_action });
   const action = getState().actions[trigger.action];
   let result;
-  const go = async (rows) => {
-    for (const row of rows) {
-      result = await action.run({
-        row,
-        referrer: req.get("Referrer"),
-        table,
-        req,
-        Table,
-        user: req.user,
-        configuration: trigger.configuration,
-      });
-      if (row._children && Array.isArray(row._children))
-        await go(row._children)
-    }
+  for (const row of rows) {
+    result = await action.run({
+      row,
+      referrer: req.get("Referrer"),
+      table,
+      req,
+      Table,
+      user: req.user,
+      configuration: trigger.configuration,
+    });
   }
-  await go(rows)
   return { json: { success: "ok", ...(result || {}) } };
 };
 module.exports = {
