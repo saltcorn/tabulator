@@ -1191,7 +1191,7 @@ const run = async (
       {
         class: "btn btn-sm btn-primary mx-1",
         title: "on selected rows",
-        onClick: `run_selected_rows_action('${viewname}', ${selectable}, '${rndid}')`,
+        onClick: `run_selected_rows_action('${viewname}', ${selectable}, '${rndid}', ${!!tree_field})`,
       },
       selected_rows_action_name
     ),

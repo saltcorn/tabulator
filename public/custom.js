@@ -117,7 +117,7 @@ function tabUserGroupBy(e, rndid) {
   window['tabulator_table_' + rndid].setGroupBy(e.value);
 }
 
-function run_selected_rows_action(viewname, selectable, rndid) {
+function run_selected_rows_action(viewname, selectable, rndid, hasChildren) {
   const rows0 = window['tabulator_table_' + rndid].getRows("active");
   let rows1 = [];
   if (!selectable)
@@ -127,7 +127,7 @@ function run_selected_rows_action(viewname, selectable, rndid) {
       rows.forEach(r => {
         if (r.isSelected()) rows1.push(r);
 
-        const children = r.getTreeChildren();
+        const children = hasChildren && r.getTreeChildren();
         if (children && children.length && children.length > 0)
           go(children);
       })
