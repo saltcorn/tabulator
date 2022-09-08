@@ -113,7 +113,10 @@ function activate_preset(encPreset, rndid) {
     });
 }
 
-function tabUserGroupBy(e, rndid) {
+function tabUserGroupBy(e, rndid, orderFld, orderDesc) {
+  if (orderFld)
+    window['tabulator_table_' + rndid].setSort([{ column: orderFld, dir: orderDesc ? 'desc' : "asc" }])
+  window['tabulator_table_' + rndid].setSort([{ column: e.value, dir: "asc" }])
   window['tabulator_table_' + rndid].setGroupBy(e.value);
 }
 

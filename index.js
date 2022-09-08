@@ -778,7 +778,7 @@ const addRowButton = (rndid) =>
     "Add row"
   );
 
-const selectGroupBy = (fields, columns, rndid) => {
+const selectGroupBy = (fields, columns, rndid, orderFld, orderDesc) => {
   const colFields = columns
     .filter((c) => ["Field", "JoinField", "Aggregation"].includes(c.type))
     .map((c) => c.field)
@@ -786,7 +786,7 @@ const selectGroupBy = (fields, columns, rndid) => {
   const groupByOptions = new Set([...colFields, ...fields.map((f) => f.name)]);
   return select(
     {
-      onChange: `tabUserGroupBy(this, '${rndid}')`,
+      onChange: `tabUserGroupBy(this, '${rndid}'${orderFld ? `, '${orderFld}', ${!!orderDesc}` : ''})`,
       class: "mx-1 form-select d-inline",
       style: "width:unset",
     },
@@ -1199,7 +1199,8 @@ const run = async (
       },
       i({ class: "fas fa-redo" })
     ),
-    groupBy === "Selected by user" && selectGroupBy(fields, columns, rndid),
+    groupBy === "Selected by user"
+    && selectGroupBy(fields, columns, rndid, def_order_field, def_order_descending),
     selected_rows_action &&
     button(
       {
