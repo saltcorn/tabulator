@@ -368,7 +368,6 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
     jsgField.headerFilter = !!header_filters;
   } else if (t === "Key" || t === "File") {
     if (field.fieldview === "Thumbnail") {
-      console.log(field);
       jsgField.formatter = "image";
       jsgField.formatterParams = {
         height: `${field.attributes?.height || 50}px`,
@@ -376,6 +375,8 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
         urlPrefix: "/files/resize/",
         urlSuffix: `/${field.attributes?.height || 50}/${field.attributes?.width || 50}`,
       }
+      jsgField.editor = false;
+
     } else {
       jsgField.editor = "select";
       const values = {};
@@ -1021,7 +1022,6 @@ const run = async (
       ? 1
       : ((b[groupBy1] > a[groupBy1]) ? -1 : 0))
   }
-  console.log(rows[0]);
   const pgSz = pagination_size || 20;
   const paginationSizeChoices = [
     Math.round(pgSz / 2),
