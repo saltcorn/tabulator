@@ -998,6 +998,19 @@ const run = async (
     //const old_rows = [...rows];
     rows = nest(rows);
   }
+  if (groupBy1 && def_order_field) {
+    const dir = def_order_descending ? 1 : -1
+    rows.sort((a, b) => (a[def_order_field] > b[def_order_field])
+      ? dir
+      : ((b[def_order_field] > a[def_order_field]) ? -1 * dir : 0))
+
+  }
+  if (groupBy1) {
+    rows.sort((a, b) => (a[groupBy1] > b[groupBy1])
+      ? 1
+      : ((b[groupBy1] > a[groupBy1]) ? -1 : 0))
+  }
+  console.log(rows);
   const pgSz = pagination_size || 20;
   const paginationSizeChoices = [
     Math.round(pgSz / 2),
@@ -1052,9 +1065,10 @@ const run = async (
           }",`
           : ""
         }
-        ${groupBy1 ? `groupBy: "${groupBy1}",` : ""}
-        ${def_order_field
+        ${groupBy1 ? `groupBy: "${groupBy1}",` : ""}        
+        ${def_order_field && !groupBy1
           ? `initialSort:[
+            
           {column:"${def_order_field}", dir:"${def_order_descending ? "desc" : "asc"
           }"},
         ],`
