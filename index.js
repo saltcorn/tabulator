@@ -603,7 +603,7 @@ const get_tabulator_columns = async (
         fld +
         db.sqlsanitize(column.aggwhere || "")
       ).toLowerCase();
-      tcol.field = targetNm;
+      tcol.field = db.sqlsanitize(targetNm);
     } else if (column.type === "ViewLink") {
       tcol.formatter = "html";
       const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
