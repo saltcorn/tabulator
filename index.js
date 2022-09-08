@@ -1010,7 +1010,7 @@ const run = async (
       ? 1
       : ((b[groupBy1] > a[groupBy1]) ? -1 : 0))
   }
-  console.log(rows);
+  //console.log(rows);
   const pgSz = pagination_size || 20;
   const paginationSizeChoices = [
     Math.round(pgSz / 2),
