@@ -367,17 +367,28 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
   } else if (t.name === "String") {
     jsgField.headerFilter = !!header_filters;
   } else if (t === "Key" || t === "File") {
-    jsgField.editor = "select";
-    const values = {};
-    //console.log(column);
-    (field.options || []).forEach(
-      ({ label, value }) => (values[value] = label)
-    );
-    jsgField.editorParams = { values };
-    jsgField.formatterParams = { values };
-    if (header_filters) jsgField.headerFilterParams = { values };
-    jsgField.formatter = "__lookupIntToString";
-    jsgField.headerFilter = !!header_filters;
+    if (field.fieldview === "Thumbnail") {
+      console.log(field);
+      jsgField.formatter = "image";
+      jsgField.formatterParams = {
+        height: `${field.attributes?.height || 50}px`,
+        width: `${field.attributes?.width || 50}px`,
+        urlPrefix: "/files/resize/",
+        urlSuffix: `/${field.attributes?.height || 50}/${field.attributes?.width || 50}`,
+      }
+    } else {
+      jsgField.editor = "select";
+      const values = {};
+      //console.log(column);
+      (field.options || []).forEach(
+        ({ label, value }) => (values[value] = label)
+      );
+      jsgField.editorParams = { values };
+      jsgField.formatterParams = { values };
+      if (header_filters) jsgField.headerFilterParams = { values };
+      jsgField.formatter = "__lookupIntToString";
+      jsgField.headerFilter = !!header_filters;
+    }
   } else if (t.name === "Float" || t.name === "Integer") {
     jsgField.editor = "number";
     jsgField.sorter = "number";
@@ -1010,7 +1021,7 @@ const run = async (
       ? 1
       : ((b[groupBy1] > a[groupBy1]) ? -1 : 0))
   }
-  //console.log(rows);
+  console.log(rows[0]);
   const pgSz = pagination_size || 20;
   const paginationSizeChoices = [
     Math.round(pgSz / 2),
