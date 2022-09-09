@@ -1032,6 +1032,7 @@ const run = async (
     pgSz * 3,
     true,
   ];
+  const hasCalculated = fields.some(f => f.calculated)
   const selected_rows_action_name = selected_rows_action
     ? ((x) => x.description || x.name)(
       getState().triggers.find((tr) => tr.name === selected_rows_action)
@@ -1105,7 +1106,24 @@ const run = async (
       }).done(function (resp) {
         if(resp.success &&typeof resp.success ==="number" && !row.id && cell) {
           window.tabulator_table_${rndid}.updateRow(cell.getRow(), {id: resp.success});
+          
         }
+        ${hasCalculated ? `
+        let id = noid ? resp.success : row.id
+        $.ajax({
+          type: "GET",
+          url: "/api/${table.name}?id=" +id,          
+          headers: {
+            "CSRF-Token": _sc_globalCsrf,
+          },
+          error: tabulator_error_handler,
+        }).done(function (resp) {
+          console.log("calc GET",resp)
+          if(resp.success && resp.success[0]) {
+            window.tabulator_table_${rndid}.updateRow(cell.getRow(), resp.success[0]);
+          }
+        })
+          `: ''}
       });
     }
     window.tabulator_table_${rndid}.on("cellEdited", function(cell){
