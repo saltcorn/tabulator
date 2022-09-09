@@ -664,7 +664,7 @@ const get_tabulator_columns = async (
         formatter: "buttonCross",
         title: i({ class: "far fa-trash-alt" }),
         width: 40,
-        formatterParams: { confirm: column.confirm },
+        formatterParams: { confirm: column.confirm, tableName: table.name },
         hozAlign: "center",
         headerSort: false,
         clipboard: false,
