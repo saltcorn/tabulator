@@ -221,6 +221,16 @@ const view_configuration_workflow = (req) =>
                 },
               },
               {
+                name: "default_group_by",
+                label: "Default group by",
+                type: "String",
+                attributes: {
+                  options: [...groupByOptions].filter(f => f !== "Selected by user"),
+                },
+                showIf: { groupBy: "Selected by user" }
+
+              },
+              {
                 name: "group_true_label",
                 label: "Group True label",
                 type: "String",
@@ -829,7 +839,7 @@ const addRowButton = (rndid) =>
     "Add row"
   );
 
-const selectGroupBy = (fields, columns, rndid, orderFld, orderDesc) => {
+const selectGroupBy = (fields, columns, rndid, orderFld, orderDesc, default_group_by) => {
   const groupByOptions = {}
   columns.forEach(c => {
     if (["Field", "JoinField", "Aggregation"].includes(c.type) && c.field)
@@ -845,9 +855,9 @@ const selectGroupBy = (fields, columns, rndid, orderFld, orderDesc) => {
       class: "mx-1 form-select d-inline",
       style: "width:unset",
     },
-    option({ value: "", disabled: true, selected: true }, "Group by..."),
+    option({ value: "", disabled: true, selected: !default_group_by }, "Group by..."),
     option({ value: "" }, "No grouping"),
-    Object.entries(groupByOptions).map(([k, v]) => option({ value: k }, v))
+    Object.entries(groupByOptions).map(([k, v]) => option({ value: k, selected: k === default_group_by }, v))
   );
 };
 
@@ -964,7 +974,8 @@ const run = async (
     selected_rows_action,
     group_true_label,
     group_false_label,
-    group_null_label
+    group_null_label,
+    default_group_by
   },
   state,
   extraArgs
@@ -986,17 +997,21 @@ const run = async (
   const { joinFields, aggregations } = picked_fields_to_query(columns, fields);
   await set_join_fieldviews({ columns, fields });
   let groupBy1 = groupBy;
-  if (groupBy) {
-    const groupField = fields.find((f) => f.name === groupBy);
+  if (groupBy1) {
+    if (groupBy === "Selected by user" && default_group_by)
+      groupBy1 = default_group_by
+    const groupField = fields.find((f) => f.name === groupBy1);
     if (groupField && groupField.is_fkey) {
-      groupBy1 = `${groupBy}_${groupField?.attributes?.summary_field || "id"}`;
+      let orginalName = groupBy1
+      groupBy1 = `${groupBy1}_${groupField?.attributes?.summary_field || "id"}`;
       if (!joinFields[groupBy1])
         joinFields[groupBy1] = {
-          ref: groupBy,
+          ref: orginalName,
           target: groupField?.attributes?.summary_field || "id",
         };
     }
   }
+  console.log({ groupBy1, joinFields });
 
   let rows = await table.getJoinedRows({
     where,
@@ -1280,7 +1295,7 @@ const run = async (
       i({ class: "fas fa-redo" })
     ),
     groupBy === "Selected by user"
-    && selectGroupBy(fields, columns, rndid, def_order_field, def_order_descending),
+    && selectGroupBy(fields, columns, rndid, def_order_field, def_order_descending, default_group_by),
     selected_rows_action &&
     button(
       {
