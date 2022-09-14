@@ -395,6 +395,11 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       (field.options || []).forEach(
         ({ label, value }) => (values[value] = label)
       );
+      calculators.push((row) => {
+        if (row[field.name])
+          row[field.name] = `${row[field.name]}`
+
+      });
       jsgField.editorParams = { values };
       jsgField.formatterParams = { values };
       if (header_filters) jsgField.headerFilterParams = { values };
