@@ -1011,7 +1011,6 @@ const run = async (
         };
     }
   }
-  console.log({ groupBy1, joinFields });
 
   let rows = await table.getJoinedRows({
     where,
