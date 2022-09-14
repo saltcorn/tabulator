@@ -126,7 +126,14 @@ const view_configuration_workflow = (req) =>
           );
           field_picker_repeat.find((c) => c.name === "col_width").label =
             "Column width (px)";
-
+          const fvs = field_picker_repeat.filter((c) => c.name === "fieldview")
+          fvs.forEach(fv => {
+            if (fv?.attributes?.calcOptions?.[1])
+              Object.values(fv.attributes.calcOptions[1]).forEach(fvlst => {
+                if (fvlst[0] === "as_text")
+                  fvlst.push("textarea")
+              })
+          })
           return new Form({
             fields: [
               new FieldRepeat({
@@ -366,6 +373,10 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
     jsgField.headerFilter = !!header_filters;
   } else if (t.name === "String") {
     jsgField.headerFilter = !!header_filters;
+    if (field.fieldview === "textarea") {
+      jsgField.formatter = "textarea"
+      jsgField.editor = false
+    }
   } else if (t === "Key" || t === "File") {
     if (field.fieldview === "Thumbnail") {
       jsgField.formatter = "image";
