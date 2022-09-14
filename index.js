@@ -177,6 +177,10 @@ const view_configuration_workflow = (req) =>
             ...fields.map((f) => f.name),
             "Selected by user",
           ]);
+          const boolGroupOptions = new Set([
+            ...fields.filter(f => f?.type?.name === "Bool").map(f => f.name),
+            ...colFields.filter(f => f.formatter === "tickCross").map(f => f.field)
+          ])
           const roles = await User.get_roles();
           let tree_field_options = [];
           //self join
@@ -216,6 +220,25 @@ const view_configuration_workflow = (req) =>
                   options: [...groupByOptions],
                 },
               },
+              {
+                name: "group_true_label",
+                label: "Group True label",
+                type: "String",
+                showIf: { groupBy: [...boolGroupOptions] }
+              },
+              {
+                name: "group_false_label",
+                label: "Group False label",
+                type: "String",
+                showIf: { groupBy: [...boolGroupOptions] }
+              },
+              {
+                name: "group_null_label",
+                label: "Group null label",
+                type: "String",
+                showIf: { groupBy: [...boolGroupOptions] }
+              },
+
               {
                 name: "tree_field",
                 label: "Tree field",
@@ -935,6 +958,9 @@ const run = async (
     min_role_preset_edit,
     tree_field,
     selected_rows_action,
+    group_true_label,
+    group_false_label,
+    group_null_label
   },
   state,
   extraArgs
@@ -1073,7 +1099,7 @@ const run = async (
             col[k] = window[v.substring(2)];
           }
         })
-      })   
+      })
     window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}", {
         data: ${JSON.stringify(rows)},
         layout:"fit${fit || "Columns"}", 
@@ -1093,7 +1119,12 @@ const run = async (
           }",`
           : ""
         }
-        ${groupBy1 ? `groupBy: "${groupBy1}",` : ""}        
+        ${groupBy1 ? `groupBy: ${group_true_label || group_false_label ? `(data)=>
+         data.${groupBy1}===true
+         ? "${group_true_label || "True"}"
+         : data.${groupBy1}===false
+         ? "${group_false_label || "False"}"
+         : "${group_null_label || "N/A"}"` : `"${groupBy1}"`},` : ""}
         ${def_order_field && !groupBy1
           ? `initialSort:[
             
