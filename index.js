@@ -409,6 +409,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
     if (field.fieldview === "textarea") {
       jsgField.formatter = "textarea"
       jsgField.editor = false
+      if (jsgField.headerFilter) jsgField.headerFilter = "input"
     }
   } else if (t === "Key" || t === "File") {
     if (field.fieldview === "Thumbnail") {
