@@ -830,11 +830,15 @@ const addRowButton = (rndid) =>
   );
 
 const selectGroupBy = (fields, columns, rndid, orderFld, orderDesc) => {
-  const colFields = columns
-    .filter((c) => ["Field", "JoinField", "Aggregation"].includes(c.type))
-    .map((c) => c.field)
-    .filter((s) => s);
-  const groupByOptions = new Set([...colFields, ...fields.map((f) => f.name)]);
+  const groupByOptions = {}
+  columns.forEach(c => {
+    if (["Field", "JoinField", "Aggregation"].includes(c.type) && c.field)
+      groupByOptions[c.field] = c.title || c.field
+  })
+  fields.forEach(f => {
+    groupByOptions[f.name] = f.label || f.name
+  })
+
   return select(
     {
       onChange: `tabUserGroupBy(this, '${rndid}'${orderFld ? `, '${orderFld}', ${!!orderDesc}` : ''})`,
@@ -843,7 +847,7 @@ const selectGroupBy = (fields, columns, rndid, orderFld, orderDesc) => {
     },
     option({ value: "", disabled: true, selected: true }, "Group by..."),
     option({ value: "" }, "No grouping"),
-    [...groupByOptions].map((o) => option(o))
+    Object.entries(groupByOptions).map(([k, v]) => option({ value: k }, v))
   );
 };
 
