@@ -406,7 +406,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
     jsgField.headerFilter = !!header_filters;
   } else if (t.name === "String") {
     jsgField.headerFilter = !!header_filters;
-    if (field.fieldview === "textarea") {
+    if (column.fieldview === "textarea") {
       jsgField.formatter = "textarea"
       jsgField.editor = false
       if (jsgField.headerFilter) jsgField.headerFilter = "input"
@@ -542,8 +542,8 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
 
 const set_join_fieldviews = async ({ columns, fields }) => {
   for (const segment of columns) {
-    const { join_field, join_fieldview } = segment;
-    if (!join_fieldview) continue;
+    const { join_field, join_fieldview, type } = segment;
+    if (!join_fieldview || type !== "JoinField") continue;
     const keypath = join_field.split(".");
 
     let field,
@@ -560,13 +560,13 @@ const set_join_fieldviews = async ({ columns, fields }) => {
     segment.field_obj = field;
     if (field && field.type === "File") segment.field_type = "File";
     else if (
-      field &&
-      field.type &&
-      field.type.name &&
+      field?.type.name &&
       field.type.fieldviews &&
       field.type.fieldviews[join_fieldview]
-    )
+    ) {
       segment.field_type = field.type.name;
+      segment.fieldview = join_fieldview
+    }
   }
 };
 
