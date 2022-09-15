@@ -657,7 +657,15 @@ const get_tabulator_columns = async (
       tcol.field = key;
       tcol.editor = false;
     } else if (column.type === "Aggregation") {
-      const [table, fld] = column.agg_relation.split(".");
+      let table, fld, through;
+      if (column.agg_relation.includes("->")) {
+        let restpath;
+        [through, restpath] = column.agg_relation.split("->");
+        [table, fld] = restpath.split(".");
+
+      } else {
+        [table, fld] = column.agg_relation.split(".");
+      }
       const targetNm = (
         column.stat.replace(" ", "") +
         "_" +
