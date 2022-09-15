@@ -413,7 +413,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
     }
   } else if (t === "Key" || t === "File") {
     if (field.fieldview === "Thumbnail") {
-      jsgField.formatter = "image";
+      jsgField.formatter = "__optionalImageFormatter";
       jsgField.formatterParams = {
         height: `${field.attributes?.height || 50}px`,
         width: `${field.attributes?.width || 50}px`,
