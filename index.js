@@ -415,10 +415,11 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
     if (field.fieldview === "Thumbnail") {
       jsgField.formatter = "__optionalImageFormatter";
       jsgField.formatterParams = {
-        height: `${field.attributes?.height || 50}px`,
+        height: field.attributes?.height ? `${field.attributes?.height || 50}px` : undefined,
         width: `${field.attributes?.width || 50}px`,
         urlPrefix: "/files/resize/",
-        urlSuffix: `/${field.attributes?.height || 50}/${field.attributes?.width || 50}`,
+        urlSuffix: `/${field.attributes?.width || 50}`
+          + (field.attributes?.height ? `/${field.attributes.height}` : '')
       }
       jsgField.editor = false;
 
