@@ -379,6 +379,13 @@ const view_configuration_workflow = (req) =>
                   options: [...action_options],
                 },
               },
+              {
+                name: "selected_rows_action_once",
+                label: "Run action once for all rows",
+                type: "Bool",
+                sublabel: "Tick to run action once with all rows (<code>rows</code> variable). Untick to run multiple times, once for each row (<code>row</code> variable).",
+                showIf: { selected_rows_action: [...action_options] }
+              },
             ],
           });
         },
@@ -1450,7 +1457,7 @@ const run_action = async (
 const run_selected_rows_action = async (
   table_id,
   viewname,
-  { selected_rows_action },
+  { selected_rows_action, selected_rows_action_once },
   { rows },
   { req, res }
 ) => {
@@ -1459,17 +1466,26 @@ const run_selected_rows_action = async (
   const trigger = await Trigger.findOne({ name: selected_rows_action });
   const action = getState().actions[trigger.action];
   let result;
-  for (const row of rows) {
+  const actionArg = {
+    referrer: req.get("Referrer"),
+    table,
+    req,
+    Table,
+    user: req.user,
+    configuration: trigger.configuration,
+  }
+  if (selected_rows_action_once)
+    result = await action.run({
+      rows,
+      ...actionArg
+    });
+
+  else for (const row of rows)
     result = await action.run({
       row,
-      referrer: req.get("Referrer"),
-      table,
-      req,
-      Table,
-      user: req.user,
-      configuration: trigger.configuration,
+      ...actionArg
     });
-  }
+
   return { json: { success: "ok", ...(result || {}) } };
 };
 module.exports = {
