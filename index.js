@@ -228,7 +228,6 @@ const view_configuration_workflow = (req) =>
                   options: [...groupByOptions].filter(f => f !== "Selected by user"),
                 },
                 showIf: { groupBy: "Selected by user" }
-
               },
               {
                 name: "group_true_label",
@@ -248,7 +247,12 @@ const view_configuration_workflow = (req) =>
                 type: "String",
                 showIf: { groupBy: [...boolGroupOptions] }
               },
-
+              {
+                name: "group_order_desc",
+                label: "Group order descending",
+                type: "Bool",
+                showIf: { groupBy: [...groupByOptions] }
+              },
               {
                 name: "tree_field",
                 label: "Tree field",
@@ -985,7 +989,8 @@ const run = async (
     group_true_label,
     group_false_label,
     group_null_label,
-    default_group_by
+    default_group_by,
+    group_order_desc
   },
   state,
   extraArgs
@@ -1088,9 +1093,11 @@ const run = async (
 
   }
   if (groupBy1) {
+    const dir = group_order_desc ? -1 : 1
+
     rows.sort((a, b) => (a[groupBy1] > b[groupBy1])
-      ? 1
-      : ((b[groupBy1] > a[groupBy1]) ? -1 : 0))
+      ? dir
+      : ((b[groupBy1] > a[groupBy1]) ? -1 * dir : 0))
   }
   const pgSz = pagination_size || 20;
   const paginationSizeChoices = [
