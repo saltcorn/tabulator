@@ -1152,7 +1152,10 @@ const run = async (
          ? "${group_true_label || "True"}"
          : data.${groupBy1}===false
          ? "${group_false_label || "False"}"
-         : "${group_null_label || "N/A"}"` : `"${groupBy1}"`},` : ""}
+         : "${group_null_label || "N/A"}"`
+          : groupBy1 === "Selected by user"
+            ? 'false'
+            : `"${groupBy1}"`},` : ""}
         ${def_order_field && !groupBy1
           ? `initialSort:[
             

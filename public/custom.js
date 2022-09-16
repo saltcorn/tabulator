@@ -160,6 +160,7 @@ function tabUserGroupBy(e, rndid, orderFld, orderDesc) {
     window['tabulator_table_' + rndid].setSort([{ column: orderFld, dir: orderDesc ? 'desc' : "asc" }])
   window['tabulator_table_' + rndid].setSort([{ column: e.value, dir: "asc" }])
   window['tabulator_table_' + rndid].setGroupBy(e.value);
+  window['tabulator_table_' + rndid].setGroupBy(e.value);
 }
 
 function run_selected_rows_action(viewname, selectable, rndid, hasChildren) {
