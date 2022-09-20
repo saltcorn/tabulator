@@ -1093,13 +1093,20 @@ const run = async (
     rows = nest(rows);
   }
   if (groupBy1 && def_order_field) {
-    const dir = def_order_descending ? 1 : -1
-    rows.sort((a, b) => (a[def_order_field] > b[def_order_field])
-      ? dir
-      : ((b[def_order_field] > a[def_order_field]) ? -1 * dir : 0))
+    const dir = def_order_descending ? -1 : 1
+    const dirGroup = group_order_desc ? -1 : 1
 
-  }
-  if (groupBy1) {
+    rows.sort((a, b) => (a[groupBy1] > b[groupBy1])
+      ? dirGroup
+      : ((b[groupBy1] > a[groupBy1])
+        ? -1 * dirGroup
+        : (a[def_order_field] > b[def_order_field])
+          ? dir
+          : ((b[def_order_field] > a[def_order_field])
+            ? -1 * dir
+            : 0)))
+
+  } else if (groupBy1) {
     const dir = group_order_desc ? -1 : 1
 
     rows.sort((a, b) => (a[groupBy1] > b[groupBy1])
