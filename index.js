@@ -41,7 +41,7 @@ const {
   select,
   option,
 } = require("@saltcorn/markup/tags");
-const { post_btn } = require("@saltcorn/markup");
+const { post_btn, localeDate, localeDateTime } = require("@saltcorn/markup");
 
 const {
   action_url,
@@ -698,6 +698,8 @@ const get_tabulator_columns = async (
         else if (value === false) value = i({
           class: "fas fa-lg fa-times-circle text-danger",
         })
+        if (value instanceof Date)
+          value = localeDateTime(value)
         row[rndid] = value
       });
       tcol.field = rndid //db.sqlsanitize(targetNm);
