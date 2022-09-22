@@ -671,6 +671,7 @@ const get_tabulator_columns = async (
       tcol.editor = false;
     } else if (column.type === "Aggregation") {
       let table, fld, through;
+      const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
       if (column.agg_relation.includes("->")) {
         let restpath;
         [through, restpath] = column.agg_relation.split("->");
@@ -679,15 +680,27 @@ const get_tabulator_columns = async (
       } else {
         [table, fld] = column.agg_relation.split(".");
       }
-      const targetNm = (
+      const targetNm = db.sqlsanitize((
         column.stat.replace(" ", "") +
         "_" +
         table +
         "_" +
         fld +
         db.sqlsanitize(column.aggwhere || "")
-      ).toLowerCase();
-      tcol.field = db.sqlsanitize(targetNm);
+      ).toLowerCase());
+      tcol.formatter = "html";
+
+      calculators.push((row) => {
+        let value = row[targetNm]
+        if (value === true) value = i({
+          class: "fas fa-lg fa-check-circle text-success",
+        })
+        else if (value === false) value = i({
+          class: "fas fa-lg fa-times-circle text-danger",
+        })
+        row[rndid] = value
+      });
+      tcol.field = rndid //db.sqlsanitize(targetNm);
     } else if (column.type === "FormulaValue") {
       const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
       calculators.push((row) => {
