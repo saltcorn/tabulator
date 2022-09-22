@@ -9,6 +9,8 @@ const db = require("@saltcorn/data/db");
 const Form = require("@saltcorn/data/models/form");
 const View = require("@saltcorn/data/models/view");
 const Workflow = require("@saltcorn/data/models/workflow");
+const { eval_expression } = require("@saltcorn/data/models/expression");
+
 const {
   field_picker_fields,
   picked_fields_to_query,
@@ -168,7 +170,7 @@ const view_configuration_workflow = (req) =>
           );
           const colFields = tabcolumns
             .filter((c) =>
-              ["Field", "JoinField", "Aggregation"].includes(c.type)
+              ["Field", "JoinField", "Aggregation", "FormulaValue"].includes(c.type)
             )
             .map((c) => c.field)
             .filter((s) => s);
@@ -686,6 +688,13 @@ const get_tabulator_columns = async (
         db.sqlsanitize(column.aggwhere || "")
       ).toLowerCase();
       tcol.field = db.sqlsanitize(targetNm);
+    } else if (column.type === "FormulaValue") {
+      const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+      calculators.push((row) => {
+        row[rndid] = eval_expression(column.formula, row)
+      });
+      tcol.field = rndid;
+      tcol.headerFilter = !!header_filters && "input";
     } else if (column.type === "ViewLink") {
       tcol.formatter = "html";
       const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
