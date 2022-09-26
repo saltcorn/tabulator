@@ -700,7 +700,7 @@ const get_tabulator_columns = async (
           return localeDateTime(value)
         if (Array.isArray(value))
           return value.map((v) => showValue(v)).join(", ")
-        return value.toString()
+        return value?.toString ? value.toString() : value
       }
       calculators.push((row) => {
         let value = row[targetNm]
