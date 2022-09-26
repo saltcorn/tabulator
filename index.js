@@ -689,18 +689,23 @@ const get_tabulator_columns = async (
         db.sqlsanitize(column.aggwhere || "")
       ).toLowerCase());
       tcol.formatter = "html";
-
-      calculators.push((row) => {
-        let value = row[targetNm]
-        if (value === true) value = i({
+      let showValue = value => {
+        if (value === true) return i({
           class: "fas fa-lg fa-check-circle text-success",
         })
-        else if (value === false) value = i({
+        else if (value === false) return i({
           class: "fas fa-lg fa-times-circle text-danger",
         })
         if (value instanceof Date)
-          value = localeDateTime(value)
-        row[rndid] = value
+          return localeDateTime(value)
+        if (Array.isArray(value))
+          return value.map((v) => showValue(v)).join(", ")
+        return value.toString()
+      }
+      calculators.push((row) => {
+        let value = row[targetNm]
+
+        row[rndid] = showValue(value)
       });
       tcol.field = rndid //db.sqlsanitize(targetNm);
     } else if (column.type === "FormulaValue") {
