@@ -112,7 +112,7 @@ var dateFilterEditor = function (
     },
   });
   input.css({
-    border: "1px",
+    border: "1px solid #ced4da",
     background: "transparent",
     padding: "4px",
     width: "100%",
