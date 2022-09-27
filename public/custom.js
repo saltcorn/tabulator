@@ -187,6 +187,17 @@ function run_selected_rows_action(viewname, selectable, rndid, hasChildren) {
   });
 }
 
+function tabulator_colcalc_unique(values, data, calcParams) {
+  //values - array of column values
+  //data - all table data
+  //calcParams - params passed from the column definition object
+
+  var set = new Set(values);
+
+
+  return set.size;
+}
+
 function add_tabview_row(rndid) {
   window['tabulator_table_' + rndid].addRow({}, true);
 }

@@ -115,7 +115,12 @@ const view_configuration_workflow = (req) =>
             name: "column_calculation",
             label: "Column Calculation",
             type: "String",
-            attributes: { options: ["avg", "max", "min", "sum", "count"] },
+            attributes: {
+              options: [
+                "avg", "max", "min", "sum", "count",
+                { name: "__tabulator_colcalc_unique", label: "count unique" }
+              ]
+            },
           });
           field_picker_repeat.push({
             name: "calc_dps",
