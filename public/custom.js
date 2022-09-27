@@ -191,12 +191,33 @@ function tabulator_colcalc_unique(values, data, calcParams) {
   //values - array of column values
   //data - all table data
   //calcParams - params passed from the column definition object
-
   var set = new Set(values);
 
 
   return set.size;
 }
+
+function tabulator_colcalc_counttrue(values, data, calcParams) {
+  return values.filter(v => v === true).length;
+}
+
+function tabulator_colcalc_countfalse(values, data, calcParams) {
+  return values.filter(v => v === false).length;
+}
+
+function tabulator_colcalc_avgnonulls(values, data, calcParams) {
+  let sum = 0.0, count = 0,
+    precision = typeof calcParams.precision !== "undefined" ? calcParams.precision : 2;
+  values.forEach(v => {
+    if (typeof v === "number" && !isNaN(v)) {
+      sum += v
+      count += 1
+    }
+  })
+  return (sum / count).toFixed(precision);
+}
+
+
 
 function add_tabview_row(rndid) {
   window['tabulator_table_' + rndid].addRow({}, true);

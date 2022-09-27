@@ -118,7 +118,10 @@ const view_configuration_workflow = (req) =>
             attributes: {
               options: [
                 "avg", "max", "min", "sum", "count",
-                { name: "__tabulator_colcalc_unique", label: "count unique" }
+                { name: "__tabulator_colcalc_unique", label: "count unique" },
+                { name: "__tabulator_colcalc_counttrue", label: "count true" },
+                { name: "__tabulator_colcalc_countfalse", label: "count false" },
+                { name: "__tabulator_colcalc_avgnonulls", label: "avg no nulls" }
               ]
             },
           });
@@ -126,7 +129,7 @@ const view_configuration_workflow = (req) =>
             name: "calc_dps",
             label: "Calculation decimal places",
             type: "Integer",
-            showIf: { column_calculation: ["avg", "max", "min", "sum"] },
+            showIf: { column_calculation: ["avg", "max", "min", "sum", "__tabulator_colcalc_avgnonulls"] },
           });
           const use_field_picker_repeat = field_picker_repeat.filter(
             (f) => !["state_field", "col_width_units"].includes(f.name)
