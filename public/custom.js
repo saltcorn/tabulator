@@ -79,6 +79,73 @@ function minMaxFilterFunction(headerValue, rowValue, rowData, filterParams) {
   return headerValue?.start !== "" || headerValue?.end !== "" ? false : true; //must return a boolean, true if it passes the filter.
 }
 
+//custom max min header filter
+var dateFilterEditor = function (
+  cell,
+  onRendered,
+  success,
+  cancel,
+  editorParams
+) {
+  const input = $("<input type='text'/>");
+  input.flatpickr({
+    mode: "range",
+    locale: "en", // global variable with locale 'en', 'fr', ...
+    onClose: function (selectedDates, dateStr, instance) {
+      evt = window.event;
+      var isEscape = false;
+      if ("key" in evt) {
+        isEscape = evt.key === "Escape" || evt.key === "Esc";
+      } else {
+        isEscape = evt.keyCode === 27;
+      }
+      if (isEscape) {
+        // user hit escape
+        input[0]._flatpickr.clear()
+        success({})
+      } else {
+        success({
+          start: new Date(selectedDates[0]),
+          end: new Date(selectedDates[1])
+        })
+      }
+    },
+  });
+  input.css({
+    border: "1px",
+    background: "transparent",
+    padding: "4px",
+    width: "100%",
+    "box-sizing": "border-box",
+  });
+
+  return input[0];
+}
+
+function dateFilterFunction(headerValue, rowValue0, rowData, filterParams) {
+
+
+  if (rowValue0) {
+    const rowValue = new Date(rowValue0)
+    if (headerValue.start) {
+      if (headerValue.end) {
+        return rowValue >= headerValue.start && rowValue <= headerValue.end;
+      } else {
+        return rowValue >= headerValue.start;
+      }
+    } else {
+      if (headerValue.end) {
+        return rowValue <= headerValue.end;
+      } else {
+        return true
+      }
+
+    }
+  }
+
+  return headerValue?.start !== "" || headerValue?.end !== "" ? false : true; //must return a boolean, true if it passes the filter.
+}
+
 function optionalImageFormatter(cell, formatterParams, onRendered) {
   var el = document.createElement("img"),
     src = cell.getValue();

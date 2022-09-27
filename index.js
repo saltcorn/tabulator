@@ -519,7 +519,9 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
         inputFormat: "iso",
       };
     }
-    jsgField.headerFilter = !!header_filters;
+    jsgField.headerFilter = !!header_filters && "__dateFilterEditor";
+    jsgField.headerFilterFunc = "__dateFilterFunction";
+    jsgField.headerFilterLiveFilter = false;
   } else if (t.name === "Color") {
     jsgField.editor = "__colorEditor";
     jsgField.formatter = "__colorFormatter";
