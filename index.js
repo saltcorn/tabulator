@@ -702,6 +702,13 @@ const get_tabulator_columns = async (
           return value.map((v) => showValue(v)).join(", ")
         return value?.toString ? value.toString() : value
       }
+      if (column.agg_fieldview && column.agg_field?.includes("@")) {
+        const tname = column.agg_field.split("@")[1]
+        const type = getState().types[tname]
+        if (type?.fieldviews[column.agg_fieldview])
+          showValue = (x) =>
+            type.fieldviews[column.agg_fieldview].run(x, req)
+      }
       calculators.push((row) => {
         let value = row[targetNm]
 
@@ -1062,6 +1069,8 @@ const run = async (
         };
     }
   }
+
+  // console.log(aggregations);
 
   let rows = await table.getJoinedRows({
     where,
