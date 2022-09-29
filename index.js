@@ -717,7 +717,7 @@ const get_tabulator_columns = async (
         const type = getState().types[tname]
         if (type?.fieldviews[column.agg_fieldview])
           showValue = (x) =>
-            type.fieldviews[column.agg_fieldview].run(x, req)
+            type.fieldviews[column.agg_fieldview].run(x, req, column)
       }
       calculators.push((row) => {
         let value = row[targetNm]
