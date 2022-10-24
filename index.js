@@ -143,7 +143,14 @@ const view_configuration_workflow = (req) =>
                 if (fvlst[0] === "as_text")
                   fvlst.push("textarea")
               })
-          })
+          });
+          // fix legacy values missing view_name
+          (context?.columns || []).forEach(column => {
+            if (column.type === 'ViewLink' && column.view && !column.view_name) {
+              const view_select = parse_view_select(column.view);
+              column.view_name = view_select.viewname
+            }
+          });
           return new Form({
             fields: [
               new FieldRepeat({
