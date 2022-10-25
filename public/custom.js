@@ -188,36 +188,6 @@ function optionalImageFormatter(cell, formatterParams, onRendered) {
   return el;
 };
 
-const tabUrlSourceCache = {}
-const tabUrlSourceLoading = {}
-function urlSourceFormatter(cell, formatterParams, onRendered) {
-  const id = cell.getValue();
-  const row = cell.getRow()
-  if (!id) return;
-  const finalUrl = formatterParams.url + "?id=" + id
-  if (tabUrlSourceCache[finalUrl])
-    return tabUrlSourceCache[finalUrl];
-  if (tabUrlSourceLoading[finalUrl]) {
-    tabUrlSourceLoading[finalUrl].push(row);
-    return;
-  }
-  tabUrlSourceLoading[finalUrl] = [row]
-  ajax_post_json(finalUrl, {}, {
-    success: (data) => {
-      tabUrlSourceCache[finalUrl] = data;
-      (tabUrlSourceLoading[finalUrl] || []).forEach(row => {
-        row.reformat();
-      })
-    },
-    error: (err) => {
-      console.error(err);
-    },
-  });
-
-  return id
-}
-
-
 function add_preset(viewname) {
   let name = prompt("Name of new preset");
   if (!name) return;

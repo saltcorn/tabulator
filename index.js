@@ -601,7 +601,7 @@ const set_join_fieldviews = async ({ columns, fields }) => {
   }
 };
 
-const set_json_col = (tcol, field, key) => {
+const set_json_col = (tcol, field, key, header_filters) => {
   if (field?.attributes?.hasSchema && field.attributes.schema) {
     const schemaType = field.attributes.schema.find((t) => t.key === key);
     //console.log(schemaType);
@@ -611,12 +611,12 @@ const set_json_col = (tcol, field, key) => {
         tcol.sorter = "number";
         tcol.hozAlign = "right";
         tcol.headerHozAlign = "right";
-        tcol.headerFilter = "__minMaxFilterEditor";
+        tcol.headerFilter = header_filters && "__minMaxFilterEditor";
         tcol.headerFilterFunc = "__minMaxFilterFunction";
         tcol.headerFilterLiveFilter = false;
         break;
       case "String":
-        tcol.headerFilter = "input";
+        tcol.headerFilter = header_filters && "input";
         break;
       case "Bool":
         tcol.formatter = "tickCross";
@@ -627,11 +627,12 @@ const set_json_col = (tcol, field, key) => {
         break;
     }
     if (schemaType?.type.startsWith("Key to")) {
-      tcol.formatterParams = {
-        url: `/field/show-calculated/${schemaType.type.replace("Key to ", "")
-          }/${schemaType.summary_field}/show`
+      tcol.headerFilter = header_filters && "input";
+
+      tcol.lookupFkeys = {
+        table: schemaType.type.replace("Key to ", ""),
+        field: schemaType.summary_field
       }
-      tcol.formatter = "__urlSourceFormatter";
 
     }
   }
@@ -667,7 +668,7 @@ const get_tabulator_columns = async (
         tcol.field = key;
         tcol.title = column.key;
         tcol.headerFilter = !!header_filters;
-        set_json_col(tcol, f, column.key);
+        set_json_col(tcol, f, column.key, header_filters);
       } else
         tcol = typeToGridType(f.type, f, header_filters, column, calculators);
     } else if (column.type === "JoinField") {
@@ -840,7 +841,7 @@ const get_tabulator_columns = async (
         });
         scol.field = key;
         scol.title = subfld;
-        set_json_col(scol, tcol.field, subfld);
+        set_json_col(scol, tcol.field, subfld, header_filters);
         tabcols.push(scol);
       }
       continue;
@@ -1194,7 +1195,20 @@ const run = async (
     )
     : "";
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
-
+  for (const col of use_tabcolumns) {
+    if (col.lookupFkeys) {
+      const table = Table.findOne(col.lookupFkeys.table)
+      const ids = [...new Set(rows.map(r => r[col.field]).filter(x => x))]
+      const lu_map = {};
+      (await table.getRows({ id: { in: ids } })).forEach(r => {
+        lu_map[r.id] = r
+      })
+      rows.forEach(r => {
+        if (r[col.field] && lu_map[r[col.field]])
+          r[col.field] = lu_map[r[col.field]][col.lookupFkeys.field]
+      })
+    }
+  }
   return fragment(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
