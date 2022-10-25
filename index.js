@@ -604,6 +604,7 @@ const set_join_fieldviews = async ({ columns, fields }) => {
 const set_json_col = (tcol, field, key) => {
   if (field?.attributes?.hasSchema && field.attributes.schema) {
     const schemaType = field.attributes.schema.find((t) => t.key === key);
+    //console.log(schemaType);
     switch (schemaType?.type) {
       case "Integer":
       case "Float":
@@ -624,6 +625,14 @@ const set_json_col = (tcol, field, key) => {
 
       default:
         break;
+    }
+    if (schemaType?.type.startsWith("Key to")) {
+      tcol.formatterParams = {
+        url: `/field/show-calculated/${schemaType.type.replace("Key to ", "")
+          }/${schemaType.summary_field}/show`
+      }
+      tcol.formatter = "__urlSourceFormatter";
+
     }
   }
 };
