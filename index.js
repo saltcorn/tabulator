@@ -468,6 +468,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       if (header_filters) jsgField.headerFilterParams = { values };
       jsgField.formatter = "__lookupIntToString";
       jsgField.headerFilter = !!header_filters;
+      jsgField.headerFilterFunc = "=";
     }
   } else if (t.name === "Float" || t.name === "Integer") {
     jsgField.editor = "number";
