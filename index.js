@@ -1123,6 +1123,8 @@ const run = async (
   //const rows_per_page = default_state && default_state._rows_per_page;
   //if (!q.limit && rows_per_page) q.limit = rows_per_page;
   if (!q.orderBy) q.orderBy = table.pk_name;
+  if (extraArgs.isPreview) q.limit = 20;
+
   //if (!q.orderDesc) q.orderDesc = default_state && default_state._descending;
   const current_page = parseInt(state._page) || 1;
   const { joinFields, aggregations } = picked_fields_to_query(columns, fields);
