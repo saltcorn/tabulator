@@ -117,38 +117,59 @@ const view_configuration_workflow = (req) =>
             type: "String",
             attributes: {
               options: [
-                "avg", "max", "min", "sum", "count",
+                "avg",
+                "max",
+                "min",
+                "sum",
+                "count",
                 { name: "__tabulator_colcalc_unique", label: "count unique" },
                 { name: "__tabulator_colcalc_counttrue", label: "count true" },
-                { name: "__tabulator_colcalc_countfalse", label: "count false" },
-                { name: "__tabulator_colcalc_avgnonulls", label: "avg no nulls" }
-              ]
+                {
+                  name: "__tabulator_colcalc_countfalse",
+                  label: "count false",
+                },
+                {
+                  name: "__tabulator_colcalc_avgnonulls",
+                  label: "avg no nulls",
+                },
+              ],
             },
           });
           field_picker_repeat.push({
             name: "calc_dps",
             label: "Calculation decimal places",
             type: "Integer",
-            showIf: { column_calculation: ["avg", "max", "min", "sum", "__tabulator_colcalc_avgnonulls"] },
+            showIf: {
+              column_calculation: [
+                "avg",
+                "max",
+                "min",
+                "sum",
+                "__tabulator_colcalc_avgnonulls",
+              ],
+            },
           });
           const use_field_picker_repeat = field_picker_repeat.filter(
             (f) => !["state_field", "col_width_units"].includes(f.name)
           );
           field_picker_repeat.find((c) => c.name === "col_width").label =
             "Column width (px)";
-          const fvs = field_picker_repeat.filter((c) => c.name === "fieldview")
-          fvs.forEach(fv => {
+          const fvs = field_picker_repeat.filter((c) => c.name === "fieldview");
+          fvs.forEach((fv) => {
             if (fv?.attributes?.calcOptions?.[1])
-              Object.values(fv.attributes.calcOptions[1]).forEach(fvlst => {
-                if (fvlst[0] === "as_text")
-                  fvlst.push("textarea")
-              })
+              Object.values(fv.attributes.calcOptions[1]).forEach((fvlst) => {
+                if (fvlst[0] === "as_text") fvlst.push("textarea");
+              });
           });
           // fix legacy values missing view_name
-          (context?.columns || []).forEach(column => {
-            if (column.type === 'ViewLink' && column.view && !column.view_name) {
+          (context?.columns || []).forEach((column) => {
+            if (
+              column.type === "ViewLink" &&
+              column.view &&
+              !column.view_name
+            ) {
               const view_select = parse_view_select(column.view);
-              column.view_name = view_select.viewname
+              column.view_name = view_select.viewname;
             }
           });
           return new Form({
@@ -185,7 +206,9 @@ const view_configuration_workflow = (req) =>
           );
           const colFields = tabcolumns
             .filter((c) =>
-              ["Field", "JoinField", "Aggregation", "FormulaValue"].includes(c.type)
+              ["Field", "JoinField", "Aggregation", "FormulaValue"].includes(
+                c.type
+              )
             )
             .map((c) => c.field)
             .filter((s) => s);
@@ -195,9 +218,13 @@ const view_configuration_workflow = (req) =>
             "Selected by user",
           ]);
           const boolGroupOptions = new Set([
-            ...fields.filter(f => f?.type?.name === "Bool").map(f => f.name),
-            ...colFields.filter(f => f.formatter === "tickCross").map(f => f.field)
-          ])
+            ...fields
+              .filter((f) => f?.type?.name === "Bool")
+              .map((f) => f.name),
+            ...colFields
+              .filter((f) => f.formatter === "tickCross")
+              .map((f) => f.field),
+          ]);
           const roles = await User.get_roles();
           let tree_field_options = [];
           //self join
@@ -242,33 +269,35 @@ const view_configuration_workflow = (req) =>
                 label: "Default group by",
                 type: "String",
                 attributes: {
-                  options: [...groupByOptions].filter(f => f !== "Selected by user"),
+                  options: [...groupByOptions].filter(
+                    (f) => f !== "Selected by user"
+                  ),
                 },
-                showIf: { groupBy: "Selected by user" }
+                showIf: { groupBy: "Selected by user" },
               },
               {
                 name: "group_true_label",
                 label: "Group True label",
                 type: "String",
-                showIf: { groupBy: [...boolGroupOptions] }
+                showIf: { groupBy: [...boolGroupOptions] },
               },
               {
                 name: "group_false_label",
                 label: "Group False label",
                 type: "String",
-                showIf: { groupBy: [...boolGroupOptions] }
+                showIf: { groupBy: [...boolGroupOptions] },
               },
               {
                 name: "group_null_label",
                 label: "Group null label",
                 type: "String",
-                showIf: { groupBy: [...boolGroupOptions] }
+                showIf: { groupBy: [...boolGroupOptions] },
               },
               {
                 name: "group_order_desc",
                 label: "Group order descending",
                 type: "Bool",
-                showIf: { groupBy: [...groupByOptions] }
+                showIf: { groupBy: [...groupByOptions] },
               },
               {
                 name: "tree_field",
@@ -386,7 +415,7 @@ const view_configuration_workflow = (req) =>
                 label: "Pagination size",
                 type: "Integer",
                 default: 20,
-                showIf: { pagination_enabled: true }
+                showIf: { pagination_enabled: true },
               },
               {
                 name: "selected_rows_action",
@@ -400,8 +429,9 @@ const view_configuration_workflow = (req) =>
                 name: "selected_rows_action_once",
                 label: "Run action once for all rows",
                 type: "Bool",
-                sublabel: "Tick to run action once with all rows (<code>rows</code> variable). Untick to run multiple times, once for each row (<code>row</code> variable).",
-                showIf: { selected_rows_action: [...action_options] }
+                sublabel:
+                  "Tick to run action once with all rows (<code>rows</code> variable). Untick to run multiple times, once for each row (<code>row</code> variable).",
+                showIf: { selected_rows_action: [...action_options] },
               },
             ],
           });
@@ -435,22 +465,24 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
   } else if (t.name === "String") {
     jsgField.headerFilter = !!header_filters;
     if (column.fieldview === "textarea") {
-      jsgField.formatter = "textarea"
-      jsgField.editor = false
-      if (jsgField.headerFilter) jsgField.headerFilter = "input"
+      jsgField.formatter = "textarea";
+      jsgField.editor = false;
+      if (jsgField.headerFilter) jsgField.headerFilter = "input";
     }
   } else if (t === "Key" || t === "File") {
     if (field.fieldview === "Thumbnail") {
       jsgField.formatter = "__optionalImageFormatter";
       jsgField.formatterParams = {
-        height: field.attributes?.height ? `${field.attributes?.height || 50}px` : undefined,
+        height: field.attributes?.height
+          ? `${field.attributes?.height || 50}px`
+          : undefined,
         width: `${field.attributes?.width || 50}px`,
         urlPrefix: "/files/resize/",
-        urlSuffix: `/${field.attributes?.width || 50}`
-          + (field.attributes?.height ? `/${field.attributes.height}` : '')
-      }
+        urlSuffix:
+          `/${field.attributes?.width || 50}` +
+          (field.attributes?.height ? `/${field.attributes.height}` : ""),
+      };
       jsgField.editor = false;
-
     } else {
       jsgField.editor = "select";
       const values = {};
@@ -459,9 +491,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
         ({ label, value }) => (values[value] = label)
       );
       calculators.push((row) => {
-        if (row[field.name])
-          row[field.name] = `${row[field.name]}`
-
+        if (row[field.name]) row[field.name] = `${row[field.name]}`;
       });
       jsgField.editorParams = { values };
       jsgField.formatterParams = { values };
@@ -597,7 +627,7 @@ const set_join_fieldviews = async ({ columns, fields }) => {
       field.type.fieldviews[join_fieldview]
     ) {
       segment.field_type = field.type.name;
-      segment.fieldview = join_fieldview
+      segment.fieldview = join_fieldview;
     }
   }
 };
@@ -632,9 +662,8 @@ const set_json_col = (tcol, field, key, header_filters) => {
 
       tcol.lookupFkeys = {
         table: schemaType.type.replace("Key to ", ""),
-        field: schemaType.summary_field
-      }
-
+        field: schemaType.summary_field,
+      };
     }
   }
 };
@@ -704,49 +733,51 @@ const get_tabulator_columns = async (
         let restpath;
         [through, restpath] = column.agg_relation.split("->");
         [table, fld] = restpath.split(".");
-
       } else {
         [table, fld] = column.agg_relation.split(".");
       }
-      const targetNm = db.sqlsanitize((
-        column.stat.replace(" ", "") +
-        "_" +
-        table +
-        "_" +
-        fld +
-        db.sqlsanitize(column.aggwhere || "")
-      ).toLowerCase());
+      const targetNm = db.sqlsanitize(
+        (
+          column.stat.replace(" ", "") +
+          "_" +
+          table +
+          "_" +
+          fld +
+          db.sqlsanitize(column.aggwhere || "")
+        ).toLowerCase()
+      );
       tcol.formatter = "html";
-      let showValue = value => {
-        if (value === true) return i({
-          class: "fas fa-lg fa-check-circle text-success",
-        })
-        else if (value === false) return i({
-          class: "fas fa-lg fa-times-circle text-danger",
-        })
-        if (value instanceof Date)
-          return localeDateTime(value)
+      let showValue = (value) => {
+        if (value === true)
+          return i({
+            class: "fas fa-lg fa-check-circle text-success",
+          });
+        else if (value === false)
+          return i({
+            class: "fas fa-lg fa-times-circle text-danger",
+          });
+        if (value instanceof Date) return localeDateTime(value);
         if (Array.isArray(value))
-          return value.map((v) => showValue(v)).join(", ")
-        return value?.toString ? value.toString() : value
-      }
+          return value.map((v) => showValue(v)).join(", ");
+        return value?.toString ? value.toString() : value;
+      };
       if (column.agg_fieldview && column.agg_field?.includes("@")) {
-        const tname = column.agg_field.split("@")[1]
-        const type = getState().types[tname]
+        const tname = column.agg_field.split("@")[1];
+        const type = getState().types[tname];
         if (type?.fieldviews[column.agg_fieldview])
           showValue = (x) =>
-            type.fieldviews[column.agg_fieldview].run(x, req, column)
+            type.fieldviews[column.agg_fieldview].run(x, req, column);
       }
       calculators.push((row) => {
-        let value = row[targetNm]
+        let value = row[targetNm];
 
-        row[rndid] = showValue(value)
+        row[rndid] = showValue(value);
       });
-      tcol.field = rndid //db.sqlsanitize(targetNm);
+      tcol.field = rndid; //db.sqlsanitize(targetNm);
     } else if (column.type === "FormulaValue") {
       const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
       calculators.push((row) => {
-        row[rndid] = eval_expression(column.formula, row)
+        row[rndid] = eval_expression(column.formula, row);
       });
       tcol.field = rndid;
       tcol.headerFilter = !!header_filters && "input";
@@ -924,25 +955,39 @@ const addRowButton = (rndid) =>
     "Add row"
   );
 
-const selectGroupBy = (fields, columns, rndid, orderFld, orderDesc, default_group_by) => {
-  const groupByOptions = {}
-  columns.forEach(c => {
+const selectGroupBy = (
+  fields,
+  columns,
+  rndid,
+  orderFld,
+  orderDesc,
+  default_group_by
+) => {
+  const groupByOptions = {};
+  columns.forEach((c) => {
     if (["Field", "JoinField", "Aggregation"].includes(c.type) && c.field)
-      groupByOptions[c.field] = c.title || c.field
-  })
-  fields.forEach(f => {
-    groupByOptions[f.name] = f.label || f.name
-  })
+      groupByOptions[c.field] = c.title || c.field;
+  });
+  fields.forEach((f) => {
+    groupByOptions[f.name] = f.label || f.name;
+  });
 
   return select(
     {
-      onChange: `tabUserGroupBy(this, '${rndid}'${orderFld ? `, '${orderFld}', ${!!orderDesc}` : ''})`,
+      onChange: `tabUserGroupBy(this, '${rndid}'${
+        orderFld ? `, '${orderFld}', ${!!orderDesc}` : ""
+      })`,
       class: "mx-1 form-select d-inline",
       style: "width:unset",
     },
-    option({ value: "", disabled: true, selected: !default_group_by }, "Group by..."),
+    option(
+      { value: "", disabled: true, selected: !default_group_by },
+      "Group by..."
+    ),
     option({ value: "" }, "No grouping"),
-    Object.entries(groupByOptions).map(([k, v]) => option({ value: k, selected: k === default_group_by }, v))
+    Object.entries(groupByOptions).map(([k, v]) =>
+      option({ value: k, selected: k === default_group_by }, v)
+    )
   );
 };
 
@@ -951,7 +996,8 @@ const hideShowColsBtn = (
   column_visibility_presets,
   presets,
   can_edit,
-  viewname, rndid
+  viewname,
+  rndid
 ) =>
   div(
     { class: "dropdown d-inline mx-1" },
@@ -979,35 +1025,35 @@ const hideShowColsBtn = (
         a({ onclick: `allnonecols(false,this)`, href: "javascript:;" }, "None"),
         !!column_visibility_presets && div("Presets:"),
         column_visibility_presets &&
-        Object.entries(presets || {}).map(([k, v]) =>
-          div(
-            a(
-              {
-                href: `javascript:activate_preset('${encodeURIComponent(
-                  JSON.stringify(v)
-                )}', '${rndid}');`,
-              },
-              k
-            ),
-            can_edit &&
-            a(
-              {
-                href: `javascript:delete_preset('${viewname}','${k}');`,
-              },
-              i({ class: "fas fa-trash-alt" })
+          Object.entries(presets || {}).map(([k, v]) =>
+            div(
+              a(
+                {
+                  href: `javascript:activate_preset('${encodeURIComponent(
+                    JSON.stringify(v)
+                  )}', '${rndid}');`,
+                },
+                k
+              ),
+              can_edit &&
+                a(
+                  {
+                    href: `javascript:delete_preset('${viewname}','${k}');`,
+                  },
+                  i({ class: "fas fa-trash-alt" })
+                )
             )
-          )
-        ),
+          ),
         can_edit &&
-        !!column_visibility_presets &&
-        a(
-          {
-            class: "d-block",
-            href: `javascript:add_preset('${viewname}');`,
-          },
-          i({ class: "fas fa-plus" }),
-          "Add"
-        ),
+          !!column_visibility_presets &&
+          a(
+            {
+              class: "d-block",
+              href: `javascript:add_preset('${viewname}');`,
+            },
+            i({ class: "fas fa-plus" }),
+            "Add"
+          ),
 
         tabcolumns.map(
           (f) =>
@@ -1061,7 +1107,7 @@ const run = async (
     group_false_label,
     group_null_label,
     default_group_by,
-    group_order_desc
+    group_order_desc,
   },
   state,
   extraArgs
@@ -1076,8 +1122,7 @@ const run = async (
   const q = await stateFieldsToQuery({ state, fields, prefix: "a." });
   //const rows_per_page = default_state && default_state._rows_per_page;
   //if (!q.limit && rows_per_page) q.limit = rows_per_page;
-  if (!q.orderBy)
-    q.orderBy = table.pk_name;
+  if (!q.orderBy) q.orderBy = table.pk_name;
   //if (!q.orderDesc) q.orderDesc = default_state && default_state._descending;
   const current_page = parseInt(state._page) || 1;
   const { joinFields, aggregations } = picked_fields_to_query(columns, fields);
@@ -1085,10 +1130,10 @@ const run = async (
   let groupBy1 = groupBy;
   if (groupBy1) {
     if (groupBy === "Selected by user" && default_group_by)
-      groupBy1 = default_group_by
+      groupBy1 = default_group_by;
     const groupField = fields.find((f) => f.name === groupBy1);
     if (groupField && groupField.is_fkey) {
-      let orginalName = groupBy1
+      let orginalName = groupBy1;
       groupBy1 = `${groupBy1}_${groupField?.attributes?.summary_field || "id"}`;
       if (!joinFields[groupBy1])
         joinFields[groupBy1] = {
@@ -1135,13 +1180,13 @@ const run = async (
     });
   const use_tabcolumns = hide_null_columns
     ? tabcolumns.filter(
-      (c) =>
-        !c.field ||
-        rows.some(
-          (row) =>
-            row[c.field] !== null && typeof row[c.field] !== "undefined"
-        )
-    )
+        (c) =>
+          !c.field ||
+          rows.some(
+            (row) =>
+              row[c.field] !== null && typeof row[c.field] !== "undefined"
+          )
+      )
     : tabcolumns;
   if (tree_field) {
     const my_ids = new Set(rows.map((r) => r.id));
@@ -1159,25 +1204,26 @@ const run = async (
     rows = nest(rows);
   }
   if (groupBy1 && def_order_field) {
-    const dir = def_order_descending ? -1 : 1
-    const dirGroup = group_order_desc ? -1 : 1
+    const dir = def_order_descending ? -1 : 1;
+    const dirGroup = group_order_desc ? -1 : 1;
 
-    rows.sort((a, b) => (a[groupBy1] > b[groupBy1])
-      ? dirGroup
-      : ((b[groupBy1] > a[groupBy1])
+    rows.sort((a, b) =>
+      a[groupBy1] > b[groupBy1]
+        ? dirGroup
+        : b[groupBy1] > a[groupBy1]
         ? -1 * dirGroup
-        : (a[def_order_field] > b[def_order_field])
-          ? dir
-          : ((b[def_order_field] > a[def_order_field])
-            ? -1 * dir
-            : 0)))
-
+        : a[def_order_field] > b[def_order_field]
+        ? dir
+        : b[def_order_field] > a[def_order_field]
+        ? -1 * dir
+        : 0
+    );
   } else if (groupBy1) {
-    const dir = group_order_desc ? -1 : 1
+    const dir = group_order_desc ? -1 : 1;
 
-    rows.sort((a, b) => (a[groupBy1] > b[groupBy1])
-      ? dir
-      : ((b[groupBy1] > a[groupBy1]) ? -1 * dir : 0))
+    rows.sort((a, b) =>
+      a[groupBy1] > b[groupBy1] ? dir : b[groupBy1] > a[groupBy1] ? -1 * dir : 0
+    );
   }
   const pgSz = pagination_size || 20;
   const paginationSizeChoices = [
@@ -1189,25 +1235,25 @@ const run = async (
     pgSz * 3,
     true,
   ];
-  const hasCalculated = fields.some(f => f.calculated)
+  const hasCalculated = fields.some((f) => f.calculated);
   const selected_rows_action_name = selected_rows_action
     ? ((x) => x.description || x.name)(
-      getState().triggers.find((tr) => tr.name === selected_rows_action)
-    )
+        getState().triggers.find((tr) => tr.name === selected_rows_action)
+      )
     : "";
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
   for (const col of use_tabcolumns) {
     if (col.lookupFkeys) {
-      const table = Table.findOne(col.lookupFkeys.table)
-      const ids = [...new Set(rows.map(r => r[col.field]).filter(x => x))]
+      const table = Table.findOne(col.lookupFkeys.table);
+      const ids = [...new Set(rows.map((r) => r[col.field]).filter((x) => x))];
       const lu_map = {};
-      (await table.getRows({ id: { in: ids } })).forEach(r => {
-        lu_map[r.id] = r
-      })
-      rows.forEach(r => {
+      (await table.getRows({ id: { in: ids } })).forEach((r) => {
+        lu_map[r.id] = r;
+      });
+      rows.forEach((r) => {
         if (r[col.field] && lu_map[r[col.field]])
-          r[col.field] = lu_map[r[col.field]][col.lookupFkeys.field]
-      })
+          r[col.field] = lu_map[r[col.field]][col.lookupFkeys.field];
+      });
     }
   }
   return fragment(
@@ -1241,28 +1287,43 @@ const run = async (
         persistenceID:"tabview_${viewname}",
         movableColumns: ${!!movable_cols},
         history: ${!!history},
-        ${tree_field ? "dataTree:true,dataTreeStartExpanded:true,dataTreeSelectPropagate:true," : ""}
-        ${tree_field && selectable
-          ? `dataTreeElementColumn:"${use_tabcolumns.find((c) => c.field).field
-          }",`
-          : ""
+        ${
+          tree_field
+            ? "dataTree:true,dataTreeStartExpanded:true,dataTreeSelectPropagate:true,"
+            : ""
         }
-        ${groupBy1 ? `groupBy: ${group_true_label || group_false_label ? `(data)=>
+        ${
+          tree_field && selectable
+            ? `dataTreeElementColumn:"${
+                use_tabcolumns.find((c) => c.field).field
+              }",`
+            : ""
+        }
+        ${
+          groupBy1
+            ? `groupBy: ${
+                group_true_label || group_false_label
+                  ? `(data)=>
          data.${groupBy1}===true
          ? "${group_true_label || "True"}"
          : data.${groupBy1}===false
          ? "${group_false_label || "False"}"
          : "${group_null_label || "N/A"}"`
-          : groupBy1 === "Selected by user"
-            ? 'false'
-            : `"${groupBy1}"`},` : ""}
-        ${def_order_field && !groupBy1
-          ? `initialSort:[
+                  : groupBy1 === "Selected by user"
+                  ? "false"
+                  : `"${groupBy1}"`
+              },`
+            : ""
+        }
+        ${
+          def_order_field && !groupBy1
+            ? `initialSort:[
             
-          {column:"${def_order_field}", dir:"${def_order_descending ? "desc" : "asc"
-          }"},
+          {column:"${def_order_field}", dir:"${
+                def_order_descending ? "desc" : "asc"
+              }"},
         ],`
-          : ""
+            : ""
         }
         ajaxResponse:function(url, params, response){                    
   
@@ -1286,7 +1347,9 @@ const run = async (
           window.tabulator_table_${rndid}.updateRow(cell.getRow(), {id: resp.success});
           
         }
-        ${hasCalculated ? `
+        ${
+          hasCalculated
+            ? `
         let id = noid ? resp.success : row.id
         $.ajax({
           type: "GET",
@@ -1301,7 +1364,9 @@ const run = async (
             window.tabulator_table_${rndid}.updateRow(cell.getRow(), resp.success[0]);
           }
         })
-          `: ''}
+          `
+            : ""
+        }
       });
     }
     window.tabulator_table_${rndid}.on("cellEdited", function(cell){
@@ -1379,81 +1444,90 @@ const run = async (
         $(e).closest("form").find("input").prop("checked", do_show)
       })
     }
-    ${download_csv
-          ? `document.getElementById("tabulator-download-csv").addEventListener("click", function(){
+    ${
+      download_csv
+        ? `document.getElementById("tabulator-download-csv").addEventListener("click", function(){
             const selectedData = window.tabulator_table_${rndid}.getSelectedData();
             window.tabulator_table_${rndid}.download("csv", "${viewname}.csv",{}, selectedData.length>0 ? "selected" : "all");
           });`
-          : ""
-        }`)
+        : ""
+    }`)
     ),
 
     history &&
-    button(
-      {
-        class: "btn btn-sm btn-primary mx-1",
-        title: "Undo",
-        onClick: `window.tabulator_table_${rndid}.undo()`,
-      },
-      i({ class: "fas fa-undo" })
-    ),
+      button(
+        {
+          class: "btn btn-sm btn-primary mx-1",
+          title: "Undo",
+          onClick: `window.tabulator_table_${rndid}.undo()`,
+        },
+        i({ class: "fas fa-undo" })
+      ),
     history &&
-    button(
-      {
-        class: "btn btn-sm btn-primary mx-1",
-        title: "Redo",
-        onClick: `window.tabulator_table_${rndid}.redo()`,
-      },
-      i({ class: "fas fa-redo" })
-    ),
-    groupBy === "Selected by user"
-    && selectGroupBy(fields, columns, rndid, def_order_field, def_order_descending, default_group_by),
+      button(
+        {
+          class: "btn btn-sm btn-primary mx-1",
+          title: "Redo",
+          onClick: `window.tabulator_table_${rndid}.redo()`,
+        },
+        i({ class: "fas fa-redo" })
+      ),
+    groupBy === "Selected by user" &&
+      selectGroupBy(
+        fields,
+        columns,
+        rndid,
+        def_order_field,
+        def_order_descending,
+        default_group_by
+      ),
     selected_rows_action &&
-    button(
-      {
-        class: "btn btn-sm btn-primary mx-1",
-        title: "on selected rows",
-        onClick: `run_selected_rows_action('${viewname}', ${selectable}, '${rndid}', ${!!tree_field})`,
-      },
-      selected_rows_action_name
-    ),
+      button(
+        {
+          class: "btn btn-sm btn-primary mx-1",
+          title: "on selected rows",
+          onClick: `run_selected_rows_action('${viewname}', ${selectable}, '${rndid}', ${!!tree_field})`,
+        },
+        selected_rows_action_name
+      ),
 
     remove_unselected_btn &&
-    button(
-      {
-        class: "btn btn-sm btn-primary mx-1",
-        title: "Redo",
-        onClick: `tab_remove_unselected()`,
-      },
-      "Show selection"
-    ),
+      button(
+        {
+          class: "btn btn-sm btn-primary mx-1",
+          title: "Redo",
+          onClick: `tab_remove_unselected()`,
+        },
+        "Show selection"
+      ),
     download_csv &&
-    button(
-      {
-        class: "btn btn-sm btn-primary mx-1",
-        id: "tabulator-download-csv",
-      },
-      i({ class: "fas fa-download me-1" }),
-      "Download"
-    ),
+      button(
+        {
+          class: "btn btn-sm btn-primary mx-1",
+          id: "tabulator-download-csv",
+        },
+        i({ class: "fas fa-download me-1" }),
+        "Download"
+      ),
     reset_persistent_btn &&
-    button(
-      {
-        class: "btn btn-sm btn-primary mx-1",
-        title: "Reset",
-        onClick: `tab_reset_persistcfg()`,
-      },
-      "Reset"
-    ),
+      button(
+        {
+          class: "btn btn-sm btn-primary mx-1",
+          title: "Reset",
+          onClick: `tab_reset_persistcfg()`,
+        },
+        "Reset"
+      ),
     addRowBtn && addRowButton(rndid),
     hideColsBtn &&
-    hideShowColsBtn(
-      tabcolumns,
-      column_visibility_presets,
-      presets,
-      extraArgs.req?.user?.role_id || 10 <= (min_role_preset_edit || 1),
-      viewname, rndid
-    ),
+      hideShowColsBtn(
+        tabcolumns,
+        column_visibility_presets,
+        presets,
+        extraArgs.req?.user?.role_id || 10 <= (min_role_preset_edit || 1),
+        viewname,
+        rndid
+      ),
     div({ id: "jsGridNotify", class: "my-1" }),
 
     div({ id: `tabgrid${viewname}` })
@@ -1559,34 +1633,36 @@ const run_selected_rows_action = async (
     Table,
     user: req.user,
     configuration: trigger.configuration,
-  }
+  };
   if (selected_rows_action_once)
     result = await action.run({
       rows,
-      ...actionArg
+      ...actionArg,
     });
-
-  else for (const row of rows)
-    result = await action.run({
-      row,
-      ...actionArg
-    });
+  else
+    for (const row of rows)
+      result = await action.run({
+        row,
+        ...actionArg,
+      });
 
   return { json: { success: "ok", ...(result || {}) } };
 };
 module.exports = {
   headers: ({ stylesheet }) => [
     {
-      script: `/plugins/public/tabulator${features?.version_plugin_serve_path
-        ? "@" + require("./package.json").version
-        : ""
-        }/tabulator.min.js`,
+      script: `/plugins/public/tabulator${
+        features?.version_plugin_serve_path
+          ? "@" + require("./package.json").version
+          : ""
+      }/tabulator.min.js`,
     },
     {
-      script: `/plugins/public/tabulator${features?.version_plugin_serve_path
-        ? "@" + require("./package.json").version
-        : ""
-        }/custom.js`,
+      script: `/plugins/public/tabulator${
+        features?.version_plugin_serve_path
+          ? "@" + require("./package.json").version
+          : ""
+      }/custom.js`,
     },
     {
       script: "/plugins/public/tabulator/luxon.min.js",
@@ -1601,10 +1677,11 @@ module.exports = {
       script: "/gridedit.js",
     },
     {
-      css: `/plugins/public/tabulator${features?.version_plugin_serve_path
-        ? "@" + require("./package.json").version
-        : ""
-        }/tabulator_${stylesheet}.min.css`,
+      css: `/plugins/public/tabulator${
+        features?.version_plugin_serve_path
+          ? "@" + require("./package.json").version
+          : ""
+      }/tabulator_${stylesheet}.min.css`,
     },
   ],
   sc_plugin_api_version: 1,
