@@ -1605,6 +1605,7 @@ const run_action = async (
     const result = await run_action_column({
       col,
       req,
+      res,
       table,
       row,
       user: req.user,
