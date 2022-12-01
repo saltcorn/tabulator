@@ -653,7 +653,7 @@ const set_json_col = (tcol, field, key, header_filters) => {
         tcol.formatter = "tickCross";
         tcol.hozAlign = "center";
         tcol.vertAlign = "center";
-
+        break;
       default:
         break;
     }
@@ -937,7 +937,6 @@ const get_tabulator_columns = async (
       //editorParams: { values },
       formatter: "html",
       headerSort: false,
-      clipboard: false,
       clickPopup: "__actionPopup",
       frozen: !!dropdown_frozen,
     });

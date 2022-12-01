@@ -8,5 +8,18 @@
     "@saltcorn/data": "^0.6.0"
   },
   "author": "Tom Nielsen",
-  "license": "MIT"
+  "license": "MIT",
+  "eslintConfig": {
+    "extends": "eslint:recommended",
+    "parserOptions": {
+      "ecmaVersion": 2020
+    },
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "rules": {
+      "no-unused-vars": "warn"
+    }
+  }
 }
