@@ -1068,7 +1068,7 @@ const hideShowColsBtn = (
               { class: "form-check" },
               input({
                 type: "checkbox",
-                onChange: `showHideCol('${f.field}', this)`,
+                onChange: `showHideColView('${f.field}', this, '${rndid}')`,
                 class: "form-check-input",
                 checked: true,
                 "data-fieldname": f.field,

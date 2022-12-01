@@ -101,13 +101,13 @@ var dateFilterEditor = function (
       }
       if (isEscape) {
         // user hit escape
-        input[0]._flatpickr.clear()
-        success({})
+        input[0]._flatpickr.clear();
+        success({});
       } else {
         success({
           start: new Date(selectedDates[0]),
-          end: new Date(selectedDates[1])
-        })
+          end: new Date(selectedDates[1]),
+        });
       }
     },
   });
@@ -120,13 +120,11 @@ var dateFilterEditor = function (
   });
 
   return input[0];
-}
+};
 
 function dateFilterFunction(headerValue, rowValue0, rowData, filterParams) {
-
-
   if (rowValue0) {
-    const rowValue = new Date(rowValue0)
+    const rowValue = new Date(rowValue0);
     if (headerValue.start) {
       if (headerValue.end) {
         return rowValue >= headerValue.start && rowValue <= headerValue.end;
@@ -137,9 +135,8 @@ function dateFilterFunction(headerValue, rowValue0, rowData, filterParams) {
       if (headerValue.end) {
         return rowValue <= headerValue.end;
       } else {
-        return true
+        return true;
       }
-
     }
   }
 
@@ -150,7 +147,7 @@ function optionalImageFormatter(cell, formatterParams, onRendered) {
   var el = document.createElement("img"),
     src = cell.getValue();
 
-  if (!src) return ""
+  if (!src) return "";
   if (formatterParams.urlPrefix) {
     src = formatterParams.urlPrefix + cell.getValue();
   }
@@ -186,7 +183,7 @@ function optionalImageFormatter(cell, formatterParams, onRendered) {
   });
 
   return el;
-};
+}
 
 function add_preset(viewname) {
   let name = prompt("Name of new preset");
@@ -209,6 +206,11 @@ function delete_preset(viewname, name) {
   });
 }
 
+function showHideColView(nm, e, rndid) {
+  if (e && e.checked) window["tabulator_table_" + rndid].showColumn(nm);
+  else window["tabulator_table_" + rndid].hideColumn(nm);
+}
+
 function activate_preset(encPreset, rndid) {
   const preset = JSON.parse(decodeURIComponent(encPreset));
   $(".tabShowHideCols")
@@ -216,37 +218,37 @@ function activate_preset(encPreset, rndid) {
     .each(function () {
       const name = $(this).attr("data-fieldname");
       const do_show = preset[name];
-      if (do_show !== false) window['tabulator_table_' + rndid].showColumn(name);
-      else window['tabulator_table_' + rndid].hideColumn(name);
+      if (do_show !== false)
+        window["tabulator_table_" + rndid].showColumn(name);
+      else window["tabulator_table_" + rndid].hideColumn(name);
       $(this).prop("checked", do_show);
     });
 }
 
 function tabUserGroupBy(e, rndid, orderFld, orderDesc) {
   if (orderFld)
-    window['tabulator_table_' + rndid].setSort([{ column: orderFld, dir: orderDesc ? 'desc' : "asc" }])
-  window['tabulator_table_' + rndid].setSort([{ column: e.value, dir: "asc" }])
-  window['tabulator_table_' + rndid].setGroupBy(e.value);
-  window['tabulator_table_' + rndid].setGroupBy(e.value);
+    window["tabulator_table_" + rndid].setSort([
+      { column: orderFld, dir: orderDesc ? "desc" : "asc" },
+    ]);
+  window["tabulator_table_" + rndid].setSort([{ column: e.value, dir: "asc" }]);
+  window["tabulator_table_" + rndid].setGroupBy(e.value);
+  window["tabulator_table_" + rndid].setGroupBy(e.value);
 }
 
 function run_selected_rows_action(viewname, selectable, rndid, hasChildren) {
-  const rows0 = window['tabulator_table_' + rndid].getRows("active");
+  const rows0 = window["tabulator_table_" + rndid].getRows("active");
   let rows1 = [];
-  if (!selectable)
-    rows1 = rows0
+  if (!selectable) rows1 = rows0;
   else {
-    const go = rows => {
-      rows.forEach(r => {
+    const go = (rows) => {
+      rows.forEach((r) => {
         if (r.isSelected()) rows1.push(r);
 
         const children = hasChildren && r.getTreeChildren();
-        if (children && children.length && children.length > 0)
-          go(children);
-      })
-
-    }
-    go(rows0)
+        if (children && children.length && children.length > 0) go(children);
+      });
+    };
+    go(rows0);
   }
   const rows = rows1.map((r) => r.getData());
   view_post(viewname, "run_selected_rows_action", {
@@ -260,32 +262,31 @@ function tabulator_colcalc_unique(values, data, calcParams) {
   //calcParams - params passed from the column definition object
   var set = new Set(values);
 
-
   return set.size;
 }
 
 function tabulator_colcalc_counttrue(values, data, calcParams) {
-  return values.filter(v => v === true).length;
+  return values.filter((v) => v === true).length;
 }
 
 function tabulator_colcalc_countfalse(values, data, calcParams) {
-  return values.filter(v => v === false).length;
+  return values.filter((v) => v === false).length;
 }
 
 function tabulator_colcalc_avgnonulls(values, data, calcParams) {
-  let sum = 0.0, count = 0,
-    precision = typeof calcParams.precision !== "undefined" ? calcParams.precision : 2;
-  values.forEach(v => {
+  let sum = 0.0,
+    count = 0,
+    precision =
+      typeof calcParams.precision !== "undefined" ? calcParams.precision : 2;
+  values.forEach((v) => {
     if (typeof v === "number" && !isNaN(v)) {
-      sum += v
-      count += 1
+      sum += v;
+      count += 1;
     }
-  })
+  });
   return (sum / count).toFixed(precision);
 }
 
-
-
 function add_tabview_row(rndid) {
-  window['tabulator_table_' + rndid].addRow({}, true);
+  window["tabulator_table_" + rndid].addRow({}, true);
 }
