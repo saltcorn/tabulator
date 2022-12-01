@@ -848,7 +848,12 @@ const get_tabulator_columns = async (
           column.action_name,
           "action_name"
         );
-        row[rndid] = column.in_dropdown ? url : action_link(url, req, column);
+        const action_label = column.action_label_formula
+          ? eval_expression(column.action_label, row)
+          : __(column.action_label) || column.action_name;
+        row[rndid] = column.in_dropdown
+          ? url
+          : action_link(url, req, { ...column, action_label });
       });
       tcol.field = rndid;
       tcol.clipboard = false;
