@@ -1,6 +1,6 @@
 {
   "name": "@saltcorn/tabulator",
-  "version": "0.3.20",
+  "version": "0.3.21",
   "description": "Grid editing view based on Tabulator",
   "main": "index.js",
   "dependencies": {
