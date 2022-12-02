@@ -1243,10 +1243,11 @@ const run = async (
   ];
   const hasCalculated = fields.some((f) => f.calculated);
   const selected_rows_action_name = selected_rows_action
-    ? ((x) => x.description || x.name)(
+    ? ((x) => x?.description || x?.name)(
         getState().triggers.find((tr) => tr.name === selected_rows_action)
-      )
+      ) || selected_rows_action
     : "";
+
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
   for (const col of use_tabcolumns) {
     if (col.lookupFkeys) {
@@ -1631,7 +1632,12 @@ const run_selected_rows_action = async (
   const table = await Table.findOne({ id: table_id });
 
   const trigger = await Trigger.findOne({ name: selected_rows_action });
+  if (!trigger)
+    return { json: { error: "Trigger not found: " + selected_rows_action } };
   const action = getState().actions[trigger.action];
+  if (!action)
+    return { json: { error: "Action not found: " + trigger.action } };
+
   let result;
   const actionArg = {
     referrer: req.get("Referrer"),
