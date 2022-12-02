@@ -1252,7 +1252,12 @@ const run = async (
   for (const col of use_tabcolumns) {
     if (col.lookupFkeys) {
       const table = Table.findOne(col.lookupFkeys.table);
-      const ids = [...new Set(rows.map((r) => r[col.field]).filter((x) => x))];
+      const ids = [
+        ...new Set(
+          rows.map((r) => r[col.field]).filter((x) => x && !isNaN(+x))
+        ),
+      ];
+      console.log({ col, ids });
       const lu_map = {};
       (await table.getRows({ id: { in: ids } })).forEach((r) => {
         lu_map[r.id] = r;
