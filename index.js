@@ -10,6 +10,7 @@ const Form = require("@saltcorn/data/models/form");
 const View = require("@saltcorn/data/models/view");
 const Workflow = require("@saltcorn/data/models/workflow");
 const { eval_expression } = require("@saltcorn/data/models/expression");
+const { check_view_columns } = require("@saltcorn/data/plugin-testing");
 
 const {
   field_picker_fields,
@@ -1711,6 +1712,30 @@ module.exports = {
       get_state_fields,
       configuration_workflow: view_configuration_workflow,
       run,
+      configCheck: async (view) => {
+        const colcheck = await check_view_columns(
+          view,
+          view.configuration.columns
+        );
+        const { errors, warnings } = Array.isArray(colcheck) // legacy
+          ? { errors: colcheck, warnings: [] }
+          : colcheck;
+        const selected_rows_action = view.configuration.selected_rows_action;
+        if (selected_rows_action) {
+          const trigger = await Trigger.findOne({ name: selected_rows_action });
+          if (!trigger)
+            errors.push(
+              `In view ${view.name}, Trigger for selected_rows_action not found: ` +
+                selected_rows_action
+            );
+          else if (!getState().actions[trigger.action])
+            errors.push(
+              `In view ${view.name}, Action for selected_rows_action not found: ` +
+                trigger.action
+            );
+        }
+        return { errors, warnings };
+      },
       routes: {
         run_action,
         run_selected_rows_action,
