@@ -1743,6 +1743,7 @@ module.exports = {
         delete_preset,
       },
     },
+    require("./pivot-edit"),
   ],
 };
 
