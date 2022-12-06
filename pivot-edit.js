@@ -64,7 +64,9 @@ const configuration_workflow = (req) =>
               : { name: context.exttable_name }
           );
           const fields = await table.getFields();
-          const fk_fields = fields.filter((f) => f.is_fkey);
+          const fk_date_fields = fields.filter(
+            (f) => f.is_fkey || f.type?.name === "Date"
+          );
           return new Form({
             fields: [
               {
@@ -73,7 +75,7 @@ const configuration_workflow = (req) =>
                 type: "String",
                 required: true,
                 attributes: {
-                  options: fk_fields.map((f) => f.name),
+                  options: fk_date_fields.map((f) => f.name),
                 },
               },
               {
@@ -82,7 +84,7 @@ const configuration_workflow = (req) =>
                 type: "String",
                 required: true,
                 attributes: {
-                  options: fk_fields.map((f) => f.name),
+                  options: fk_date_fields.map((f) => f.name),
                 },
               },
               {
@@ -145,6 +147,20 @@ const run = async (
     ...q,
   });
 
+  if (colField.type?.name === "Date") {
+    rows.forEach((r) => {
+      if (r[col_field]) {
+        r[col_field] = new Date(r[col_field]).toISOString().split("T")[0];
+      }
+    });
+  }
+  if (rowField.type?.name === "Date") {
+    rows.forEach((r) => {
+      if (r[row_field]) {
+        r[row_field] = new Date(r[row_field]).toISOString().split("T")[0];
+      }
+    });
+  }
   const row_values = new Set([]);
   const col_values = new Set([]);
   const allValues = {};
