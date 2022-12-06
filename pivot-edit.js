@@ -40,6 +40,7 @@ const {
   option,
 } = require("@saltcorn/markup/tags");
 const { typeToGridType } = require("./common");
+const moment = require("moment");
 
 const get_state_fields = async (table_id, viewname, { show_view }) => {
   const table_fields = await Field.find({ table_id });
@@ -64,9 +65,11 @@ const configuration_workflow = (req) =>
               : { name: context.exttable_name }
           );
           const fields = await table.getFields();
+          const fk_fields = fields.filter((f) => f.is_fkey);
           const fk_date_fields = fields.filter(
             (f) => f.is_fkey || f.type?.name === "Date"
           );
+          const date_fields = fields.filter((f) => f.type?.name === "Date");
           return new Form({
             fields: [
               {
@@ -75,7 +78,7 @@ const configuration_workflow = (req) =>
                 type: "String",
                 required: true,
                 attributes: {
-                  options: fk_date_fields.map((f) => f.name),
+                  options: fk_fields.map((f) => f.name),
                 },
               },
               {
@@ -87,6 +90,16 @@ const configuration_workflow = (req) =>
                   options: fk_date_fields.map((f) => f.name),
                 },
               },
+              {
+                name: "col_field_format",
+                label: "Column format",
+                type: "String",
+                sublabel: "moment.js format specifier",
+                showIf: {
+                  col_field: date_fields.map((f) => f.name),
+                },
+              },
+
               {
                 name: "value_field",
                 label: "Value field",
@@ -111,7 +124,7 @@ const configuration_workflow = (req) =>
 const run = async (
   table_id,
   viewname,
-  { row_field, col_field, value_field, vertical_headers },
+  { row_field, col_field, value_field, vertical_headers, col_field_format },
   state,
   extraArgs
 ) => {
@@ -150,6 +163,7 @@ const run = async (
   const row_values = new Set([]);
   const col_values = new Set([]);
   const rawColValues = {};
+  let xformCol = (x) => x;
 
   if (colField.type?.name === "Date") {
     rows.forEach((r) => {
@@ -157,32 +171,36 @@ const run = async (
         r[col_field] = new Date(r[col_field]).toISOString().split("T")[0];
       }
     });
+    if (col_field_format)
+      xformCol = (day) => moment(day).format(col_field_format);
     if (state["_fromdate_" + col_field] && state["_todate_" + col_field]) {
       const start = new Date(state["_fromdate_" + col_field]);
       const end = new Date(state["_todate_" + col_field]);
       let day = start;
       while (day <= end) {
         const dayStr = day.toISOString().split("T")[0];
-
-        col_values.add(dayStr);
-        rawColValues[dayStr] = dayStr;
+        const xdayStr = xformCol(dayStr);
+        col_values.add(
+          col_field_format ? moment(day).format(col_field_format) : dayStr
+        );
+        rawColValues[xdayStr] = dayStr;
         day = new Date(day);
         day.setDate(day.getDate() + 1);
       }
     }
   }
-  if (rowField.type?.name === "Date") {
+  /*if (rowField.type?.name === "Date") {
     rows.forEach((r) => {
       if (r[row_field]) {
         r[row_field] = new Date(r[row_field]).toISOString().split("T")[0];
       }
     });
-  }
+  }*/
 
   const allValues = {};
   rows.forEach((r) => {
     const rowValue = r[row_field_name];
-    const colValue = r[col_field_name];
+    const colValue = xformCol(r[col_field_name]);
     row_values.add(rowValue);
     col_values.add(colValue);
     if (!allValues[rowValue]) {
