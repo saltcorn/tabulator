@@ -107,6 +107,7 @@ const configuration_workflow = (req) =>
       },
     ],
   });
+
 const run = async (
   table_id,
   viewname,
@@ -146,6 +147,9 @@ const run = async (
     joinFields,
     ...q,
   });
+  const row_values = new Set([]);
+  const col_values = new Set([]);
+  const rawColValues = {};
 
   if (colField.type?.name === "Date") {
     rows.forEach((r) => {
@@ -153,6 +157,19 @@ const run = async (
         r[col_field] = new Date(r[col_field]).toISOString().split("T")[0];
       }
     });
+    if (state["_fromdate_" + col_field] && state["_todate_" + col_field]) {
+      const start = new Date(state["_fromdate_" + col_field]);
+      const end = new Date(state["_todate_" + col_field]);
+      let day = start;
+      while (day <= end) {
+        const dayStr = day.toISOString().split("T")[0];
+
+        col_values.add(dayStr);
+        rawColValues[dayStr] = dayStr;
+        day = new Date(day);
+        day.setDate(day.getDate() + 1);
+      }
+    }
   }
   if (rowField.type?.name === "Date") {
     rows.forEach((r) => {
@@ -161,10 +178,8 @@ const run = async (
       }
     });
   }
-  const row_values = new Set([]);
-  const col_values = new Set([]);
+
   const allValues = {};
-  const rawColValues = {};
   rows.forEach((r) => {
     const rowValue = r[row_field_name];
     const colValue = r[col_field_name];
