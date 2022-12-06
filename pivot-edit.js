@@ -143,6 +143,7 @@ const run = async (
   const row_values = new Set([]);
   const col_values = new Set([]);
   const allValues = {};
+  const rawColValues = {};
   rows.forEach((r) => {
     const rowValue = r[row_field_name];
     const colValue = r[col_field_name];
@@ -150,6 +151,7 @@ const run = async (
     col_values.add(colValue);
     if (!allValues[rowValue]) {
       allValues[rowValue] = {
+        rawRowValue: r[row_field],
         rowValue,
         ids: {},
       };
@@ -162,6 +164,7 @@ const run = async (
     } else {
       allValues[rowValue][colValue] = r[value_field];
       allValues[rowValue].ids[colValue] = r[table.pk_name];
+      rawColValues[colValue] = r[col_field];
     }
   });
   const valueCell = typeToGridType(
@@ -196,14 +199,17 @@ const run = async (
     });
 
   window.tabulator_table_${rndid}.on("cellEdited", function(cell){
+    const rawColValues = ${JSON.stringify(rawColValues)};
     const row=cell.getRow().getData();
     const fld = cell.getField()
     const id = row.ids[fld]
-    console.log({fld, id} )
 
     if(typeof row[fld]==="undefined") return;
     const saveRow = {${value_field}: row[fld]}
-    console.log(saveRow, id)
+    if(!id) {
+      saveRow.${row_field} = row.rawRowValue;
+      saveRow.${col_field} = rawColValues[fld];
+    }
     $.ajax({
       type: "POST",
       url: "/api/${table.name}/" +( id ||""),
