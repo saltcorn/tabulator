@@ -39,6 +39,8 @@ const {
   select,
   option,
 } = require("@saltcorn/markup/tags");
+const { typeToGridType } = require("./common");
+
 const get_state_fields = async (table_id, viewname, { show_view }) => {
   const table_fields = await Field.find({ table_id });
   return table_fields
@@ -137,7 +139,6 @@ const run = async (
     joinFields,
     ...q,
   });
-  console.log(rows);
 
   const row_values = new Set([]);
   const col_values = new Set([]);
@@ -148,7 +149,10 @@ const run = async (
     row_values.add(rowValue);
     col_values.add(colValue);
     if (!allValues[rowValue]) {
-      allValues[rowValue] = { rowValue };
+      allValues[rowValue] = {
+        rowValue,
+        ids: {},
+      };
     }
     if (allValues[rowValue][colValue]) {
       //MULTIPLE PRESENT
@@ -157,11 +161,22 @@ const run = async (
       ] = `${allValues[rowValue][colValue]},${r[value_field]}`;
     } else {
       allValues[rowValue][colValue] = r[value_field];
+      allValues[rowValue].ids[colValue] = r[table.pk_name];
     }
   });
+  const valueCell = typeToGridType(
+    valField.type,
+    valField,
+    false,
+    {
+      type: "Field",
+    },
+    {}
+  );
   const tabCols = [
     { field: "rowValue", title: rowField.label, editor: false },
     ...[...col_values].map((cv) => ({
+      ...valueCell,
       field: `${cv}`,
       title: `${cv}`,
     })),
@@ -178,7 +193,32 @@ const run = async (
       columns,
       height:"100%",
       clipboard:true,
-    })`)
+    });
+
+  window.tabulator_table_${rndid}.on("cellEdited", function(cell){
+    const row=cell.getRow().getData();
+    const fld = cell.getField()
+    const id = row.ids[fld]
+    console.log({fld, id} )
+
+    if(typeof row[fld]==="undefined") return;
+    const saveRow = {${value_field}: row[fld]}
+    console.log(saveRow, id)
+    $.ajax({
+      type: "POST",
+      url: "/api/${table.name}/" +( id ||""),
+      data: saveRow,
+      headers: {
+        "CSRF-Token": _sc_globalCsrf,
+      },
+      error: tabulator_error_handler,
+    }).done(function (resp) {
+      if(resp.success &&typeof resp.success ==="number" && !row.id && cell) {
+        window.tabulator_table_${rndid}.updateRow(cell.getRow(), {id: resp.success});
+      }
+    })
+  });
+    `)
     ) + div({ id: `tabgrid${viewname}` })
   );
 };
