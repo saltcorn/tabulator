@@ -94,6 +94,11 @@ const configuration_workflow = (req) =>
                   options: fields.map((f) => f.name),
                 },
               },
+              {
+                name: "vertical_headers",
+                label: "Vertical headers",
+                type: "Bool",
+              },
             ],
           });
         },
@@ -103,7 +108,7 @@ const configuration_workflow = (req) =>
 const run = async (
   table_id,
   viewname,
-  { row_field, col_field, value_field },
+  { row_field, col_field, value_field, vertical_headers },
   state,
   extraArgs
 ) => {
@@ -177,11 +182,16 @@ const run = async (
     {}
   );
   const tabCols = [
-    { field: "rowValue", title: rowField.label, editor: false },
+    {
+      field: "rowValue",
+      title: rowField.label,
+      editor: false,
+    },
     ...[...col_values].map((cv) => ({
       ...valueCell,
       field: `${cv}`,
       title: `${cv}`,
+      headerVertical: vertical_headers,
     })),
   ];
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
