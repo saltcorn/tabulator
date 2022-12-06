@@ -115,19 +115,36 @@ const run = async (
   const valField = fields.find((f) => f.name === value_field);
 
   const joinFields = {};
+  let row_field_name = row_field;
+  let col_field_name = col_field;
+  if (rowField?.attributes?.summary_field) {
+    joinFields["rowfield"] = {
+      ref: row_field,
+      target: rowField?.attributes?.summary_field,
+    };
+    row_field_name = "rowfield";
+  }
+  if (colField?.attributes?.summary_field) {
+    joinFields["colField"] = {
+      ref: col_field,
+      target: colField?.attributes?.summary_field,
+    };
+    col_field_name = "colfield";
+  }
 
   let rows = await table.getJoinedRows({
     where,
     joinFields,
     ...q,
   });
+  console.log(rows);
 
   const row_values = new Set([]);
   const col_values = new Set([]);
   const allValues = {};
   rows.forEach((r) => {
-    const rowValue = r[row_field];
-    const colValue = r[col_field];
+    const rowValue = r[row_field_name];
+    const colValue = r[col_field_name];
     row_values.add(rowValue);
     col_values.add(colValue);
     if (!allValues[rowValue]) {
