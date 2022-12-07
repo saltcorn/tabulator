@@ -8,7 +8,10 @@ const db = require("@saltcorn/data/db");
 const Form = require("@saltcorn/data/models/form");
 const View = require("@saltcorn/data/models/view");
 const Workflow = require("@saltcorn/data/models/workflow");
-const { eval_expression } = require("@saltcorn/data/models/expression");
+const {
+  jsexprToWhere,
+  eval_expression,
+} = require("@saltcorn/data/models/expression");
 const {
   field_picker_fields,
   picked_fields_to_query,
@@ -82,6 +85,13 @@ const configuration_workflow = (req) =>
                 },
               },
               {
+                name: "row_where",
+                label: "Where",
+                sublabel: "include the rows that match this formula",
+                type: "String",
+                required: true,
+              },
+              {
                 name: "col_field",
                 label: "Column field",
                 type: "String",
@@ -148,6 +158,7 @@ const run = async (
     col_field_format,
     new_row_formula,
     column_calculation,
+    row_where,
   },
   state,
   extraArgs
@@ -216,7 +227,10 @@ const run = async (
   }
 
   if (rowField.is_fkey) {
-    await rowField.fill_fkey_options();
+    await rowField.fill_fkey_options(
+      false,
+      row_where ? jsexprToWhere(row_where) : undefined
+    );
     rowField.options.forEach(({ label, value }) => {
       row_values.add(label);
       allValues[label] = {
