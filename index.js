@@ -354,6 +354,11 @@ const view_configuration_workflow = (req) =>
                 type: "Bool",
               },
               {
+                name: "header_wrap",
+                label: "Wrap column headers",
+                type: "Bool",
+              },
+              {
                 name: "selectable",
                 label: "Selectable",
                 type: "Bool",
@@ -962,6 +967,7 @@ const run = async (
     group_null_label,
     default_group_by,
     group_order_desc,
+    header_wrap,
   },
   state,
   extraArgs
@@ -1116,6 +1122,7 @@ const run = async (
           r[col.field] = lu_map[r[col.field]][col.lookupFkeys.field];
       });
     }
+    if (header_wrap) col.headerWordWrap = true;
   }
   return fragment(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
