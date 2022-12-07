@@ -247,6 +247,7 @@ const view_configuration_workflow = (req) =>
                 label: "Layout Fit",
                 type: "String",
                 required: true,
+                tab: "Layout",
                 attributes: {
                   options: [
                     "Columns",
@@ -261,6 +262,7 @@ const view_configuration_workflow = (req) =>
                 name: "groupBy",
                 label: "Group by",
                 type: "String",
+                tab: "Content",
                 attributes: {
                   options: [...groupByOptions],
                 },
@@ -269,6 +271,7 @@ const view_configuration_workflow = (req) =>
                 name: "default_group_by",
                 label: "Default group by",
                 type: "String",
+                tab: "Content",
                 attributes: {
                   options: [...groupByOptions].filter(
                     (f) => f !== "Selected by user"
@@ -280,30 +283,35 @@ const view_configuration_workflow = (req) =>
                 name: "group_true_label",
                 label: "Group True label",
                 type: "String",
+                tab: "Content",
                 showIf: { groupBy: [...boolGroupOptions] },
               },
               {
                 name: "group_false_label",
                 label: "Group False label",
                 type: "String",
+                tab: "Content",
                 showIf: { groupBy: [...boolGroupOptions] },
               },
               {
                 name: "group_null_label",
                 label: "Group null label",
                 type: "String",
+                tab: "Content",
                 showIf: { groupBy: [...boolGroupOptions] },
               },
               {
                 name: "group_order_desc",
                 label: "Group order descending",
                 type: "Bool",
+                tab: "Content",
                 showIf: { groupBy: [...groupByOptions] },
               },
               {
                 name: "tree_field",
                 label: "Tree field",
                 type: "String",
+                tab: "Content",
                 attributes: {
                   options: tree_field_options,
                 },
@@ -312,6 +320,7 @@ const view_configuration_workflow = (req) =>
                 name: "def_order_field",
                 label: req.__("Default order by"),
                 type: "String",
+                tab: "Content",
                 attributes: {
                   options: fields.map((f) => f.name),
                 },
@@ -320,17 +329,20 @@ const view_configuration_workflow = (req) =>
                 name: "def_order_descending",
                 label: req.__("Default order descending?"),
                 type: "Bool",
+                tab: "Content",
               },
               {
                 name: "hideColsBtn",
                 label: "Show/hide columns",
                 type: "Bool",
+                tab: "Functionality",
                 sublabel: "Display drop-down menu to select shown columns",
               },
               {
                 name: "column_visibility_presets",
                 label: "Column visibility presets",
                 type: "Bool",
+                tab: "Functionality",
                 showIf: { hideColsBtn: true },
               },
               {
@@ -338,6 +350,7 @@ const view_configuration_workflow = (req) =>
                 label: "Role to edit",
                 sublabel: "Role required to edit presets",
                 input_type: "select",
+                tab: "Functionality",
                 showIf: { hideColsBtn: true, column_visibility_presets: true },
                 options: roles.map((r) => ({ value: r.id, label: r.role })),
               },
@@ -347,57 +360,68 @@ const view_configuration_workflow = (req) =>
                 sublabel:
                   "Do not display a column if it contains entirely missing values",
                 type: "Bool",
+                tab: "Content",
               },
               {
                 name: "addRowBtn",
                 label: "Add row button",
                 type: "Bool",
+                tab: "Functionality",
               },
               {
                 name: "header_wrap",
                 label: "Wrap column headers",
                 type: "Bool",
+                tab: "Layout",
               },
               {
                 name: "selectable",
                 label: "Selectable",
                 type: "Bool",
+                tab: "Functionality",
               },
               {
                 name: "remove_unselected_btn",
                 label: "Show selection button",
                 type: "Bool",
+                tab: "Functionality",
                 showIf: { selectable: true },
               },
               {
                 name: "download_csv",
                 label: "Download CSV",
                 type: "Bool",
+                tab: "Functionality",
               },
               {
                 name: "header_filters",
                 label: "Header filters",
                 type: "Bool",
+                tab: "Functionality",
               },
               {
                 name: "movable_cols",
                 label: "Movable columns",
                 type: "Bool",
+                tab: "Layout",
               },
               {
                 name: "vert_col_headers",
                 label: "Vertical column headers",
                 type: "Bool",
+                tab: "Layout",
               },
               {
                 name: "history",
                 label: "History (undo/redo)",
                 type: "Bool",
+                tab: "Functionality",
               },
               {
                 name: "persistent",
                 label: "Persistent configuration",
                 type: "Bool",
+                tab: "Functionality",
               },
               {
                 name: "reset_persistent_btn",
@@ -405,28 +429,33 @@ const view_configuration_workflow = (req) =>
                 sublabel: "Show button to reset persistent configuration",
                 type: "Bool",
                 showIf: { persistent: true },
+                tab: "Functionality",
               },
               {
                 name: "dropdown_frozen",
                 label: "Action dropdown column frozen",
                 type: "Bool",
+                tab: "Content",
               },
               {
                 name: "pagination_enabled",
                 label: "Pagination",
                 type: "Bool",
+                tab: "Layout",
               },
               {
                 name: "pagination_size",
                 label: "Pagination size",
                 type: "Integer",
                 default: 20,
+                tab: "Layout",
                 showIf: { pagination_enabled: true },
               },
               {
                 name: "selected_rows_action",
                 label: "Selected rows action",
                 type: "String",
+                tab: "Functionality",
                 attributes: {
                   options: [...action_options],
                 },
@@ -435,6 +464,7 @@ const view_configuration_workflow = (req) =>
                 name: "selected_rows_action_once",
                 label: "Run action once for all rows",
                 type: "Bool",
+                tab: "Functionality",
                 sublabel:
                   "Tick to run action once with all rows (<code>rows</code> variable). Untick to run multiple times, once for each row (<code>row</code> variable).",
                 showIf: { selected_rows_action: [...action_options] },
