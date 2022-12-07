@@ -980,10 +980,8 @@ const hideShowColsBtn = (
       )
     )
   );
-const run = async (
-  table_id,
-  viewname,
-  {
+const run = async (table_id, viewname, cfg, state, extraArgs) => {
+  const {
     columns,
     fit,
     hideColsBtn,
@@ -1016,51 +1014,20 @@ const run = async (
     group_order_desc,
     header_wrap,
     override_stylesheet,
-  },
-  state,
-  extraArgs
-) => {
+  } = cfg;
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
-  for (const field of fields) {
-    await field.fill_fkey_options();
-  }
+
   readState(state, fields);
-  const where = await stateFieldsToWhere({ fields, state });
-  const q = await stateFieldsToQuery({ state, fields, prefix: "a." });
-  //const rows_per_page = default_state && default_state._rows_per_page;
-  //if (!q.limit && rows_per_page) q.limit = rows_per_page;
-  if (!q.orderBy) q.orderBy = table.pk_name;
-  if (extraArgs.isPreview) q.limit = 20;
-
-  //if (!q.orderDesc) q.orderDesc = default_state && default_state._descending;
-  const current_page = parseInt(state._page) || 1;
-  const { joinFields, aggregations } = picked_fields_to_query(columns, fields);
-  await set_join_fieldviews({ columns, fields });
   let groupBy1 = groupBy;
-  if (groupBy1) {
-    if (groupBy === "Selected by user" && default_group_by)
-      groupBy1 = default_group_by;
-    const groupField = fields.find((f) => f.name === groupBy1);
-    if (groupField && groupField.is_fkey) {
-      let orginalName = groupBy1;
-      groupBy1 = `${groupBy1}_${groupField?.attributes?.summary_field || "id"}`;
-      if (!joinFields[groupBy1])
-        joinFields[groupBy1] = {
-          ref: orginalName,
-          target: groupField?.attributes?.summary_field || "id",
-        };
-    }
-  }
 
-  // console.log(aggregations);
-
-  let rows = await table.getJoinedRows({
-    where,
-    joinFields,
-    aggregations,
-    ...q,
-  });
+  let rows = await get_rows(
+    table_id,
+    viewname,
+    cfg,
+    state,
+    extraArgs.isPreview
+  );
   //console.log(rows[0]);
   //console.log(columns[0]);
   //console.log({ rows_len: rows.length, q, where, rows_per_page });
@@ -1498,6 +1465,99 @@ const delete_preset = async (
   };
   await View.update(newConfig, view.id);
 };
+const get_rows = async (
+  table_id,
+  viewname,
+  {
+    columns,
+    fit,
+    hideColsBtn,
+    hide_null_columns,
+    addRowBtn,
+    selectable,
+    remove_unselected_btn,
+    download_csv,
+    header_filters,
+    pagination_enabled,
+    pagination_size,
+    movable_cols,
+    history,
+    persistent,
+    groupBy,
+    dropdown_frozen,
+    vert_col_headers,
+    reset_persistent_btn,
+    def_order_field,
+    def_order_descending,
+    column_visibility_presets,
+    presets,
+    min_role_preset_edit,
+    tree_field,
+    selected_rows_action,
+    group_true_label,
+    group_false_label,
+    group_null_label,
+    default_group_by,
+    group_order_desc,
+    header_wrap,
+    override_stylesheet,
+  },
+  state,
+  isPreview
+) => {
+  const table = await Table.findOne({ id: table_id });
+  const fields = await table.getFields();
+  for (const field of fields) {
+    await field.fill_fkey_options();
+  }
+  const where = await stateFieldsToWhere({ fields, state });
+  const q = await stateFieldsToQuery({ state, fields, prefix: "a." });
+  //const rows_per_page = default_state && default_state._rows_per_page;
+  //if (!q.limit && rows_per_page) q.limit = rows_per_page;
+  if (!q.orderBy) q.orderBy = table.pk_name;
+  if (isPreview) q.limit = 20;
+
+  //if (!q.orderDesc) q.orderDesc = default_state && default_state._descending;
+  const current_page = parseInt(state._page) || 1;
+  const { joinFields, aggregations } = picked_fields_to_query(columns, fields);
+  await set_join_fieldviews({ columns, fields });
+  let groupBy1 = groupBy;
+  if (groupBy1) {
+    if (groupBy === "Selected by user" && default_group_by)
+      groupBy1 = default_group_by;
+    const groupField = fields.find((f) => f.name === groupBy1);
+    if (groupField && groupField.is_fkey) {
+      let orginalName = groupBy1;
+      groupBy1 = `${groupBy1}_${groupField?.attributes?.summary_field || "id"}`;
+      if (!joinFields[groupBy1])
+        joinFields[groupBy1] = {
+          ref: orginalName,
+          target: groupField?.attributes?.summary_field || "id",
+        };
+    }
+  }
+
+  // console.log(aggregations);
+
+  let rows = await table.getJoinedRows({
+    where,
+    joinFields,
+    aggregations,
+    ...q,
+  });
+  return rows;
+};
+const get_rows_route = async (
+  table_id,
+  viewname,
+  cfg,
+  { state },
+  { req, res }
+) => {
+  const rows = await get_rows(table_id, viewname, cfg, { state });
+
+  return { json: rows };
+};
 
 const run_action = async (
   table_id,
@@ -1650,6 +1710,7 @@ module.exports = {
       },
       routes: {
         run_action,
+        get_rows_route,
         run_selected_rows_action,
         add_preset,
         delete_preset,
