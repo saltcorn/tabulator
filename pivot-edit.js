@@ -163,6 +163,7 @@ const run = async (
   const row_values = new Set([]);
   const col_values = new Set([]);
   const rawColValues = {};
+  const allValues = {};
   let xformCol = (x) => x;
 
   if (colField.type?.name === "Date") {
@@ -189,6 +190,25 @@ const run = async (
       }
     }
   }
+
+  if (rowField.is_fkey) {
+    await rowField.fill_fkey_options();
+    rowField.options.forEach(({ label, value }) => {
+      row_values.add(label);
+      allValues[label] = {
+        rawRowValue: value,
+        rowValue: label,
+        ids: {},
+      };
+    });
+  }
+  if (colField.is_fkey) {
+    await colField.fill_fkey_options();
+    colField.options.forEach(({ label, value }) => {
+      col_values.add(label);
+      rawColValues[label] = value;
+    });
+  }
   /*if (rowField.type?.name === "Date") {
     rows.forEach((r) => {
       if (r[row_field]) {
@@ -197,7 +217,6 @@ const run = async (
     });
   }*/
 
-  const allValues = {};
   rows.forEach((r) => {
     const rowValue = r[row_field_name];
     const colValue = xformCol(r[col_field_name]);
