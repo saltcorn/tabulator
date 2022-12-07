@@ -41,6 +41,7 @@ const {
   text_attr,
   select,
   option,
+  link,
 } = require("@saltcorn/markup/tags");
 const { post_btn, localeDate, localeDateTime } = require("@saltcorn/markup");
 
@@ -468,6 +469,22 @@ const view_configuration_workflow = (req) =>
                 sublabel:
                   "Tick to run action once with all rows (<code>rows</code> variable). Untick to run multiple times, once for each row (<code>row</code> variable).",
                 showIf: { selected_rows_action: [...action_options] },
+              },
+              {
+                name: "override_stylesheet",
+                label: "Override stylesheet",
+                type: "String",
+                attributes: {
+                  options: [
+                    "bootstrap5",
+                    "bootstrap4",
+                    "midnight",
+                    "modern",
+                    "simple",
+                    "site",
+                  ],
+                },
+                tab: "Layout",
               },
             ],
           });
@@ -998,6 +1015,7 @@ const run = async (
     default_group_by,
     group_order_desc,
     header_wrap,
+    override_stylesheet,
   },
   state,
   extraArgs
@@ -1426,6 +1444,14 @@ const run = async (
         viewname,
         rndid
       ),
+    override_stylesheet &&
+      link({
+        rel: "stylesheet",
+        href: `/plugins/public/tabulator@${
+          require("./package.json").version
+        }/tabulator_${override_stylesheet}.min.css`,
+      }),
+
     div({ id: "jsGridNotify", class: "my-1" }),
 
     div({ id: `tabgrid${viewname}` })
