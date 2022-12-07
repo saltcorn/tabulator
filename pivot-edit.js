@@ -122,6 +122,14 @@ const configuration_workflow = (req) =>
                 type: "String",
                 class: "validate-expression",
               },
+              {
+                name: "column_calculation",
+                label: "Column Calculation",
+                type: "String",
+                attributes: {
+                  options: ["avg", "max", "min", "sum", "count"],
+                },
+              },
             ],
           });
         },
@@ -139,6 +147,7 @@ const run = async (
     vertical_headers,
     col_field_format,
     new_row_formula,
+    column_calculation,
   },
   state,
   extraArgs
@@ -275,6 +284,7 @@ const run = async (
       field: `${cv}`,
       title: `${cv}`,
       headerVertical: vertical_headers,
+      bottomCalc: column_calculation,
     })),
   ];
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
