@@ -114,6 +114,14 @@ const configuration_workflow = (req) =>
                 label: "Vertical headers",
                 type: "Bool",
               },
+              {
+                name: "new_row_formula",
+                label: "New row formula",
+                sublabel:
+                  "Formula for JavaScript object that will be added to new rows, in addition to values for row, column and value fields. State variable may be used here.",
+                type: "String",
+                class: "validate-expression",
+              },
             ],
           });
         },
@@ -124,7 +132,14 @@ const configuration_workflow = (req) =>
 const run = async (
   table_id,
   viewname,
-  { row_field, col_field, value_field, vertical_headers, col_field_format },
+  {
+    row_field,
+    col_field,
+    value_field,
+    vertical_headers,
+    col_field_format,
+    new_row_formula,
+  },
   state,
   extraArgs
 ) => {
@@ -263,6 +278,9 @@ const run = async (
     })),
   ];
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
+  const new_row_obj = new_row_formula
+    ? eval_expression(new_row_formula, state)
+    : {};
   return (
     script(
       domReady(`
@@ -283,7 +301,9 @@ const run = async (
     const id = row.ids[fld]
 
     if(typeof row[fld]==="undefined") return;
-    const saveRow = {${value_field}: row[fld]}
+    const saveRow = {...${JSON.stringify(
+      new_row_obj
+    )}, ${value_field}: row[fld]}
     if(!id) {
       saveRow.${row_field} = row.rawRowValue;
       saveRow.${col_field} = rawColValues[fld];
