@@ -439,6 +439,12 @@ const view_configuration_workflow = (req) =>
                 tab: "Content",
               },
               {
+                name: "ajax_load",
+                label: "Progressive loading",
+                type: "Bool",
+                tab: "Content",
+              },
+              {
                 name: "pagination_enabled",
                 label: "Pagination",
                 type: "Bool",
@@ -1014,6 +1020,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
     group_order_desc,
     header_wrap,
     override_stylesheet,
+    ajax_load,
   } = cfg;
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
@@ -1021,13 +1028,15 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
   readState(state, fields);
   let groupBy1 = groupBy;
 
-  let rows = await get_db_rows(
-    table_id,
-    viewname,
-    cfg,
-    state,
-    extraArgs.isPreview
-  );
+  let rows = [];
+  if (!ajax_load)
+    rows = await get_db_rows(
+      table_id,
+      viewname,
+      cfg,
+      state,
+      extraArgs.isPreview
+    );
   //console.log(rows[0]);
   //console.log(columns[0]);
   //console.log({ rows_len: rows.length, q, where, rows_per_page });
@@ -1113,7 +1122,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
       const dropdown_actions = ${JSON.stringify(dropdown_actions)};
       window.actionPopup = (e, row) => {
         return row.getRow().getData()._dropdown;
-      }     
+      }
       columns.forEach(col=>{
         Object.entries(col).forEach(([k,v])=>{
           if(typeof v === "string" && v.startsWith("__")) {
@@ -1122,7 +1131,20 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
         })
       })
     window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}", {
-        data: ${JSON.stringify(rows)},
+        ${
+          ajax_load
+            ? `
+        ajaxURL: "/view/${viewname}/get_rows",
+        ajaxConfig:{
+          method: "POST",
+          headers: {
+            "CSRF-Token": _sc_globalCsrf,
+          },
+        },
+        `
+            : `data: ${JSON.stringify(rows)},`
+        }
+        
         layout:"fit${fit || "Columns"}", 
         columns,
         height:"100%",
