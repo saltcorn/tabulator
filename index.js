@@ -1418,7 +1418,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
 
     div({ id: "jsGridNotify", class: "my-1" }),
 
-    div({ id: `tabgrid${viewname}` })
+    div({ id: `tabgrid${viewname}`, style: { height: "100%" } })
   );
 };
 
