@@ -1030,13 +1030,9 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
 
   let rows = [];
   if (!ajax_load)
-    rows = await get_db_rows(
-      table_id,
-      viewname,
-      cfg,
-      state,
-      extraArgs.isPreview
-    );
+    rows = (
+      await get_db_rows(table_id, viewname, cfg, state, extraArgs.isPreview)
+    ).rows;
   //console.log(rows[0]);
   //console.log(columns[0]);
   //console.log({ rows_len: rows.length, q, where, rows_per_page });
@@ -1135,6 +1131,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
           ajax_load
             ? `
         ajaxURL: "/view/${viewname}/get_rows",
+        ${pagination_enabled ? 'paginationMode:"remote",' : ""}
         ajaxConfig:{
           method: "POST",
           headers: {
@@ -1194,7 +1191,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
         ],`
             : ""
         }
-        ajaxResponse:function(url, params, response){                    
+        ajaxResponse:function(url, params, response){                  
           if(typeof response.success!=="undefined")
           return response.success; //return the tableData property of a response json object
           else return response
@@ -1465,7 +1462,10 @@ const get_db_rows = async (
     group_order_desc,
   },
   state,
-  isPreview
+  isPreview,
+  limit,
+  offset,
+  alsoCount
 ) => {
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
@@ -1477,8 +1477,9 @@ const get_db_rows = async (
   //const rows_per_page = default_state && default_state._rows_per_page;
   //if (!q.limit && rows_per_page) q.limit = rows_per_page;
   if (!q.orderBy) q.orderBy = table.pk_name;
-  if (isPreview) q.limit = 20;
-
+  if (limit) q.limit = limit;
+  else if (isPreview) q.limit = 20;
+  if (offset) q.offset = offset;
   //if (!q.orderDesc) q.orderDesc = default_state && default_state._descending;
   const current_page = parseInt(state._page) || 1;
   const { joinFields, aggregations } = picked_fields_to_query(columns, fields);
@@ -1544,12 +1545,35 @@ const get_db_rows = async (
       a[groupBy1] > b[groupBy1] ? dir : b[groupBy1] > a[groupBy1] ? -1 * dir : 0
     );
   }
-  return rows;
+  if (alsoCount) {
+    const count = await table.countRows(where);
+    return { rows, count };
+  } else return { rows };
 };
-const get_rows = async (table_id, viewname, cfg, { state }, { req, res }) => {
-  const rows = await get_db_rows(table_id, viewname, cfg, { state });
-
-  return { json: rows };
+const get_rows = async (
+  table_id,
+  viewname,
+  cfg,
+  { state, page, size },
+  { req, res }
+) => {
+  const limit =
+    size === "true" ? undefined : size || cfg.pagination_size || undefined;
+  const offset = page && limit ? +page * (+limit || 20) : 0;
+  const { rows, count } = await get_db_rows(
+    table_id,
+    viewname,
+    cfg,
+    { state },
+    false,
+    limit,
+    offset,
+    !!cfg.pagination_enabled && size !== "true"
+  );
+  if (page) {
+    if (size) return { json: { data: rows, last_page: count / +size } };
+    else return { json: { data: rows } };
+  } else return { json: rows };
 };
 
 const run_action = async (
