@@ -11,7 +11,7 @@ const View = require("@saltcorn/data/models/view");
 const Workflow = require("@saltcorn/data/models/workflow");
 const { eval_expression } = require("@saltcorn/data/models/expression");
 const { check_view_columns } = require("@saltcorn/data/plugin-testing");
-
+const crypto = require("crypto");
 const {
   field_picker_fields,
   picked_fields_to_query,
@@ -576,6 +576,13 @@ const set_json_col = (tcol, field, key, header_filters) => {
   }
 };
 
+const hashCol = (col) =>
+  crypto
+    .createHash("sha1")
+    .update(JSON.stringify(col))
+    .digest("hex")
+    .substring(0, 8);
+
 const get_tabulator_columns = async (
   viewname,
   table,
@@ -636,7 +643,7 @@ const get_tabulator_columns = async (
       tcol.editor = false;
     } else if (column.type === "Aggregation") {
       let table, fld, through;
-      const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+      const rndid = "col" + hashCol(column);
       if (column.agg_relation.includes("->")) {
         let restpath;
         [through, restpath] = column.agg_relation.split("->");
@@ -683,7 +690,7 @@ const get_tabulator_columns = async (
       });
       tcol.field = rndid; //db.sqlsanitize(targetNm);
     } else if (column.type === "FormulaValue") {
-      const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+      const rndid = "col" + hashCol(column);
       calculators.push((row) => {
         row[rndid] = eval_expression(column.formula, row);
       });
@@ -691,7 +698,7 @@ const get_tabulator_columns = async (
       tcol.headerFilter = !!header_filters && "input";
     } else if (column.type === "ViewLink") {
       tcol.formatter = "html";
-      const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+      const rndid = "col" + hashCol(column);
       const { key } = view_linker(column, fields);
       calculators.push((row) => {
         row[rndid] = key(row);
@@ -710,7 +717,7 @@ const get_tabulator_columns = async (
       }
     } else if (column.type === "Link") {
       tcol.formatter = "html";
-      const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+      const rndid = "col" + hashCol(column);
 
       const { key } = make_link(column, fields);
       calculators.push((row) => {
@@ -746,7 +753,7 @@ const get_tabulator_columns = async (
     } else if (column.type === "Action") {
       tcol.formatter = "html";
       //console.log(column);
-      const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+      const rndid = "col" + hashCol(column);
       calculators.push((row) => {
         const url = action_url(
           viewname,
@@ -806,7 +813,7 @@ const get_tabulator_columns = async (
   let arndid;
 
   if (dropdown_actions.length > 0) {
-    arndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+    arndid = "col_action_dd";
     calculators.push((row) => {
       let html = "";
       row[arndid] = button(
