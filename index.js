@@ -1453,7 +1453,7 @@ const run = async (
 
     div({ id: "jsGridNotify", class: "my-1" }),
 
-    div({ id: `tabgrid${viewname}` })
+    div({ id: `tabgrid${viewname}`, style: { height: "100%" } })
   );
 };
 
