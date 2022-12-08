@@ -68,11 +68,22 @@ const configuration_workflow = (req) =>
               : { name: context.exttable_name }
           );
           const fields = await table.getFields();
-          const fk_fields = fields.filter((f) => f.is_fkey);
+          const fk_fields = fields.filter((f) => f.is_fkey && f.reftable_name);
           const fk_date_fields = fields.filter(
-            (f) => f.is_fkey || f.type?.name === "Date"
+            (f) => (f.is_fkey && f.reftable_name) || f.type?.name === "Date"
           );
           const date_fields = fields.filter((f) => f.type?.name === "Date");
+          const group_by_options = {};
+          for (const fk_field of fk_fields) {
+            const reftable = Table.findOne({ name: fk_field.reftable_name });
+            if (reftable) {
+              const reffields = await reftable.getFields();
+              group_by_options[fk_field.name] = [
+                "",
+                ...reffields.map((f) => f.name),
+              ];
+            }
+          }
           return new Form({
             fields: [
               {
@@ -90,6 +101,14 @@ const configuration_workflow = (req) =>
                 sublabel: "include the rows that match this formula",
                 type: "String",
                 required: true,
+              },
+              {
+                name: "groupBy",
+                label: "Group by",
+                type: "String",
+                attributes: {
+                  calcOptions: ["row_field", group_by_options],
+                },
               },
               {
                 name: "col_field",
@@ -159,6 +178,7 @@ const run = async (
     new_row_formula,
     column_calculation,
     row_where,
+    groupBy,
   },
   state,
   extraArgs
@@ -226,16 +246,34 @@ const run = async (
     }
   }
 
-  if (rowField.is_fkey) {
-    await rowField.fill_fkey_options(
-      false,
-      row_where ? jsexprToWhere(row_where) : undefined
-    );
-    rowField.options.forEach(({ label, value }) => {
+  if (rowField.is_fkey && rowField.reftable_name) {
+    const reftable = Table.findOne({ name: rowField.reftable_name });
+    const reffields = await reftable.getFields();
+
+    const joinFields = {};
+    let groupBy1 = groupBy;
+    if (groupBy) {
+      const groupField = reffields.find((f) => f.name === groupBy);
+      if (groupField.is_fkey && groupField.attributes?.summary_field) {
+        joinFields.groupbyval = {
+          target: groupField.attributes?.summary_field,
+          ref: groupBy,
+        };
+        groupBy1 = "groupbyval";
+      }
+    }
+    const refVals = await reftable.getJoinedRows({
+      where: row_where ? jsexprToWhere(row_where) : {},
+      joinFields,
+    });
+    refVals.forEach((refRow) => {
+      const value = refRow[reftable.pk_name];
+      const label = refRow[rowField.attributes.summary_field];
       row_values.add(label);
       allValues[label] = {
         rawRowValue: value,
         rowValue: label,
+        groupVal: groupBy ? refRow[groupBy1] : undefined,
         ids: {},
       };
     });
@@ -316,6 +354,7 @@ const run = async (
       columns,
       height:"100%",
       clipboard:true,
+      ${groupBy ? `groupBy: "groupVal"` : ""}
     });
 
   window.tabulator_table_${rndid}.on("cellEdited", function(cell){
