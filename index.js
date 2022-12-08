@@ -1051,7 +1051,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
   //console.log(rows[0]);
   //console.log(columns[0]);
   //console.log({ rows_len: rows.length, q, where, rows_per_page });
-  const { tabcolumns, calculators, dropdown_id, dropdown_actions } =
+  const { tabcolumns, dropdown_id, dropdown_actions } =
     await get_tabulator_columns(
       viewname,
       table,
@@ -1063,9 +1063,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
       vert_col_headers,
       dropdown_frozen
     );
-  calculators.forEach((f) => {
-    rows.forEach(f);
-  });
+
   if (selectable)
     tabcolumns.unshift({
       formatter: "rowSelection",
@@ -1564,18 +1562,17 @@ const get_db_rows = async (
       a[groupBy1] > b[groupBy1] ? dir : b[groupBy1] > a[groupBy1] ? -1 * dir : 0
     );
   }
-  const { tabcolumns, calculators, dropdown_id, dropdown_actions } =
-    await get_tabulator_columns(
-      viewname,
-      table,
-      fields,
-      columns,
-      false,
-      req,
-      header_filters,
-      vert_col_headers,
-      dropdown_frozen
-    );
+  const { calculators } = await get_tabulator_columns(
+    viewname,
+    table,
+    fields,
+    columns,
+    false,
+    req,
+    header_filters,
+    vert_col_headers,
+    dropdown_frozen
+  );
   calculators.forEach((f) => {
     rows.forEach(f);
   });
