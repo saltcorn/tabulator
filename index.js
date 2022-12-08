@@ -369,12 +369,12 @@ const view_configuration_workflow = (req) =>
                 type: "Bool",
                 tab: "Functionality",
               },
-              /*{
+              {
                 name: "header_wrap",
                 label: "Wrap column headers",
                 type: "Bool",
                 tab: "Layout",
-              },*/
+              },
               {
                 name: "selectable",
                 label: "Selectable",
@@ -1159,7 +1159,6 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
         
         layout:"fit${fit || "Columns"}", 
         columns,
-        height:"100%",
         pagination:${!!pagination_enabled},
         paginationSize:${pagination_size || 20},
         paginationSizeSelector: ${JSON.stringify(paginationSizeChoices)},
