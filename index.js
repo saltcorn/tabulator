@@ -53,6 +53,7 @@ const {
   make_link,
   splitUniques,
 } = require("@saltcorn/data/base-plugin/viewtemplates/viewable_fields");
+const { mockReqRes } = require("@saltcorn/data/tests/mocks");
 const { typeToGridType } = require("./common");
 const configuration_workflow = () =>
   new Workflow({
@@ -1764,6 +1765,21 @@ module.exports = {
             errors.push(
               `In view ${view.name}, Action for selected_rows_action not found: ` +
                 trigger.action
+            );
+        }
+        if (view.configuration.ajax_load) {
+          const { rows } = await get_db_rows(
+            view.table_id,
+            view.viewname,
+            view.configuration,
+            {},
+            mockReqRes.req,
+            false,
+            5
+          );
+          if (!Array.isArray(rows))
+            errors.push(
+              `In view ${view.name}, something went wrong when retriving rows.`
             );
         }
         return { errors, warnings };
