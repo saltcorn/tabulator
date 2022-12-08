@@ -1021,7 +1021,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
   readState(state, fields);
   let groupBy1 = groupBy;
 
-  let rows = await get_rows(
+  let rows = await get_db_rows(
     table_id,
     viewname,
     cfg,
@@ -1065,43 +1065,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
           )
       )
     : tabcolumns;
-  if (tree_field) {
-    const my_ids = new Set(rows.map((r) => r.id));
-    for (const row of rows) {
-      if (row[tree_field] && my_ids.has(row[tree_field]))
-        row._parent = row[tree_field];
-      else row._parent = null;
-    }
-    //https://stackoverflow.com/a/55241491
-    const nest = (items, id = null) =>
-      items
-        .filter((item) => item._parent === id)
-        .map((item) => ({ ...item, _children: nest(items, item.id) }));
-    //const old_rows = [...rows];
-    rows = nest(rows);
-  }
-  if (groupBy1 && def_order_field) {
-    const dir = def_order_descending ? -1 : 1;
-    const dirGroup = group_order_desc ? -1 : 1;
 
-    rows.sort((a, b) =>
-      a[groupBy1] > b[groupBy1]
-        ? dirGroup
-        : b[groupBy1] > a[groupBy1]
-        ? -1 * dirGroup
-        : a[def_order_field] > b[def_order_field]
-        ? dir
-        : b[def_order_field] > a[def_order_field]
-        ? -1 * dir
-        : 0
-    );
-  } else if (groupBy1) {
-    const dir = group_order_desc ? -1 : 1;
-
-    rows.sort((a, b) =>
-      a[groupBy1] > b[groupBy1] ? dir : b[groupBy1] > a[groupBy1] ? -1 * dir : 0
-    );
-  }
   const pgSz = pagination_size || 20;
   const paginationSizeChoices = [
     Math.round(pgSz / 2),
@@ -1465,7 +1429,7 @@ const delete_preset = async (
   };
   await View.update(newConfig, view.id);
 };
-const get_rows = async (
+const get_db_rows = async (
   table_id,
   viewname,
   {
@@ -1545,16 +1509,47 @@ const get_rows = async (
     aggregations,
     ...q,
   });
+  if (tree_field) {
+    const my_ids = new Set(rows.map((r) => r.id));
+    for (const row of rows) {
+      if (row[tree_field] && my_ids.has(row[tree_field]))
+        row._parent = row[tree_field];
+      else row._parent = null;
+    }
+    //https://stackoverflow.com/a/55241491
+    const nest = (items, id = null) =>
+      items
+        .filter((item) => item._parent === id)
+        .map((item) => ({ ...item, _children: nest(items, item.id) }));
+    //const old_rows = [...rows];
+    rows = nest(rows);
+  }
+  if (groupBy1 && def_order_field) {
+    const dir = def_order_descending ? -1 : 1;
+    const dirGroup = group_order_desc ? -1 : 1;
+
+    rows.sort((a, b) =>
+      a[groupBy1] > b[groupBy1]
+        ? dirGroup
+        : b[groupBy1] > a[groupBy1]
+        ? -1 * dirGroup
+        : a[def_order_field] > b[def_order_field]
+        ? dir
+        : b[def_order_field] > a[def_order_field]
+        ? -1 * dir
+        : 0
+    );
+  } else if (groupBy1) {
+    const dir = group_order_desc ? -1 : 1;
+
+    rows.sort((a, b) =>
+      a[groupBy1] > b[groupBy1] ? dir : b[groupBy1] > a[groupBy1] ? -1 * dir : 0
+    );
+  }
   return rows;
 };
-const get_rows_route = async (
-  table_id,
-  viewname,
-  cfg,
-  { state },
-  { req, res }
-) => {
-  const rows = await get_rows(table_id, viewname, cfg, { state });
+const get_rows = async (table_id, viewname, cfg, { state }, { req, res }) => {
+  const rows = await get_db_rows(table_id, viewname, cfg, { state });
 
   return { json: rows };
 };
@@ -1710,7 +1705,7 @@ module.exports = {
       },
       routes: {
         run_action,
-        get_rows_route,
+        get_rows,
         run_selected_rows_action,
         add_preset,
         delete_preset,
