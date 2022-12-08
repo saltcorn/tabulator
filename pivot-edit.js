@@ -303,7 +303,7 @@ const run = async (
   ];
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
   const new_row_obj = new_row_formula
-    ? eval_expression(new_row_formula, state)
+    ? eval_expression(new_row_formula, { ...state, user: extraArgs.req.user })
     : {};
   return (
     script(
