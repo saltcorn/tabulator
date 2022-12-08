@@ -1153,6 +1153,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
         }
         ajaxParams: {state:${JSON.stringify(state)}},
         filterMode:"remote",
+        sortMode:"remote",
         ajaxContentType:"json",
         ajaxConfig:{
           method: "POST",
@@ -1492,15 +1493,32 @@ const get_db_rows = async (
   isPreview,
   limit,
   offset,
-  alsoCount
+  alsoCount,
+  filter,
+  sort
 ) => {
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
+  const fieldNames = new Set(fields.map((f) => f.name));
   for (const field of fields) {
     await field.fill_fkey_options();
   }
   const where = await stateFieldsToWhere({ fields, state });
   const q = await stateFieldsToQuery({ state, fields, prefix: "a." });
+  if (filter) {
+    filter.forEach(({ field, type, value }) => {
+      if (fieldNames.has(field))
+        where[field] = type === "like" ? { ilike: value } : value;
+    });
+  }
+  if (sort && sort.length === 1) {
+    sort.forEach(({ field, dir }) => {
+      if (fieldNames.has(field)) {
+        q.orderBy = field;
+        q.orderDesc = dir === "desc";
+      }
+    });
+  }
   //const rows_per_page = default_state && default_state._rows_per_page;
   //if (!q.limit && rows_per_page) q.limit = rows_per_page;
   if (!q.orderBy) q.orderBy = table.pk_name;
@@ -1595,10 +1613,11 @@ const get_rows = async (
   table_id,
   viewname,
   cfg,
-  { state, page, size, filter },
+  { state, page, size, filter, sort },
   { req, res }
 ) => {
-  //console.log({ filter, state, page, size });
+  //console.log({ filter, sort, state, page, size });
+
   let limit = size === "true" ? undefined : size || cfg.pagination_size || 50;
   const offset = page && limit ? (+page - 1) * (+limit || 20) : 0;
   const { rows, count } = await get_db_rows(
@@ -1610,7 +1629,9 @@ const get_rows = async (
     false,
     limit,
     offset,
-    !!page
+    !!page,
+    filter,
+    sort
   );
 
   if (page) {
