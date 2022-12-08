@@ -1194,7 +1194,6 @@ const run = async (
         data: ${JSON.stringify(rows)},
         layout:"fit${fit || "Columns"}", 
         columns,
-        height:"100%",
         pagination:${!!pagination_enabled},
         paginationSize:${pagination_size || 20},
         paginationSizeSelector: ${JSON.stringify(paginationSizeChoices)},
