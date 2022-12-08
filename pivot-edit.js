@@ -100,7 +100,6 @@ const configuration_workflow = (req) =>
                 label: "Where",
                 sublabel: "include the rows that match this formula",
                 type: "String",
-                required: true,
               },
               {
                 name: "groupBy",
