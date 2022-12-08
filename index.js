@@ -1146,6 +1146,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
             ? `
         ajaxURL: "/view/${viewname}/get_rows",
         ${pagination_enabled ? 'paginationMode:"remote",' : ""}
+        ajaxParams: {state:"${encodeURIComponent(JSON.stringify(state))}"},
         ajaxConfig:{
           method: "POST",
           headers: {
@@ -1590,6 +1591,13 @@ const get_rows = async (
   { state, page, size },
   { req, res }
 ) => {
+  let state1;
+  try {
+    state1 = JSON.parse(decodeURIComponent(state));
+  } catch (e) {
+    state1 = {};
+  }
+
   const limit =
     size === "true" ? undefined : size || cfg.pagination_size || undefined;
   const offset = page && limit ? +page * (+limit || 20) : 0;
@@ -1597,7 +1605,7 @@ const get_rows = async (
     table_id,
     viewname,
     cfg,
-    { state },
+    state1,
     req,
     false,
     limit,
