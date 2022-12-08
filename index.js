@@ -1031,7 +1031,14 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
   let rows = [];
   if (!ajax_load)
     rows = (
-      await get_db_rows(table_id, viewname, cfg, state, extraArgs.isPreview)
+      await get_db_rows(
+        table_id,
+        viewname,
+        cfg,
+        state,
+        extraArgs.req,
+        extraArgs.isPreview
+      )
     ).rows;
   //console.log(rows[0]);
   //console.log(columns[0]);
@@ -1460,8 +1467,12 @@ const get_db_rows = async (
     tree_field,
     default_group_by,
     group_order_desc,
+    header_filters,
+    vert_col_headers,
+    dropdown_frozen,
   },
   state,
+  req,
   isPreview,
   limit,
   offset,
@@ -1545,6 +1556,21 @@ const get_db_rows = async (
       a[groupBy1] > b[groupBy1] ? dir : b[groupBy1] > a[groupBy1] ? -1 * dir : 0
     );
   }
+  const { tabcolumns, calculators, dropdown_id, dropdown_actions } =
+    await get_tabulator_columns(
+      viewname,
+      table,
+      fields,
+      columns,
+      false,
+      req,
+      header_filters,
+      vert_col_headers,
+      dropdown_frozen
+    );
+  calculators.forEach((f) => {
+    rows.forEach(f);
+  });
   if (alsoCount) {
     const count = await table.countRows(where);
     return { rows, count };
@@ -1565,11 +1591,14 @@ const get_rows = async (
     viewname,
     cfg,
     { state },
+    req,
     false,
     limit,
     offset,
     !!cfg.pagination_enabled && size !== "true"
   );
+
+  //console.log(rows[0]);
   if (page) {
     if (size) return { json: { data: rows, last_page: count / +size } };
     else return { json: { data: rows } };
