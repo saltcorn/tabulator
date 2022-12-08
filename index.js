@@ -1195,8 +1195,9 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
             : ""
         }
         ajaxResponse:function(url, params, response){                    
-  
+          if(typeof response.success!=="undefined")
           return response.success; //return the tableData property of a response json object
+          else return response
         },
     });
     function save_row_from_cell( row, cell, noid) {
