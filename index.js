@@ -1151,8 +1151,9 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
             ? ""
             : `progressiveLoad:"scroll",`
         }
-        ajaxParams: {state:"${encodeURIComponent(JSON.stringify(state))}"},
-        
+        ajaxParams: {state:${JSON.stringify(state)}},
+        filterMode:"remote",
+        ajaxContentType:"json",
         ajaxConfig:{
           method: "POST",
           headers: {
@@ -1594,23 +1595,17 @@ const get_rows = async (
   table_id,
   viewname,
   cfg,
-  { state, page, size },
+  { state, page, size, filter },
   { req, res }
 ) => {
-  let state1;
-  try {
-    state1 = JSON.parse(decodeURIComponent(state));
-  } catch (e) {
-    state1 = {};
-  }
-
+  //console.log({ filter, state, page, size });
   let limit = size === "true" ? undefined : size || cfg.pagination_size || 50;
-  const offset = page && limit ? +page * (+limit || 20) : 0;
+  const offset = page && limit ? (+page - 1) * (+limit || 20) : 0;
   const { rows, count } = await get_db_rows(
     table_id,
     viewname,
     cfg,
-    state1,
+    state,
     req,
     false,
     limit,
@@ -1619,7 +1614,8 @@ const get_rows = async (
   );
 
   if (page) {
-    if (size) return { json: { data: rows, last_page: count / +size } };
+    if (size)
+      return { json: { data: rows, last_page: Math.ceil(count / +size) } };
     else return { json: { data: rows } };
   } else return { json: rows };
 };
