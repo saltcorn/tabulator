@@ -369,12 +369,12 @@ const view_configuration_workflow = (req) =>
                 type: "Bool",
                 tab: "Functionality",
               },
-              /*{
+              {
                 name: "header_wrap",
                 label: "Wrap column headers",
                 type: "Bool",
                 tab: "Layout",
-              },*/
+              },
               {
                 name: "selectable",
                 label: "Selectable",
