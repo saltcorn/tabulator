@@ -1144,8 +1144,15 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
           ajax_load
             ? `
         ajaxURL: "/view/${viewname}/get_rows",
-        ${pagination_enabled ? 'paginationMode:"remote",' : ""}
+        ${
+          pagination_enabled
+            ? 'paginationMode:"remote",'
+            : extraArgs.isPreview
+            ? ""
+            : `progressiveLoad:"scroll",`
+        }
         ajaxParams: {state:"${encodeURIComponent(JSON.stringify(state))}"},
+        
         ajaxConfig:{
           method: "POST",
           headers: {
@@ -1159,7 +1166,9 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
         layout:"fit${fit || "Columns"}", 
         columns,
         pagination:${!!pagination_enabled},
-        paginationSize:${pagination_size || 20},
+        paginationSize:${
+          !pagination_enabled && ajax_load ? 100 : pagination_size || 20
+        },
         paginationSizeSelector: ${JSON.stringify(paginationSizeChoices)},
         clipboard:true,
         persistence:${!!persistent}, 
@@ -1595,8 +1604,7 @@ const get_rows = async (
     state1 = {};
   }
 
-  const limit =
-    size === "true" ? undefined : size || cfg.pagination_size || undefined;
+  let limit = size === "true" ? undefined : size || cfg.pagination_size || 50;
   const offset = page && limit ? +page * (+limit || 20) : 0;
   const { rows, count } = await get_db_rows(
     table_id,
@@ -1607,10 +1615,9 @@ const get_rows = async (
     false,
     limit,
     offset,
-    !!cfg.pagination_enabled && size !== "true"
+    !!page
   );
 
-  //console.log(rows[0]);
   if (page) {
     if (size) return { json: { data: rows, last_page: count / +size } };
     else return { json: { data: rows } };
