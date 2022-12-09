@@ -86,6 +86,7 @@ const configuration_workflow = (req) =>
           }
           return new Form({
             fields: [
+              { input_type: "section_header", label: "Rows" },
               {
                 name: "row_field",
                 label: "Row field",
@@ -109,6 +110,7 @@ const configuration_workflow = (req) =>
                   calcOptions: ["row_field", group_by_options],
                 },
               },
+              { input_type: "section_header", label: "Columns" },
               {
                 name: "col_field",
                 label: "Column field",
@@ -127,6 +129,27 @@ const configuration_workflow = (req) =>
                   col_field: date_fields.map((f) => f.name),
                 },
               },
+              {
+                name: "col_no_weekends",
+                label: "No weekend columns",
+                type: "Bool",
+                sublabel: "Exclude weekend days from columns",
+                showIf: {
+                  col_field: date_fields.map((f) => f.name),
+                },
+              },
+              {
+                name: "col_width",
+                label: "Column width (px)",
+                sublabel: "Optional",
+                type: "Integer",
+              },
+              {
+                name: "vertical_headers",
+                label: "Vertical headers",
+                type: "Bool",
+              },
+              { input_type: "section_header", label: "Values" },
 
               {
                 name: "value_field",
@@ -137,11 +160,7 @@ const configuration_workflow = (req) =>
                   options: fields.map((f) => f.name),
                 },
               },
-              {
-                name: "vertical_headers",
-                label: "Vertical headers",
-                type: "Bool",
-              },
+
               {
                 name: "new_row_formula",
                 label: "New row formula",
@@ -150,6 +169,8 @@ const configuration_workflow = (req) =>
                 type: "String",
                 class: "validate-expression",
               },
+              { input_type: "section_header", label: "Calculated row" },
+
               {
                 name: "column_calculation",
                 label: "Column Calculation",
@@ -158,12 +179,36 @@ const configuration_workflow = (req) =>
                   options: ["avg", "max", "min", "sum", "count"],
                 },
               },
+              {
+                name: "group_calcs",
+                label: "Group calculations",
+                type: "Bool",
+                sublabel: "Calculations by group",
+                showIf: {
+                  column_calculation: ["avg", "max", "min", "sum", "count"],
+                },
+              },
+              {
+                name: "calc_pos",
+                label: "Calculation position",
+                type: "String",
+                fieldview: "radio_group",
+                attributes: {
+                  options: ["Top", "Bottom"],
+                  inline: true,
+                },
+                showIf: {
+                  column_calculation: ["avg", "max", "min", "sum", "count"],
+                },
+              },
             ],
           });
         },
       },
     ],
   });
+
+const isWeekend = (date) => ((d) => d === 0 || d === 6)(date.getDay());
 
 const run = async (
   table_id,
@@ -178,6 +223,10 @@ const run = async (
     column_calculation,
     row_where,
     groupBy,
+    col_no_weekends,
+    group_calcs,
+    calc_pos,
+    col_width,
   },
   state,
   extraArgs
@@ -233,12 +282,14 @@ const run = async (
       const end = new Date(state["_todate_" + col_field]);
       let day = start;
       while (day <= end) {
-        const dayStr = day.toISOString().split("T")[0];
-        const xdayStr = xformCol(dayStr);
-        col_values.add(
-          col_field_format ? moment(day).format(col_field_format) : dayStr
-        );
-        rawColValues[xdayStr] = dayStr;
+        if (!col_no_weekends || !isWeekend(day)) {
+          const dayStr = day.toISOString().split("T")[0];
+          const xdayStr = xformCol(dayStr);
+          col_values.add(
+            col_field_format ? moment(day).format(col_field_format) : dayStr
+          );
+          rawColValues[xdayStr] = dayStr;
+        }
         day = new Date(day);
         day.setDate(day.getDate() + 1);
       }
@@ -324,20 +375,75 @@ const run = async (
     },
     {}
   );
+  const colValuesArray = [...col_values];
+  if (colField.type?.name === "Date") {
+    colValuesArray.sort((a, b) => {
+      const da = new Date(rawColValues[a]);
+      const db = new Date(rawColValues[b]);
+      return da > db ? 1 : db > da ? -1 : 0;
+    });
+  }
   const tabCols = [
     {
       field: "rowValue",
       title: rowField.label,
       editor: false,
+      frozen: true,
     },
-    ...[...col_values].map((cv) => ({
+    ...colValuesArray.map((cv) => ({
       ...valueCell,
       field: `${cv}`,
       title: `${cv}`,
       headerVertical: vertical_headers,
-      bottomCalc: column_calculation,
+      [(calc_pos || "Bottom").toLowerCase() + "Calc"]:
+        (group_calcs || !groupBy) && column_calculation
+          ? column_calculation
+          : undefined,
+      headerWordWrap: true,
+      width: col_width || undefined,
     })),
   ];
+  const allValuesArray = Object.values(allValues);
+
+  if (groupBy && !group_calcs && column_calculation) {
+    const calcRow = {
+      ids: {},
+      rowValue: column_calculation,
+      groupVal: "Total",
+    };
+    colValuesArray.forEach((cv) => {
+      let result;
+      //["avg", "max", "min", "sum", "count"]
+      const values = [...row_values].map((rv) => allValues[rv][cv]);
+      switch (column_calculation) {
+        case "sum":
+          result = values.reduce((partialSum, a) => partialSum + (a || 0), 0);
+          break;
+        case "max":
+          result = Math.max(...values);
+          break;
+        case "min":
+          result = Math.min(...values);
+          break;
+        case "avg":
+          result =
+            values.reduce((partialSum, a) => partialSum + (a || 0), 0) /
+            values.filter((v) => typeof v !== "undefined" && v !== null).length;
+          break;
+        case "count":
+          result = values.filter(
+            (v) => typeof v !== "undefined" && v !== null
+          ).length;
+          break;
+        default:
+          break;
+      }
+      calcRow[cv] = result;
+    });
+    if (calc_pos === "Top") allValuesArray.unshift(calcRow);
+    else allValuesArray.push(calcRow);
+    //row_values.add(column_calculation);
+  }
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
   const new_row_obj = new_row_formula
     ? eval_expression(new_row_formula, { ...state, user: extraArgs.req.user })
@@ -348,7 +454,7 @@ const run = async (
     const columns=${JSON.stringify(tabCols, null, 2)};   
    
     window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}", {
-      data: ${JSON.stringify(Object.values(allValues), null, 2)},
+      data: ${JSON.stringify(allValuesArray, null, 2)},
       layout:"Columns", 
       columns,
       height:"100%",
