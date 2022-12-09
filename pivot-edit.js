@@ -379,6 +379,7 @@ const run = async (
       headerWordWrap: true,
     })),
   ];
+  const allValuesArray = Object.values(allValues);
   if (groupBy && !group_calcs && column_calculation) {
     const calcRow = {
       ids: {},
@@ -414,8 +415,9 @@ const run = async (
       }
       calcRow[cv] = result;
     });
-    allValues[column_calculation] = calcRow;
-    row_values.add(column_calculation);
+    if (calc_pos === "Top") allValuesArray.unshift(calcRow);
+    else allValuesArray.push(calcRow);
+    //row_values.add(column_calculation);
   }
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
   const new_row_obj = new_row_formula
@@ -427,7 +429,7 @@ const run = async (
     const columns=${JSON.stringify(tabCols, null, 2)};   
    
     window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}", {
-      data: ${JSON.stringify(Object.values(allValues), null, 2)},
+      data: ${JSON.stringify(allValuesArray, null, 2)},
       layout:"Columns", 
       columns,
       height:"100%",
