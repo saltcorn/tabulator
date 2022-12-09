@@ -366,7 +366,11 @@ const run = async (
     })),
   ];
   if (groupBy && !group_calcs && column_calculation) {
-    const calcRow = { ids: {}, rowValue: "Total" };
+    const calcRow = {
+      ids: {},
+      rowValue: column_calculation,
+      groupVal: "Total",
+    };
     [...col_values].forEach((cv) => {
       let result;
       //["avg", "max", "min", "sum", "count"]
@@ -396,8 +400,8 @@ const run = async (
       }
       calcRow[cv] = result;
     });
-    allValues.Total = calcRow;
-    row_values.add("Total");
+    allValues[column_calculation] = calcRow;
+    row_values.add(column_calculation);
   }
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
   const new_row_obj = new_row_formula
