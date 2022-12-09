@@ -349,6 +349,7 @@ const run = async (
       title: `${cv}`,
       headerVertical: vertical_headers,
       bottomCalc: column_calculation,
+      headerWordWrap: true,
     })),
   ];
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
