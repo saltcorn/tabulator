@@ -366,6 +366,7 @@ const run = async (
       field: "rowValue",
       title: rowField.label,
       editor: false,
+      frozen: true,
     },
     ...[...col_values].map((cv) => ({
       ...valueCell,
