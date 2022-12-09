@@ -166,6 +166,15 @@ const configuration_workflow = (req) =>
                   options: ["avg", "max", "min", "sum", "count"],
                 },
               },
+              {
+                name: "group_calcs",
+                label: "Group calculations",
+                type: "Bool",
+                sublabel: "Calculations by group",
+                showIf: {
+                  column_calculation: ["avg", "max", "min", "sum", "count"],
+                },
+              },
             ],
           });
         },
@@ -189,6 +198,7 @@ const run = async (
     row_where,
     groupBy,
     col_no_weekends,
+    group_calcs,
   },
   state,
   extraArgs
@@ -348,10 +358,47 @@ const run = async (
       field: `${cv}`,
       title: `${cv}`,
       headerVertical: vertical_headers,
-      bottomCalc: column_calculation,
+      bottomCalc:
+        (group_calcs || !groupBy) && column_calculation
+          ? column_calculation
+          : undefined,
       headerWordWrap: true,
     })),
   ];
+  if (groupBy && !group_calcs && column_calculation) {
+    const calcRow = { ids: {}, rowValue: "Total" };
+    [...col_values].forEach((cv) => {
+      let result;
+      //["avg", "max", "min", "sum", "count"]
+      const values = [...row_values].map((rv) => allValues[rv][cv]);
+      switch (column_calculation) {
+        case "sum":
+          result = values.reduce((partialSum, a) => partialSum + (a || 0), 0);
+          break;
+        case "max":
+          result = Math.max(...values);
+          break;
+        case "min":
+          result = Math.min(...values);
+          break;
+        case "avg":
+          result =
+            values.reduce((partialSum, a) => partialSum + (a || 0), 0) /
+            values.filter((v) => typeof v !== "undefined" && v !== null).length;
+          break;
+        case "count":
+          result = values.filter(
+            (v) => typeof v !== "undefined" && v !== null
+          ).length;
+          break;
+        default:
+          break;
+      }
+      calcRow[cv] = result;
+    });
+    allValues.Total = calcRow;
+    row_values.add("Total");
+  }
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
   const new_row_obj = new_row_formula
     ? eval_expression(new_row_formula, { ...state, user: extraArgs.req.user })
