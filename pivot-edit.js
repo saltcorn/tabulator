@@ -175,6 +175,19 @@ const configuration_workflow = (req) =>
                   column_calculation: ["avg", "max", "min", "sum", "count"],
                 },
               },
+              {
+                name: "calc_pos",
+                label: "Calculation position",
+                type: "String",
+                fieldview: "radio_group",
+                attributes: {
+                  options: ["Top", "Bottom"],
+                  inline: true,
+                },
+                showIf: {
+                  column_calculation: ["avg", "max", "min", "sum", "count"],
+                },
+              },
             ],
           });
         },
@@ -199,6 +212,7 @@ const run = async (
     groupBy,
     col_no_weekends,
     group_calcs,
+    calc_pos,
   },
   state,
   extraArgs
@@ -358,7 +372,7 @@ const run = async (
       field: `${cv}`,
       title: `${cv}`,
       headerVertical: vertical_headers,
-      bottomCalc:
+      [(calc_pos || "Bottom").toLowerCase() + "Calc"]:
         (group_calcs || !groupBy) && column_calculation
           ? column_calculation
           : undefined,
