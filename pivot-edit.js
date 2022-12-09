@@ -86,6 +86,7 @@ const configuration_workflow = (req) =>
           }
           return new Form({
             fields: [
+              { input_type: "section_header", label: "Rows" },
               {
                 name: "row_field",
                 label: "Row field",
@@ -109,6 +110,7 @@ const configuration_workflow = (req) =>
                   calcOptions: ["row_field", group_by_options],
                 },
               },
+              { input_type: "section_header", label: "Columns" },
               {
                 name: "col_field",
                 label: "Column field",
@@ -137,6 +139,18 @@ const configuration_workflow = (req) =>
                 },
               },
               {
+                name: "col_width",
+                label: "Column width (px)",
+                type: "Integer",
+              },
+              {
+                name: "vertical_headers",
+                label: "Vertical headers",
+                type: "Bool",
+              },
+              { input_type: "section_header", label: "Values" },
+
+              {
                 name: "value_field",
                 label: "Value field",
                 type: "String",
@@ -145,11 +159,7 @@ const configuration_workflow = (req) =>
                   options: fields.map((f) => f.name),
                 },
               },
-              {
-                name: "vertical_headers",
-                label: "Vertical headers",
-                type: "Bool",
-              },
+
               {
                 name: "new_row_formula",
                 label: "New row formula",
@@ -158,6 +168,8 @@ const configuration_workflow = (req) =>
                 type: "String",
                 class: "validate-expression",
               },
+              { input_type: "section_header", label: "Calculated row" },
+
               {
                 name: "column_calculation",
                 label: "Column Calculation",
@@ -213,6 +225,7 @@ const run = async (
     col_no_weekends,
     group_calcs,
     calc_pos,
+    col_width,
   },
   state,
   extraArgs
@@ -378,6 +391,7 @@ const run = async (
           ? column_calculation
           : undefined,
       headerWordWrap: true,
+      width: col_width || undefined,
     })),
   ];
   const allValuesArray = Object.values(allValues);
