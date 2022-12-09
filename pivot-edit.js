@@ -127,7 +127,15 @@ const configuration_workflow = (req) =>
                   col_field: date_fields.map((f) => f.name),
                 },
               },
-
+              {
+                name: "col_no_weekends",
+                label: "No weekend columns",
+                type: "Bool",
+                sublabel: "Exclude weekend days from columns",
+                showIf: {
+                  col_field: date_fields.map((f) => f.name),
+                },
+              },
               {
                 name: "value_field",
                 label: "Value field",
@@ -165,6 +173,8 @@ const configuration_workflow = (req) =>
     ],
   });
 
+const isWeekend = (date) => ((d) => d === 0 || d === 6)(date.getDay());
+
 const run = async (
   table_id,
   viewname,
@@ -178,6 +188,7 @@ const run = async (
     column_calculation,
     row_where,
     groupBy,
+    col_no_weekends,
   },
   state,
   extraArgs
@@ -233,12 +244,14 @@ const run = async (
       const end = new Date(state["_todate_" + col_field]);
       let day = start;
       while (day <= end) {
-        const dayStr = day.toISOString().split("T")[0];
-        const xdayStr = xformCol(dayStr);
-        col_values.add(
-          col_field_format ? moment(day).format(col_field_format) : dayStr
-        );
-        rawColValues[xdayStr] = dayStr;
+        if (!col_no_weekends || !isWeekend(day)) {
+          const dayStr = day.toISOString().split("T")[0];
+          const xdayStr = xformCol(dayStr);
+          col_values.add(
+            col_field_format ? moment(day).format(col_field_format) : dayStr
+          );
+          rawColValues[xdayStr] = dayStr;
+        }
         day = new Date(day);
         day.setDate(day.getDate() + 1);
       }
