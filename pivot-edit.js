@@ -141,6 +141,7 @@ const configuration_workflow = (req) =>
               {
                 name: "col_width",
                 label: "Column width (px)",
+                sublabel: "Optional",
                 type: "Integer",
               },
               {
