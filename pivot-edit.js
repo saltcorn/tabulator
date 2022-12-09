@@ -375,6 +375,14 @@ const run = async (
     },
     {}
   );
+  const colValuesArray = [...col_values];
+  if (colField.type?.name === "Date") {
+    colValuesArray.sort((a, b) => {
+      const da = new Date(rawColValues[a]);
+      const db = new Date(rawColValues[b]);
+      return da > db ? 1 : db > da ? -1 : 0;
+    });
+  }
   const tabCols = [
     {
       field: "rowValue",
@@ -382,7 +390,7 @@ const run = async (
       editor: false,
       frozen: true,
     },
-    ...[...col_values].map((cv) => ({
+    ...colValuesArray.map((cv) => ({
       ...valueCell,
       field: `${cv}`,
       title: `${cv}`,
@@ -396,13 +404,14 @@ const run = async (
     })),
   ];
   const allValuesArray = Object.values(allValues);
+
   if (groupBy && !group_calcs && column_calculation) {
     const calcRow = {
       ids: {},
       rowValue: column_calculation,
       groupVal: "Total",
     };
-    [...col_values].forEach((cv) => {
+    colValuesArray.forEach((cv) => {
       let result;
       //["avg", "max", "min", "sum", "count"]
       const values = [...row_values].map((rv) => allValues[rv][cv]);
