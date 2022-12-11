@@ -1505,10 +1505,37 @@ const get_db_rows = async (
   }
   const where = await stateFieldsToWhere({ fields, state });
   const q = await stateFieldsToQuery({ state, fields, prefix: "a." });
+  let postFetchSort;
+  let postFetchFilter;
+  console.log(filter);
   if (filter) {
     filter.forEach(({ field, type, value }) => {
       if (fieldNames.has(field))
-        where[field] = type === "like" ? { ilike: value } : value;
+        where[field] =
+          type === "like"
+            ? { ilike: value }
+            : value.start || value.end
+            ? { gt: value.start, lt: value.end }
+            : value;
+      else {
+        if (!postFetchFilter) postFetchFilter = [];
+        const valS = `${value}`;
+        if (type === "like")
+          postFetchFilter.push((r) => `${r[field] || ""}`.includes(valS));
+        else if (value.start || value.end)
+          postFetchFilter.push((r) => {
+            let v = r[field];
+            if (isNaN(v)) return false;
+            return value.start && value.end
+              ? v >= value.start && v <= value.end
+              : value.start
+              ? v >= value.start
+              : v <= value.end;
+          });
+        else if (value.start === "" && value.end == "") {
+          //do nothing
+        } else postFetchFilter.push((r) => `${r[field] || ""}` == value);
+      }
     });
   }
   if (sort && sort.length === 1) {
@@ -1516,15 +1543,16 @@ const get_db_rows = async (
       if (fieldNames.has(field)) {
         q.orderBy = field;
         q.orderDesc = dir === "desc";
-      }
+      } else postFetchSort = { field, desc: dir === "desc" };
     });
   }
+  console.log(postFetchFilter);
   //const rows_per_page = default_state && default_state._rows_per_page;
   //if (!q.limit && rows_per_page) q.limit = rows_per_page;
   if (!q.orderBy) q.orderBy = table.pk_name;
-  if (limit) q.limit = limit;
+  if (limit && !postFetchSort && !postFetchFilter) q.limit = limit;
   else if (isPreview) q.limit = 20;
-  if (offset) q.offset = offset;
+  if (offset && !postFetchSort && !postFetchFilter) q.offset = offset;
   //if (!q.orderDesc) q.orderDesc = default_state && default_state._descending;
   const current_page = parseInt(state._page) || 1;
   const { joinFields, aggregations } = picked_fields_to_query(columns, fields);
@@ -1567,6 +1595,24 @@ const get_db_rows = async (
   calculators.forEach((f) => {
     rows.forEach(f);
   });
+
+  if (postFetchFilter) {
+    let f = (x) => true;
+    postFetchFilter.forEach((filter) => {
+      const oldf = f;
+      const newf = (x) => filter(x) && oldf(x);
+      f = newf;
+    });
+    rows = rows.filter(f);
+  }
+
+  if ((postFetchFilter || postFetchSort) && offset) {
+    rows = rows.slice(offset);
+  }
+  if ((postFetchFilter || postFetchSort) && limit) {
+    rows = rows.slice(0, limit);
+  }
+
   if (tree_field) {
     const my_ids = new Set(rows.map((r) => r.id));
     for (const row of rows) {
