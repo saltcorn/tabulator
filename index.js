@@ -1553,6 +1553,20 @@ const get_db_rows = async (
     aggregations,
     ...q,
   });
+  const { calculators } = await get_tabulator_columns(
+    viewname,
+    table,
+    fields,
+    columns,
+    false,
+    req,
+    header_filters,
+    vert_col_headers,
+    dropdown_frozen
+  );
+  calculators.forEach((f) => {
+    rows.forEach(f);
+  });
   if (tree_field) {
     const my_ids = new Set(rows.map((r) => r.id));
     for (const row of rows) {
@@ -1590,20 +1604,7 @@ const get_db_rows = async (
       a[groupBy1] > b[groupBy1] ? dir : b[groupBy1] > a[groupBy1] ? -1 * dir : 0
     );
   }
-  const { calculators } = await get_tabulator_columns(
-    viewname,
-    table,
-    fields,
-    columns,
-    false,
-    req,
-    header_filters,
-    vert_col_headers,
-    dropdown_frozen
-  );
-  calculators.forEach((f) => {
-    rows.forEach(f);
-  });
+
   if (alsoCount) {
     const count = await table.countRows(where);
     return { rows, count };
