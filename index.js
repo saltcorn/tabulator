@@ -1507,7 +1507,6 @@ const get_db_rows = async (
   const q = await stateFieldsToQuery({ state, fields, prefix: "a." });
   let postFetchSort;
   let postFetchFilter;
-  console.log(filter);
   if (filter) {
     filter.forEach(({ field, type, value }) => {
       if (fieldNames.has(field))
@@ -1538,6 +1537,7 @@ const get_db_rows = async (
       }
     });
   }
+
   if (sort && sort.length === 1) {
     sort.forEach(({ field, dir }) => {
       if (fieldNames.has(field)) {
@@ -1546,7 +1546,6 @@ const get_db_rows = async (
       } else postFetchSort = { field, desc: dir === "desc" };
     });
   }
-  console.log(postFetchFilter);
   //const rows_per_page = default_state && default_state._rows_per_page;
   //if (!q.limit && rows_per_page) q.limit = rows_per_page;
   if (!q.orderBy) q.orderBy = table.pk_name;
@@ -1604,6 +1603,21 @@ const get_db_rows = async (
       f = newf;
     });
     rows = rows.filter(f);
+  }
+  if (postFetchSort) {
+    const dirUp = postFetchSort.desc ? 1 : -1;
+    const dirDown = postFetchSort.desc ? -1 : 1;
+    const cmp = (a, b) => {
+      const va = a[postFetchSort.field];
+      const vb = b[postFetchSort.field];
+      if (typeof va === "undefined" && typeof vb !== "undefined")
+        return dirDown;
+      if (typeof va !== "undefined" && typeof vb === "undefined") return dirUp;
+      //console.log({ va, vb, res: va > vb ? dirUp : vb > va ? dirDown : 0 });
+      return va > vb ? dirUp : vb > va ? dirDown : 0;
+    };
+    //console.log("sorting", rows[0]);
+    rows.sort(cmp);
   }
 
   if ((postFetchFilter || postFetchSort) && offset) {
