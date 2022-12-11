@@ -1605,8 +1605,8 @@ const get_db_rows = async (
     rows = rows.filter(f);
   }
   if (postFetchSort) {
-    const dirUp = postFetchSort.desc ? 1 : -1;
-    const dirDown = postFetchSort.desc ? -1 : 1;
+    const dirDown = postFetchSort.desc ? 1 : -1;
+    const dirUp = postFetchSort.desc ? -1 : 1;
     const cmp = (a, b) => {
       const va = a[postFetchSort.field];
       const vb = b[postFetchSort.field];
