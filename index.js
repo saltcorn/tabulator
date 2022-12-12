@@ -11,7 +11,7 @@ const View = require("@saltcorn/data/models/view");
 const Workflow = require("@saltcorn/data/models/workflow");
 const { eval_expression } = require("@saltcorn/data/models/expression");
 const { check_view_columns } = require("@saltcorn/data/plugin-testing");
-
+const crypto = require("crypto");
 const {
   field_picker_fields,
   picked_fields_to_query,
@@ -53,6 +53,7 @@ const {
   make_link,
   splitUniques,
 } = require("@saltcorn/data/base-plugin/viewtemplates/viewable_fields");
+const { mockReqRes } = require("@saltcorn/data/tests/mocks");
 const { typeToGridType } = require("./common");
 const configuration_workflow = () =>
   new Workflow({
@@ -439,6 +440,12 @@ const view_configuration_workflow = (req) =>
                 tab: "Content",
               },
               {
+                name: "ajax_load",
+                label: "Progressive loading",
+                type: "Bool",
+                tab: "Content",
+              },
+              {
                 name: "pagination_enabled",
                 label: "Pagination",
                 type: "Bool",
@@ -570,6 +577,13 @@ const set_json_col = (tcol, field, key, header_filters) => {
   }
 };
 
+const hashCol = (col) =>
+  crypto
+    .createHash("sha1")
+    .update(JSON.stringify(col))
+    .digest("hex")
+    .substring(0, 8);
+
 const get_tabulator_columns = async (
   viewname,
   table,
@@ -630,7 +644,7 @@ const get_tabulator_columns = async (
       tcol.editor = false;
     } else if (column.type === "Aggregation") {
       let table, fld, through;
-      const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+      const rndid = "col" + hashCol(column);
       if (column.agg_relation.includes("->")) {
         let restpath;
         [through, restpath] = column.agg_relation.split("->");
@@ -677,7 +691,7 @@ const get_tabulator_columns = async (
       });
       tcol.field = rndid; //db.sqlsanitize(targetNm);
     } else if (column.type === "FormulaValue") {
-      const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+      const rndid = "col" + hashCol(column);
       calculators.push((row) => {
         row[rndid] = eval_expression(column.formula, row);
       });
@@ -685,7 +699,7 @@ const get_tabulator_columns = async (
       tcol.headerFilter = !!header_filters && "input";
     } else if (column.type === "ViewLink") {
       tcol.formatter = "html";
-      const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+      const rndid = "col" + hashCol(column);
       const { key } = view_linker(column, fields);
       calculators.push((row) => {
         row[rndid] = key(row);
@@ -704,7 +718,7 @@ const get_tabulator_columns = async (
       }
     } else if (column.type === "Link") {
       tcol.formatter = "html";
-      const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+      const rndid = "col" + hashCol(column);
 
       const { key } = make_link(column, fields);
       calculators.push((row) => {
@@ -740,7 +754,7 @@ const get_tabulator_columns = async (
     } else if (column.type === "Action") {
       tcol.formatter = "html";
       //console.log(column);
-      const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+      const rndid = "col" + hashCol(column);
       calculators.push((row) => {
         const url = action_url(
           viewname,
@@ -800,7 +814,7 @@ const get_tabulator_columns = async (
   let arndid;
 
   if (dropdown_actions.length > 0) {
-    arndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+    arndid = "col_action_dd";
     calculators.push((row) => {
       let html = "";
       row[arndid] = button(
@@ -980,10 +994,8 @@ const hideShowColsBtn = (
       )
     )
   );
-const run = async (
-  table_id,
-  viewname,
-  {
+const run = async (table_id, viewname, cfg, state, extraArgs) => {
+  const {
     columns,
     fit,
     hideColsBtn,
@@ -1016,55 +1028,30 @@ const run = async (
     group_order_desc,
     header_wrap,
     override_stylesheet,
-  },
-  state,
-  extraArgs
-) => {
+    ajax_load,
+  } = cfg;
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
-  for (const field of fields) {
-    await field.fill_fkey_options();
-  }
+
   readState(state, fields);
-  const where = await stateFieldsToWhere({ fields, state });
-  const q = await stateFieldsToQuery({ state, fields, prefix: "a." });
-  //const rows_per_page = default_state && default_state._rows_per_page;
-  //if (!q.limit && rows_per_page) q.limit = rows_per_page;
-  if (!q.orderBy) q.orderBy = table.pk_name;
-  if (extraArgs.isPreview) q.limit = 20;
-
-  //if (!q.orderDesc) q.orderDesc = default_state && default_state._descending;
-  const current_page = parseInt(state._page) || 1;
-  const { joinFields, aggregations } = picked_fields_to_query(columns, fields);
-  await set_join_fieldviews({ columns, fields });
   let groupBy1 = groupBy;
-  if (groupBy1) {
-    if (groupBy === "Selected by user" && default_group_by)
-      groupBy1 = default_group_by;
-    const groupField = fields.find((f) => f.name === groupBy1);
-    if (groupField && groupField.is_fkey) {
-      let orginalName = groupBy1;
-      groupBy1 = `${groupBy1}_${groupField?.attributes?.summary_field || "id"}`;
-      if (!joinFields[groupBy1])
-        joinFields[groupBy1] = {
-          ref: orginalName,
-          target: groupField?.attributes?.summary_field || "id",
-        };
-    }
-  }
 
-  // console.log(aggregations);
-
-  let rows = await table.getJoinedRows({
-    where,
-    joinFields,
-    aggregations,
-    ...q,
-  });
+  let rows = [];
+  if (!ajax_load)
+    rows = (
+      await get_db_rows(
+        table_id,
+        viewname,
+        cfg,
+        state,
+        extraArgs.req,
+        extraArgs.isPreview
+      )
+    ).rows;
   //console.log(rows[0]);
   //console.log(columns[0]);
   //console.log({ rows_len: rows.length, q, where, rows_per_page });
-  const { tabcolumns, calculators, dropdown_id, dropdown_actions } =
+  const { tabcolumns, dropdown_id, dropdown_actions } =
     await get_tabulator_columns(
       viewname,
       table,
@@ -1076,9 +1063,7 @@ const run = async (
       vert_col_headers,
       dropdown_frozen
     );
-  calculators.forEach((f) => {
-    rows.forEach(f);
-  });
+
   if (selectable)
     tabcolumns.unshift({
       formatter: "rowSelection",
@@ -1098,43 +1083,7 @@ const run = async (
           )
       )
     : tabcolumns;
-  if (tree_field) {
-    const my_ids = new Set(rows.map((r) => r.id));
-    for (const row of rows) {
-      if (row[tree_field] && my_ids.has(row[tree_field]))
-        row._parent = row[tree_field];
-      else row._parent = null;
-    }
-    //https://stackoverflow.com/a/55241491
-    const nest = (items, id = null) =>
-      items
-        .filter((item) => item._parent === id)
-        .map((item) => ({ ...item, _children: nest(items, item.id) }));
-    //const old_rows = [...rows];
-    rows = nest(rows);
-  }
-  if (groupBy1 && def_order_field) {
-    const dir = def_order_descending ? -1 : 1;
-    const dirGroup = group_order_desc ? -1 : 1;
 
-    rows.sort((a, b) =>
-      a[groupBy1] > b[groupBy1]
-        ? dirGroup
-        : b[groupBy1] > a[groupBy1]
-        ? -1 * dirGroup
-        : a[def_order_field] > b[def_order_field]
-        ? dir
-        : b[def_order_field] > a[def_order_field]
-        ? -1 * dir
-        : 0
-    );
-  } else if (groupBy1) {
-    const dir = group_order_desc ? -1 : 1;
-
-    rows.sort((a, b) =>
-      a[groupBy1] > b[groupBy1] ? dir : b[groupBy1] > a[groupBy1] ? -1 * dir : 0
-    );
-  }
   const pgSz = pagination_size || 20;
   const paginationSizeChoices = [
     Math.round(pgSz / 2),
@@ -1182,7 +1131,7 @@ const run = async (
       const dropdown_actions = ${JSON.stringify(dropdown_actions)};
       window.actionPopup = (e, row) => {
         return row.getRow().getData()._dropdown;
-      }     
+      }
       columns.forEach(col=>{
         Object.entries(col).forEach(([k,v])=>{
           if(typeof v === "string" && v.startsWith("__")) {
@@ -1191,11 +1140,37 @@ const run = async (
         })
       })
     window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}", {
-        data: ${JSON.stringify(rows)},
+        ${
+          ajax_load
+            ? `
+        ajaxURL: "/view/${viewname}/get_rows",
+        ${
+          pagination_enabled
+            ? 'paginationMode:"remote",'
+            : extraArgs.isPreview
+            ? ""
+            : `progressiveLoad:"scroll",`
+        }
+        ajaxParams: {state:${JSON.stringify(state)}},
+        filterMode:"remote",
+        sortMode:"remote",
+        ajaxContentType:"json",
+        ajaxConfig:{
+          method: "POST",
+          headers: {
+            "CSRF-Token": _sc_globalCsrf,
+          },
+        },
+        `
+            : `data: ${JSON.stringify(rows)},`
+        }
+        
         layout:"fit${fit || "Columns"}", 
         columns,
         pagination:${!!pagination_enabled},
-        paginationSize:${pagination_size || 20},
+        paginationSize:${
+          !pagination_enabled && ajax_load ? 100 : pagination_size || 20
+        },
         paginationSizeSelector: ${JSON.stringify(paginationSizeChoices)},
         clipboard:true,
         persistence:${!!persistent}, 
@@ -1240,9 +1215,10 @@ const run = async (
         ],`
             : ""
         }
-        ajaxResponse:function(url, params, response){                    
-  
+        ajaxResponse:function(url, params, response){                  
+          if(typeof response.success!=="undefined")
           return response.success; //return the tableData property of a response json object
+          else return response
         },
     });
     function save_row_from_cell( row, cell, noid) {
@@ -1497,6 +1473,234 @@ const delete_preset = async (
   };
   await View.update(newConfig, view.id);
 };
+const get_db_rows = async (
+  table_id,
+  viewname,
+  {
+    columns,
+    groupBy,
+    def_order_field,
+    def_order_descending,
+    tree_field,
+    default_group_by,
+    group_order_desc,
+    header_filters,
+    vert_col_headers,
+    dropdown_frozen,
+  },
+  state,
+  req,
+  isPreview,
+  limit,
+  offset,
+  alsoCount,
+  filter,
+  sort
+) => {
+  const table = await Table.findOne({ id: table_id });
+  const fields = await table.getFields();
+  const fieldNames = new Set(fields.map((f) => f.name));
+  for (const field of fields) {
+    await field.fill_fkey_options();
+  }
+  const where = await stateFieldsToWhere({ fields, state });
+  const q = await stateFieldsToQuery({ state, fields, prefix: "a." });
+  let postFetchSort;
+  let postFetchFilter;
+  if (filter) {
+    filter.forEach(({ field, type, value }) => {
+      if (fieldNames.has(field))
+        where[field] =
+          type === "like"
+            ? { ilike: value }
+            : value.start || value.end
+            ? { gt: value.start, lt: value.end }
+            : value;
+      else {
+        if (!postFetchFilter) postFetchFilter = [];
+        const valS = `${value}`;
+        if (type === "like")
+          postFetchFilter.push((r) => `${r[field] || ""}`.includes(valS));
+        else if (value.start || value.end)
+          postFetchFilter.push((r) => {
+            let v = r[field];
+            if (isNaN(v)) return false;
+            return value.start && value.end
+              ? v >= value.start && v <= value.end
+              : value.start
+              ? v >= value.start
+              : v <= value.end;
+          });
+        else if (value.start === "" && value.end == "") {
+          //do nothing
+        } else postFetchFilter.push((r) => `${r[field] || ""}` == value);
+      }
+    });
+  }
+
+  if (sort && sort.length === 1) {
+    sort.forEach(({ field, dir }) => {
+      if (fieldNames.has(field)) {
+        q.orderBy = field;
+        q.orderDesc = dir === "desc";
+      } else postFetchSort = { field, desc: dir === "desc" };
+    });
+  }
+  //const rows_per_page = default_state && default_state._rows_per_page;
+  //if (!q.limit && rows_per_page) q.limit = rows_per_page;
+  if (!q.orderBy) q.orderBy = table.pk_name;
+  if (limit && !postFetchSort && !postFetchFilter) q.limit = limit;
+  else if (isPreview) q.limit = 20;
+  if (offset && !postFetchSort && !postFetchFilter) q.offset = offset;
+  //if (!q.orderDesc) q.orderDesc = default_state && default_state._descending;
+  const current_page = parseInt(state._page) || 1;
+  const { joinFields, aggregations } = picked_fields_to_query(columns, fields);
+  await set_join_fieldviews({ columns, fields });
+  let groupBy1 = groupBy;
+  if (groupBy1) {
+    if (groupBy === "Selected by user" && default_group_by)
+      groupBy1 = default_group_by;
+    const groupField = fields.find((f) => f.name === groupBy1);
+    if (groupField && groupField.is_fkey) {
+      let orginalName = groupBy1;
+      groupBy1 = `${groupBy1}_${groupField?.attributes?.summary_field || "id"}`;
+      if (!joinFields[groupBy1])
+        joinFields[groupBy1] = {
+          ref: orginalName,
+          target: groupField?.attributes?.summary_field || "id",
+        };
+    }
+  }
+
+  // console.log(aggregations);
+
+  let rows = await table.getJoinedRows({
+    where,
+    joinFields,
+    aggregations,
+    ...q,
+  });
+  const { calculators } = await get_tabulator_columns(
+    viewname,
+    table,
+    fields,
+    columns,
+    false,
+    req,
+    header_filters,
+    vert_col_headers,
+    dropdown_frozen
+  );
+  calculators.forEach((f) => {
+    rows.forEach(f);
+  });
+
+  if (postFetchFilter) {
+    let f = (x) => true;
+    postFetchFilter.forEach((filter) => {
+      const oldf = f;
+      const newf = (x) => filter(x) && oldf(x);
+      f = newf;
+    });
+    rows = rows.filter(f);
+  }
+  if (postFetchSort) {
+    const dirDown = postFetchSort.desc ? 1 : -1;
+    const dirUp = postFetchSort.desc ? -1 : 1;
+    const cmp = (a, b) => {
+      const va = a[postFetchSort.field];
+      const vb = b[postFetchSort.field];
+      if (typeof va === "undefined" && typeof vb !== "undefined")
+        return dirDown;
+      if (typeof va !== "undefined" && typeof vb === "undefined") return dirUp;
+      //console.log({ va, vb, res: va > vb ? dirUp : vb > va ? dirDown : 0 });
+      return va > vb ? dirUp : vb > va ? dirDown : 0;
+    };
+    //console.log("sorting", rows[0]);
+    rows.sort(cmp);
+  }
+
+  if ((postFetchFilter || postFetchSort) && offset) {
+    rows = rows.slice(offset);
+  }
+  if ((postFetchFilter || postFetchSort) && limit) {
+    rows = rows.slice(0, limit);
+  }
+
+  if (tree_field) {
+    const my_ids = new Set(rows.map((r) => r.id));
+    for (const row of rows) {
+      if (row[tree_field] && my_ids.has(row[tree_field]))
+        row._parent = row[tree_field];
+      else row._parent = null;
+    }
+    //https://stackoverflow.com/a/55241491
+    const nest = (items, id = null) =>
+      items
+        .filter((item) => item._parent === id)
+        .map((item) => ({ ...item, _children: nest(items, item.id) }));
+    //const old_rows = [...rows];
+    rows = nest(rows);
+  }
+  if (groupBy1 && def_order_field) {
+    const dir = def_order_descending ? -1 : 1;
+    const dirGroup = group_order_desc ? -1 : 1;
+
+    rows.sort((a, b) =>
+      a[groupBy1] > b[groupBy1]
+        ? dirGroup
+        : b[groupBy1] > a[groupBy1]
+        ? -1 * dirGroup
+        : a[def_order_field] > b[def_order_field]
+        ? dir
+        : b[def_order_field] > a[def_order_field]
+        ? -1 * dir
+        : 0
+    );
+  } else if (groupBy1) {
+    const dir = group_order_desc ? -1 : 1;
+
+    rows.sort((a, b) =>
+      a[groupBy1] > b[groupBy1] ? dir : b[groupBy1] > a[groupBy1] ? -1 * dir : 0
+    );
+  }
+
+  if (alsoCount) {
+    const count = await table.countRows(where);
+    return { rows, count };
+  } else return { rows };
+};
+const get_rows = async (
+  table_id,
+  viewname,
+  cfg,
+  { state, page, size, filter, sort },
+  { req, res }
+) => {
+  //console.log({ filter, sort, state, page, size });
+
+  let limit = size === "true" ? undefined : size || cfg.pagination_size || 50;
+  const offset = page && limit ? (+page - 1) * (+limit || 20) : 0;
+  const { rows, count } = await get_db_rows(
+    table_id,
+    viewname,
+    cfg,
+    state,
+    req,
+    false,
+    limit,
+    offset,
+    !!page,
+    filter,
+    sort
+  );
+
+  if (page) {
+    if (size)
+      return { json: { data: rows, last_page: Math.ceil(count / +size) } };
+    else return { json: { data: rows } };
+  } else return { json: rows };
+};
 
 const run_action = async (
   table_id,
@@ -1645,10 +1849,26 @@ module.exports = {
                 trigger.action
             );
         }
+        if (view.configuration.ajax_load) {
+          const { rows } = await get_db_rows(
+            view.table_id,
+            view.viewname,
+            view.configuration,
+            {},
+            mockReqRes.req,
+            false,
+            5
+          );
+          if (!Array.isArray(rows))
+            errors.push(
+              `In view ${view.name}, something went wrong when retriving rows.`
+            );
+        }
         return { errors, warnings };
       },
       routes: {
         run_action,
+        get_rows,
         run_selected_rows_action,
         add_preset,
         delete_preset,

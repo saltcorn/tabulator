@@ -1,3 +1,5 @@
+/* eslint-env browser */
+/* globals view_post, $ */
 //custom max min header filter
 var minMaxFilterEditor = function (
   cell,
@@ -92,7 +94,7 @@ var dateFilterEditor = function (
     mode: "range",
     locale: "en", // global variable with locale 'en', 'fr', ...
     onClose: function (selectedDates, dateStr, instance) {
-      evt = window.event;
+      var evt = window.event;
       var isEscape = false;
       if ("key" in evt) {
         isEscape = evt.key === "Escape" || evt.key === "Esc";
