@@ -292,3 +292,10 @@ function tabulator_colcalc_avgnonulls(values, data, calcParams) {
 function add_tabview_row(rndid) {
   window["tabulator_table_" + rndid].addRow({}, true);
 }
+
+function pivotEditCheck(cell) {
+  const row = cell.getRow().getData();
+  const fld = cell.getField();
+  const id = row.ids && row.ids[fld];
+  return !!id;
+}

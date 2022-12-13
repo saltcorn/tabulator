@@ -394,6 +394,7 @@ const run = async (
       ...valueCell,
       field: `${cv}`,
       title: `${cv}`,
+      editable: "__pivotEditCheck",
       headerVertical: vertical_headers,
       [(calc_pos || "Bottom").toLowerCase() + "Calc"]:
         (group_calcs || !groupBy) && column_calculation
@@ -452,7 +453,13 @@ const run = async (
     script(
       domReady(`
     const columns=${JSON.stringify(tabCols, null, 2)};   
-   
+    columns.forEach(col=>{
+      Object.entries(col).forEach(([k,v])=>{
+        if(typeof v === "string" && v.startsWith("__")) {
+          col[k] = window[v.substring(2)];
+        }
+      })
+    })
     window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}", {
       data: ${JSON.stringify(allValuesArray, null, 2)},
       layout:"Columns", 
