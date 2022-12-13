@@ -1037,7 +1037,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
   let groupBy1 = groupBy;
 
   let rows = [];
-  if (!ajax_load)
+  if (!ajax_load || hide_null_columns)
     rows = (
       await get_db_rows(
         table_id,
@@ -1083,6 +1083,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
           )
       )
     : tabcolumns;
+  if (ajax_load && hide_null_columns) rows = [];
 
   const pgSz = pagination_size || 20;
   const paginationSizeChoices = [
