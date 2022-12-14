@@ -11,7 +11,6 @@ const View = require("@saltcorn/data/models/view");
 const Workflow = require("@saltcorn/data/models/workflow");
 const { eval_expression } = require("@saltcorn/data/models/expression");
 const { check_view_columns } = require("@saltcorn/data/plugin-testing");
-const crypto = require("crypto");
 const {
   field_picker_fields,
   picked_fields_to_query,
@@ -54,7 +53,7 @@ const {
   splitUniques,
 } = require("@saltcorn/data/base-plugin/viewtemplates/viewable_fields");
 const { mockReqRes } = require("@saltcorn/data/tests/mocks");
-const { typeToGridType } = require("./common");
+const { typeToGridType, hashCol } = require("./common");
 const configuration_workflow = () =>
   new Workflow({
     steps: [
@@ -576,13 +575,6 @@ const set_json_col = (tcol, field, key, header_filters) => {
     }
   }
 };
-
-const hashCol = (col) =>
-  crypto
-    .createHash("sha1")
-    .update(JSON.stringify(col))
-    .digest("hex")
-    .substring(0, 8);
 
 const get_tabulator_columns = async (
   viewname,

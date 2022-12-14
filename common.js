@@ -1,3 +1,5 @@
+const crypto = require("crypto");
+
 //copy from server/routes/list.js
 const typeToGridType = (t, field, header_filters, column, calculators) => {
   const jsgField = { field: field.name, title: field.label, editor: true };
@@ -126,7 +128,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
   } else if (t.name === "SharedFileLink") {
     //console.log(t, column);
     jsgField.formatter = "html";
-    const rndid = "col" + Math.floor(Math.random() * 16777215).toString(16);
+    const rndid = "col" + hashCol(column);
     const fv = t.fieldviews[column.fieldview];
 
     calculators.push((row) => {
@@ -150,4 +152,11 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
   return jsgField;
 };
 
-module.exports = { typeToGridType };
+const hashCol = (col) =>
+  crypto
+    .createHash("sha1")
+    .update(JSON.stringify(col))
+    .digest("hex")
+    .substring(0, 8);
+
+module.exports = { typeToGridType, hashCol };
