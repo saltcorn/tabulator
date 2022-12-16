@@ -461,7 +461,7 @@ const run = async (
         }
       })
     })
-    window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}", {
+    window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}${rndid}", {
       data: ${JSON.stringify(allValuesArray, null, 2)},
       layout:"Columns", 
       columns,
@@ -499,7 +499,7 @@ const run = async (
     })
   });
     `)
-    ) + div({ id: `tabgrid${viewname}` })
+    ) + div({ id: `tabgrid${viewname}${rndid}` })
   );
 };
 module.exports = {
