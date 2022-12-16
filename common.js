@@ -36,7 +36,6 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
     } else {
       jsgField.editor = "select";
       const values = {};
-      //console.log(column);
       (field.options || []).forEach(
         ({ label, value }) => (values[value] = label)
       );

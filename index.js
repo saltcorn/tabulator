@@ -1024,7 +1024,9 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
   } = cfg;
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
-
+  for (const field of fields) {
+    await field.fill_fkey_options();
+  }
   readState(state, fields);
   let groupBy1 = groupBy;
 
@@ -1032,7 +1034,8 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
   if (!ajax_load || hide_null_columns)
     rows = (
       await get_db_rows(
-        table_id,
+        table,
+        fields,
         viewname,
         cfg,
         state,
@@ -1467,7 +1470,8 @@ const delete_preset = async (
   await View.update(newConfig, view.id);
 };
 const get_db_rows = async (
-  table_id,
+  table,
+  fields,
   viewname,
   {
     columns,
@@ -1490,12 +1494,8 @@ const get_db_rows = async (
   filter,
   sort
 ) => {
-  const table = await Table.findOne({ id: table_id });
-  const fields = await table.getFields();
   const fieldNames = new Set(fields.map((f) => f.name));
-  for (const field of fields) {
-    await field.fill_fkey_options();
-  }
+
   const where = await stateFieldsToWhere({ fields, state });
   const q = await stateFieldsToQuery({ state, fields, prefix: "a." });
   let postFetchSort;
@@ -1671,11 +1671,13 @@ const get_rows = async (
   { req, res }
 ) => {
   //console.log({ filter, sort, state, page, size });
-
+  const table = await Table.findOne({ id: table_id });
+  const fields = await table.getFields();
   let limit = size === "true" ? undefined : size || cfg.pagination_size || 50;
   const offset = page && limit ? (+page - 1) * (+limit || 20) : 0;
   const { rows, count } = await get_db_rows(
-    table_id,
+    table,
+    fields,
     viewname,
     cfg,
     state,
@@ -1843,8 +1845,11 @@ module.exports = {
             );
         }
         if (view.configuration.ajax_load) {
+          const table = await Table.findOne({ id: view.table_id });
+          const fields = await table.getFields();
           const { rows } = await get_db_rows(
-            view.table_id,
+            table,
+            fields,
             view.viewname,
             view.configuration,
             {},
