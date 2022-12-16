@@ -409,6 +409,7 @@ const run = async (
   if (groupBy && !group_calcs && column_calculation) {
     const calcRow = {
       ids: {},
+      disableEdit: true,
       rowValue: column_calculation,
       groupVal: "Total",
     };

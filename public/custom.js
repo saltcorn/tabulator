@@ -295,7 +295,5 @@ function add_tabview_row(rndid) {
 
 function pivotEditCheck(cell) {
   const row = cell.getRow().getData();
-  const fld = cell.getField();
-  const id = row.ids && row.ids[fld];
-  return !!id;
+  return !row.disableEdit;
 }
