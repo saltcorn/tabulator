@@ -1135,7 +1135,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
           }
         })
       })
-    window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}", {
+    window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}${rndid}", {
         ${
           ajax_load
             ? `
@@ -1425,7 +1425,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
 
     div({ id: "jsGridNotify", class: "my-1" }),
 
-    div({ id: `tabgrid${viewname}`, style: { height: "100%" } })
+    div({ id: `tabgrid${viewname}${rndid}`, style: { height: "100%" } })
   );
 };
 
