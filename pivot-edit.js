@@ -465,7 +465,6 @@ const run = async (
       data: ${JSON.stringify(allValuesArray, null, 2)},
       layout:"Columns", 
       columns,
-      height:"100%",
       clipboard:true,
       ${groupBy ? `groupBy: "groupVal"` : ""}
     });
@@ -499,7 +498,7 @@ const run = async (
     })
   });
     `)
-    ) + div({ id: `tabgrid${viewname}${rndid}` })
+    ) + div({ id: `tabgrid${viewname}${rndid}`, style: { height: "100%" } })
   );
 };
 module.exports = {
