@@ -492,9 +492,15 @@ const run = async (
       },
       error: tabulator_error_handler,
     }).done(function (resp) {
-      if(resp.success &&typeof resp.success ==="number" && !row.id && cell) {
+      if(resp.success &&typeof resp.success ==="number" && !id && cell) {
         row.ids[fld] = resp.success;
         window.tabulator_table_${rndid}.updateRow(cell.getRow(), {ids: row.ids});
+      
+      }
+      ${
+        groupBy && !group_calcs && column_calculation
+          ? "if(resp.success) location.reload();"
+          : ""
       }
     })
   });
