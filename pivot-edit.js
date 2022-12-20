@@ -472,6 +472,7 @@ const run = async (
   window.tabulator_table_${rndid}.on("cellEdited", function(cell){
     const rawColValues = ${JSON.stringify(rawColValues)};
     const row=cell.getRow().getData();
+    if(row.disableEdit) return;
     const fld = cell.getField()
     const id = row.ids[fld]
 
@@ -501,7 +502,10 @@ const run = async (
       }
       ${
         groupBy && !group_calcs && column_calculation
-          ? "if(resp.success) location.reload();"
+          ? `pivotEditRecalc(cell, ${JSON.stringify({
+              column_calculation,
+              calc_pos,
+            })})`
           : ""
       }
     })

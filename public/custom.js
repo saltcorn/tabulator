@@ -297,3 +297,40 @@ function pivotEditCheck(cell) {
   const row = cell.getRow().getData();
   return !row.disableEdit;
 }
+
+function pivotEditRecalc(cell, { column_calculation, calc_pos } = {}) {
+  let column = cell.getColumn();
+  let cells = column.getCells();
+  const values = cells.map((c) => c.getValue());
+  if (calc_pos === "Top") values.shift();
+  else values.pop();
+  let result;
+  switch (column_calculation) {
+    case "sum":
+      result = values.reduce((partialSum, a) => partialSum + (a || 0), 0);
+      break;
+    case "max":
+      result = Math.max(...values);
+      break;
+    case "min":
+      result = Math.min(...values);
+      break;
+    case "avg":
+      result =
+        values.reduce((partialSum, a) => partialSum + (a || 0), 0) /
+        values.filter((v) => typeof v !== "undefined" && v !== null).length;
+      break;
+    case "count":
+      result = values.filter(
+        (v) => typeof v !== "undefined" && v !== null
+      ).length;
+      break;
+    default:
+      break;
+  }
+  if (calc_pos === "Top") {
+    cells[0].setValue(result);
+  } else {
+    cells[cells.length - 1].setValue(result);
+  }
+}
