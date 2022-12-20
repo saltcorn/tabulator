@@ -475,11 +475,12 @@ const run = async (
     if(row.disableEdit) return;
     const fld = cell.getField()
     const id = row.ids[fld]
-
-    if(typeof row[fld]==="undefined") return;
-    const saveRow = {...${JSON.stringify(
-      new_row_obj
-    )}, ${value_field}: row[fld]}
+    let value = row[fld]
+    if(value==="" && ${JSON.stringify(valueCell.editor === "number")}) {
+      value = 0
+      cell.setValue(0)
+    }
+    const saveRow = {...${JSON.stringify(new_row_obj)}, ${value_field}: value}
     if(!id) {
       saveRow.${row_field} = row.rawRowValue;
       saveRow.${col_field} = rawColValues[fld];
