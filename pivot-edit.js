@@ -495,8 +495,8 @@ const run = async (
       },
       error: tabulator_error_handler,
     }).done(function (resp) {
-      if(resp.success &&typeof resp.success ==="number" && !id && cell) {
-        row.ids[fld] = resp.success;
+      if(resp.id && !id && cell) {
+        row.ids[fld] = resp.id;
         window.tabulator_table_${rndid}.updateRow(cell.getRow(), {ids: row.ids});
       
       }
@@ -541,8 +541,10 @@ const edit_value = async (
 
   if (id) {
     await table.updateRow(rowValues, id, req.user);
+    return;
   } else {
-    await table.insertRow(rowValues, req.user);
+    const id = await table.insertRow(rowValues, req.user);
+    return { json: { id } };
   }
 };
 
