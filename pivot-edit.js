@@ -482,10 +482,12 @@ const run = async (
     if(!id) {
       saveRow.${row_field} = row.rawRowValue;
       saveRow.${col_field} = rawColValues[fld];
+    } else {
+      saveRow.id = id
     }
     $.ajax({
       type: "POST",
-      url: "/api/${table.name}/" +( id ||""),
+      url: "/view/${viewname}/edit_value",
       data: saveRow,
       headers: {
         "CSRF-Token": _sc_globalCsrf,
@@ -508,10 +510,45 @@ const run = async (
     ) + div({ id: `tabgrid${viewname}${rndid}`, style: { height: "100%" } })
   );
 };
+
+const edit_value = async (
+  table_id,
+  viewname,
+  {
+    row_field,
+    col_field,
+    value_field,
+    vertical_headers,
+    col_field_format,
+    new_row_formula,
+    column_calculation,
+    row_where,
+    groupBy,
+    col_no_weekends,
+    group_calcs,
+    calc_pos,
+    col_width,
+  },
+  body,
+  { req, res }
+) => {
+  const { id, ...rowValues } = body;
+  const table = await Table.findOne({ id: table_id });
+
+  if (id) {
+    await table.updateRow(rowValues, id, req.user);
+  } else {
+    await table.insertRow(rowValues, req.user);
+  }
+};
+
 module.exports = {
   name: "Tabulator Pivot Edit",
   display_state_form: false,
   get_state_fields,
   configuration_workflow,
   run,
+  routes: {
+    edit_value,
+  },
 };
