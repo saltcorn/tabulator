@@ -1046,6 +1046,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
   //console.log(rows[0]);
   //console.log(columns[0]);
   //console.log({ rows_len: rows.length, q, where, rows_per_page });
+  await set_join_fieldviews({ columns, fields });
   const { tabcolumns, dropdown_id, dropdown_actions } =
     await get_tabulator_columns(
       viewname,
