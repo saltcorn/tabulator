@@ -260,6 +260,16 @@ const view_configuration_workflow = (req) =>
                 },
               },
               {
+                name: "responsiveLayout",
+                label: "Responsive Layout",
+                type: "String",
+                required: false,
+                tab: "Layout",
+                attributes: {
+                  options: ["hide", "collapse"],
+                },
+              },
+              {
                 name: "groupBy",
                 label: "Group by",
                 type: "String",
@@ -991,6 +1001,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
   const {
     columns,
     fit,
+    responsiveLayout,
     hideColsBtn,
     hide_null_columns,
     addRowBtn,
@@ -1164,6 +1175,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
         }
         
         layout:"fit${fit || "Columns"}", 
+        ${responsiveLayout ? `responsiveLayout: "${responsiveLayout}",` : ""}
         columns,
         pagination:${!!pagination_enabled},
         paginationSize:${
