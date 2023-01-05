@@ -4,12 +4,12 @@ const crypto = require("crypto");
 const typeToGridType = (t, field, header_filters, column, calculators) => {
   const jsgField = { field: field.name, title: field.label, editor: true };
   if (t.name === "String" && field.attributes && field.attributes.options) {
-    jsgField.editor = "select";
+    jsgField.editor = "list";
 
     const values = field.attributes.options.split(",").map((o) => o.trim());
     if (!field.required) values.unshift("");
 
-    jsgField.editorParams = { values };
+    jsgField.editorParams = { values, autocomplete: true, listOnEmpty: true };
     if (header_filters) jsgField.headerFilterParams = { values };
     jsgField.headerFilter = !!header_filters;
   } else if (t.name === "String") {
@@ -34,7 +34,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       };
       jsgField.editor = false;
     } else {
-      jsgField.editor = "select";
+      jsgField.editor = "list";
       const values = {};
       (field.options || []).forEach(
         ({ label, value }) => (values[value] = label)
@@ -42,7 +42,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       calculators.push((row) => {
         if (row[field.name]) row[field.name] = `${row[field.name]}`;
       });
-      jsgField.editorParams = { values };
+      jsgField.editorParams = { values, autocomplete: true, listOnEmpty: true };
       jsgField.formatterParams = { values };
       if (header_filters) jsgField.headerFilterParams = { values };
       jsgField.formatter = "__lookupIntToString";
