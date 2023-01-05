@@ -682,6 +682,7 @@ const get_tabulator_columns = async (
         row[rndid] = showValue(value);
       });
       tcol.field = rndid; //db.sqlsanitize(targetNm);
+      tcol.headerFilter = !!header_filters;
     } else if (column.type === "FormulaValue") {
       const rndid = "col" + hashCol(column);
       calculators.push((row) => {
