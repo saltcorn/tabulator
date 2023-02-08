@@ -134,6 +134,10 @@ const view_configuration_workflow = (req) =>
                   name: "__tabulator_colcalc_avgnonulls",
                   label: "avg no nulls",
                 },
+                {
+                  name: "__tabulator_colcalc_sumroundquarter",
+                  label: "sum round to quarter",
+                },
               ],
             },
           });
