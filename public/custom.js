@@ -272,7 +272,7 @@ function tabulator_colcalc_counttrue(values, data, calcParams) {
 }
 
 function tabulator_colcalc_sumroundquarter(values, data, calcParams) {
-  return Math.round(values.reduce((sum, num) => sum + num) * 4) / 4;
+  return Math.round(values.reduce((sum, num) => sum + num, 0) * 4) / 4;
 }
 
 function tabulator_colcalc_countfalse(values, data, calcParams) {
