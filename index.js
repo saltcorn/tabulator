@@ -1592,6 +1592,8 @@ const get_db_rows = async (
     joinFields,
     aggregations,
     ...q,
+    forPublic: !req.user,
+    forUser: req.user,
   });
   const { calculators } = await get_tabulator_columns(
     viewname,
