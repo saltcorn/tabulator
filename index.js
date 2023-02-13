@@ -1531,7 +1531,9 @@ const get_db_rows = async (
         if (!postFetchFilter) postFetchFilter = [];
         const valS = `${value}`;
         if (type === "like")
-          postFetchFilter.push((r) => `${r[field] || ""}`.includes(valS));
+          postFetchFilter.push((r) =>
+            `${r[field] || ""}`.toLowerCase().includes(valS.toLocaleLowerCase())
+          );
         else if (value.start || value.end)
           postFetchFilter.push((r) => {
             let v = r[field];
