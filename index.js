@@ -1045,7 +1045,15 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
   }
   readState(state, fields);
   let groupBy1 = groupBy;
-
+  if (groupBy1) {
+    if (groupBy === "Selected by user" && default_group_by)
+      groupBy1 = default_group_by;
+    const groupField = fields.find((f) => f.name === groupBy1);
+    if (groupField && groupField.is_fkey) {
+      let orginalName = groupBy1;
+      groupBy1 = `${groupBy1}_${groupField?.attributes?.summary_field || "id"}`;
+    }
+  }
   let rows = [];
   if (!ajax_load || hide_null_columns)
     rows = (
