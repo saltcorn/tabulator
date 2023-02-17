@@ -466,7 +466,12 @@ const run = async (
       layout:"Columns", 
       columns,
       clipboard:true,
-      ${groupBy ? `groupBy: "groupVal"` : ""}
+      ${groupBy ? `groupBy: "groupVal",` : ""}
+      ${
+        groupBy && !group_calcs && column_calculation && calc_pos === "Top"
+          ? `frozenRows:1`
+          : ""
+      }
     });
 
   window.tabulator_table_${rndid}.on("cellEdited", function(cell){
