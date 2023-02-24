@@ -201,6 +201,16 @@ const configuration_workflow = (req) =>
                   column_calculation: ["avg", "max", "min", "sum", "count"],
                 },
               },
+              {
+                name: "target_value",
+                label: "Target value",
+                sublabel:
+                  "Optional. Show matching columns in blue, others in red",
+                type: "Integer",
+                showIf: {
+                  column_calculation: ["avg", "max", "min", "sum", "count"],
+                },
+              },
             ],
           });
         },
@@ -227,6 +237,7 @@ const run = async (
     group_calcs,
     calc_pos,
     col_width,
+    target_value,
   },
   state,
   extraArgs
@@ -503,19 +514,37 @@ const run = async (
     }).done(function (resp) {
       if(resp.id && !id && cell) {
         row.ids[fld] = resp.id;
-        window.tabulator_table_${rndid}.updateRow(cell.getRow(), {ids: row.ids});
-      
+        window.tabulator_table_${rndid}.updateRow(cell.getRow(), {ids: row.ids});       
       }
       ${
         groupBy && !group_calcs && column_calculation
           ? `pivotEditRecalc(cell, ${JSON.stringify({
               column_calculation,
               calc_pos,
-            })})`
+            })});${target_value ? "setCalcColors();" : ""}`
           : ""
       }
     })
   });
+  ${
+    target_value
+      ? `const setCalcColors = ()=> {
+        const rows = window.tabulator_table_${rndid}.getRows();
+      const wantIx = ${calc_pos === "Top" ? 0 : `rows.length-1`};
+      const [cell0, ...cells] = rows[wantIx].getCells()
+      for(const cell of cells) {
+        const data = cell.getValue()
+        if(data===${target_value})
+          cell.getElement().style.color = "blue";
+        else 
+          cell.getElement().style.color = "red";
+
+      }
+    };
+    setTimeout(setCalcColors)
+    `
+      : ""
+  }
     `)
     ) + div({ id: `tabgrid${viewname}${rndid}`, style: { height: "100%" } })
   );
