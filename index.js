@@ -658,16 +658,18 @@ const get_tabulator_columns = async (
       } else {
         [table, fld] = column.agg_relation.split(".");
       }
-      const targetNm = db.sqlsanitize(
-        (
-          column.stat.replace(" ", "") +
-          "_" +
-          table +
-          "_" +
-          fld +
-          db.sqlsanitize(column.aggwhere || "")
-        ).toLowerCase()
-      );
+      const targetNm =
+        column.targetNm ||
+        db.sqlsanitize(
+          (
+            column.stat.replace(" ", "") +
+            "_" +
+            table +
+            "_" +
+            fld +
+            db.sqlsanitize(column.aggwhere || "")
+          ).toLowerCase()
+        );
       tcol.formatter = "html";
       let showValue = (value) => {
         if (value === true)
