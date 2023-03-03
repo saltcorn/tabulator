@@ -1056,6 +1056,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
       groupBy1 = `${groupBy1}_${groupField?.attributes?.summary_field || "id"}`;
     }
   }
+
   let rows = [];
   if (!ajax_load || hide_null_columns)
     rows = (
@@ -1069,9 +1070,11 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
         extraArgs.isPreview
       )
     ).rows;
-  //console.log(rows[0]);
-  //console.log(columns[0]);
-  //console.log({ rows_len: rows.length, q, where, rows_per_page });
+  else {
+    //needed to set agg targetNm
+    picked_fields_to_query(columns, fields);
+  }
+
   await set_join_fieldviews({ columns, fields });
   const { tabcolumns, dropdown_id, dropdown_actions } =
     await get_tabulator_columns(
