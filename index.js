@@ -1287,6 +1287,22 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
         }
       });
     }
+    if(${!!persistent}) {
+      var firstFilter = true;
+      window.tabulator_table_${rndid}.on("dataFiltered", function(filters, rows){
+        if(firstFilter) {firstFilter= false; return;}
+        localStorage.setItem('tabfiltr_${viewname}', JSON.stringify(filters));
+      });
+      setTimeout(()=>{
+        try {
+          const filters = JSON.parse(localStorage.getItem('tabfiltr_${viewname}'));
+          for(const filter of filters||[])
+            window.tabulator_table_${rndid}.setHeaderFilterValue(filter.field, filter.value);
+        } catch(e) {
+          console.error(e)
+        }
+      })
+    }
     window.tabulator_table_${rndid}.on("cellEdited", function(cell){
       const row=cell.getRow().getData();
       if(cell.getField()==="${dropdown_id}"){

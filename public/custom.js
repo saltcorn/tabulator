@@ -31,6 +31,12 @@ var minMaxFilterEditor = function (
     });
   }
 
+  onRendered(function (...args) {
+    var newVal = cell.getValue();
+    start.value = newVal.start;
+    end.value = newVal.end;
+  });
+
   function keypress(e) {
     if (e.keyCode == 13) {
       buildValues();
@@ -64,6 +70,7 @@ function minMaxFilterFunction(headerValue, rowValue, rowData, filterParams) {
   //rowValue - the value of the column in this row
   //rowData - the data for the row being filtered
   //filterParams - params object passed to the headerFilterFuncParams property
+  //console.log("minmax filt", headerValue);
   if (rowValue) {
     if (headerValue.start != "") {
       if (headerValue.end != "") {
