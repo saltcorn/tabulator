@@ -441,7 +441,8 @@ const view_configuration_workflow = (req) =>
               {
                 name: "reset_persistent_btn",
                 label: "Reset persistent button",
-                sublabel: "Show button to reset persistent configuration",
+                sublabel:
+                  "Show button to reset persistent configuration and filters",
                 type: "Bool",
                 showIf: { persistent: true },
                 tab: "Functionality",
@@ -1369,6 +1370,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
         if(key.startsWith('tabulator-tabview_${viewname}-'))
           localStorage.removeItem(key);
       }
+      window.tabulator_table_${rndid}.clearFilter(true);
       location.reload();
     }
     window.allnonecols= (do_show, e) =>{
