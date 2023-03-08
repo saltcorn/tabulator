@@ -1166,6 +1166,15 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
           }
         })
       })
+      ${
+        persistent
+          ? `let initialHeaderFilter=[];
+      try {
+        initialHeaderFilter = JSON.parse(localStorage.getItem('tabfiltr_${viewname}'));
+      } catch(e) {
+      }`
+          : ""
+      }
     window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}${rndid}", {
         ${
           ajax_load
@@ -1201,6 +1210,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
         },
         paginationSizeSelector: ${JSON.stringify(paginationSizeChoices)},
         clipboard:true,
+        ${persistent ? `initialHeaderFilter,` : ""}
         persistence:${!!persistent}, 
         persistenceID:"tabview_${viewname}",
         movableColumns: ${!!movable_cols},
