@@ -273,6 +273,8 @@ const run = async (
     where,
     joinFields,
     ...q,
+    forPublic: !extraArgs.req.user,
+    forUser: extraArgs.req.user,
   });
   const row_values = new Set([]);
   const col_values = new Set([]);
