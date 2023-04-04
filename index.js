@@ -448,6 +448,14 @@ const view_configuration_workflow = (req) =>
                 tab: "Functionality",
               },
               {
+                name: "confirm_edits",
+                label: "Confirm all edits",
+                sublabel:
+                  "Every time the user edits a cell, confirm with popup",
+                type: "Bool",
+                tab: "Functionality",
+              },
+              {
                 name: "dropdown_frozen",
                 label: "Action dropdown column frozen",
                 type: "Bool",
@@ -1040,6 +1048,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
     header_wrap,
     override_stylesheet,
     ajax_load,
+    confirm_edits,
   } = cfg;
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
@@ -1260,9 +1269,18 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
         },
     });
     function save_row_from_cell( row, cell, noid) {
+      ${
+        confirm_edits
+          ? `if(cell.isEdited() && !window.confirm("Are you sure?")) {
+        cell.clearEdited();
+        cell.setValue(cell.getOldValue());
+        return;
+      };`
+          : ""
+      }
       const fld = cell.getField()
       if(typeof row[fld]==="undefined") return;
-      const saveRow = {[fld]: row[fld]}
+      const saveRow = {[fld]: row[fld]}      
        $.ajax({
         type: "POST",
         url: "/api/${table.name}/" + (noid?'':(row.id||"")),
