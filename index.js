@@ -1573,7 +1573,7 @@ const get_db_rows = async (
 ) => {
   const fieldNames = new Set(fields.map((f) => f.name));
 
-  const where = await stateFieldsToWhere({ fields, state });
+  const where = await stateFieldsToWhere({ fields, state, table });
   const q = await stateFieldsToQuery({ state, fields, prefix: "a." });
   let postFetchSort;
   let postFetchFilter;
