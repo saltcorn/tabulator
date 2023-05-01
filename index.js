@@ -1488,7 +1488,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
         tabcolumns,
         column_visibility_presets,
         presets,
-        extraArgs.req?.user?.role_id || 10 <= (min_role_preset_edit || 1),
+        (extraArgs.req?.user?.role_id || 10) <= (min_role_preset_edit || 1),
         viewname,
         rndid
       ),
