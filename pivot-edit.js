@@ -325,8 +325,13 @@ const run = async (
         groupBy1 = "groupbyval";
       }
     }
+
+    const rowWhere = row_where ? jsexprToWhere(row_where) : {};
+    if (state[row_field]) {
+      rowWhere[reftable.pk_name] = state[row_field];
+    }
     const refVals = await reftable.getJoinedRows({
-      where: row_where ? jsexprToWhere(row_where) : {},
+      where: rowWhere,
       joinFields,
     });
     refVals.forEach((refRow) => {
