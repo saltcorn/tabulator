@@ -309,6 +309,10 @@ function pivotEditCheck(cell) {
   return !row.disableEdit;
 }
 
+function tabulator_edit_check(row) {
+  return !row.getRow().getData()._disable_edit;
+}
+
 function pivotEditRecalc(cell, { column_calculation, calc_pos } = {}) {
   let column = cell.getColumn();
   let cells = column.getCells();

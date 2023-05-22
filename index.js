@@ -493,6 +493,14 @@ const view_configuration_workflow = (req) =>
                 },
               },
               {
+                name: "disable_edit_if",
+                label: "Disable edit if",
+                sublabel: "Formula",
+                type: "String",
+                tab: "Functionality",
+                class: "validate-expression",
+              },
+              {
                 name: "selected_rows_action_once",
                 label: "Run action once for all rows",
                 type: "Bool",
@@ -1051,6 +1059,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
     override_stylesheet,
     ajax_load,
     confirm_edits,
+    disable_edit_if,
   } = cfg;
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
@@ -1159,6 +1168,11 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
     }
     if (header_wrap) col.headerWordWrap = true;
   }
+  if (disable_edit_if) {
+    use_tabcolumns.forEach((col) => {
+      col.editable = "__tabulator_edit_check";
+    });
+  }
   return fragment(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
@@ -1211,7 +1225,15 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
         `
             : `data: ${JSON.stringify(rows)},`
         }
-        
+        ${
+          disable_edit_if
+            ? `rowFormatter: function(row) {
+          if(row.getData()._disable_edit) {
+            row.getElement().style.backgroundColor = "#888888";
+          }
+        },`
+            : ``
+        }
         layout:"fit${fit || "Columns"}", 
         ${responsiveLayout ? `responsiveLayout: "${responsiveLayout}",` : ""}
         columns,
@@ -1564,6 +1586,7 @@ const get_db_rows = async (
     header_filters,
     vert_col_headers,
     dropdown_frozen,
+    disable_edit_if,
   },
   state,
   req,
@@ -1740,6 +1763,12 @@ const get_db_rows = async (
     rows.sort((a, b) =>
       a[groupBy1] > b[groupBy1] ? dir : b[groupBy1] > a[groupBy1] ? -1 * dir : 0
     );
+  }
+
+  if (disable_edit_if) {
+    rows.forEach((row) => {
+      if (eval_expression(disable_edit_if, row)) row._disable_edit = true;
+    });
   }
 
   if (alsoCount) {
