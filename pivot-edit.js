@@ -84,6 +84,12 @@ const configuration_workflow = (req) =>
               ];
             }
           }
+          const edit_views = await View.find_table_views_where(
+            context.table_id,
+            ({ state_fields, viewtemplate, viewrow }) =>
+              viewrow.name !== context.viewname
+          );
+          const edit_view_opts = edit_views.map((v) => v.name);
           return new Form({
             fields: [
               { input_type: "section_header", label: "Rows" },
@@ -160,7 +166,16 @@ const configuration_workflow = (req) =>
                   options: fields.map((f) => f.name),
                 },
               },
-
+              {
+                name: "edit_view",
+                label: "Edit view",
+                sublabel: "Edit in pop-up view instead of directly in cell",
+                type: "String",
+                required: false,
+                attributes: {
+                  options: edit_view_opts,
+                },
+              },
               {
                 name: "new_row_formula",
                 label: "New row formula",
@@ -238,6 +253,7 @@ const run = async (
     calc_pos,
     col_width,
     target_value,
+    edit_view,
   },
   state,
   extraArgs
@@ -373,18 +389,29 @@ const run = async (
         ids: {},
       };
     }
+    const theCell = edit_view
+      ? a(
+          {
+            class: "btn btn-outline-secondary btn-sm",
+            href: `javascript:ajax_modal('/view/${edit_view}?${table.pk_name}=${
+              r[table.pk_name]
+            }')`,
+          },
+          r[value_field]
+        )
+      : r[value_field];
     if (allValues[rowValue][colValue]) {
       //MULTIPLE PRESENT
       allValues[rowValue][
         colValue
-      ] = `${allValues[rowValue][colValue]},${r[value_field]}`;
+      ] = `${allValues[rowValue][colValue]} ${theCell}`;
     } else {
-      allValues[rowValue][colValue] = r[value_field];
+      allValues[rowValue][colValue] = theCell;
       allValues[rowValue].ids[colValue] = r[table.pk_name];
       rawColValues[colValue] = r[col_field];
     }
   });
-  const valueCell = typeToGridType(
+  const valueCell0 = typeToGridType(
     valField.type,
     valField,
     false,
@@ -393,6 +420,9 @@ const run = async (
     },
     {}
   );
+  const valueCell = edit_view
+    ? { ...valueCell0, formatter: "html", editor: false }
+    : valueCell0;
   const colValuesArray = [...col_values];
   if (colField.type?.name === "Date") {
     colValuesArray.sort((a, b) => {
@@ -423,7 +453,6 @@ const run = async (
     })),
   ];
   const allValuesArray = Object.values(allValues);
-
   if (groupBy && !group_calcs && column_calculation) {
     const calcRow = {
       ids: {},
