@@ -136,12 +136,22 @@ const configuration_workflow = (req) =>
                 },
               },
               {
+                name: "col_bin_weeks",
+                label: "Weekly columns",
+                type: "Bool",
+                sublabel: "Instead of daily",
+                showIf: {
+                  col_field: date_fields.map((f) => f.name),
+                },
+              },
+              {
                 name: "col_no_weekends",
                 label: "No weekend columns",
                 type: "Bool",
                 sublabel: "Exclude weekend days from columns",
                 showIf: {
                   col_field: date_fields.map((f) => f.name),
+                  col_bin_weeks: false,
                 },
               },
               {
@@ -254,6 +264,7 @@ const run = async (
     col_width,
     target_value,
     edit_view,
+    col_bin_weeks,
   },
   state,
   extraArgs
@@ -307,11 +318,15 @@ const run = async (
     if (col_field_format)
       xformCol = (day) => moment(day).format(col_field_format);
     if (state["_fromdate_" + col_field] && state["_todate_" + col_field]) {
-      const start = new Date(state["_fromdate_" + col_field]);
-      const end = new Date(state["_todate_" + col_field]);
+      let start = new Date(state["_fromdate_" + col_field]);
+      let end = new Date(state["_todate_" + col_field]);
       let day = start;
+      if (col_bin_weeks) {
+        start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+        end.setDate(end.getDate() - ((end.getDay() + 6) % 7));
+      }
       while (day <= end) {
-        if (!col_no_weekends || !isWeekend(day)) {
+        if (!col_no_weekends || !isWeekend(day) || col_bin_weeks) {
           const dayStr = day.toISOString().split("T")[0];
           const xdayStr = xformCol(dayStr);
           col_values.add(
@@ -320,7 +335,7 @@ const run = async (
           rawColValues[xdayStr] = dayStr;
         }
         day = new Date(day);
-        day.setDate(day.getDate() + 1);
+        day.setDate(day.getDate() + (col_bin_weeks ? 7 : 1));
       }
     }
   }
