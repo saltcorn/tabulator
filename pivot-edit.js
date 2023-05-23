@@ -358,9 +358,10 @@ const run = async (
     }
 
     const rowWhere = row_where ? jsexprToWhere(row_where) : {};
-    if (state[row_field]) {
-      rowWhere[reftable.pk_name] = state[row_field];
+    if (where[row_field]) {
+      rowWhere[reftable.pk_name] = where[row_field];
     }
+
     const refVals = await reftable.getJoinedRows({
       where: rowWhere,
       joinFields,
