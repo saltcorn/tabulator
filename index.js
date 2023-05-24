@@ -1229,7 +1229,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
           disable_edit_if
             ? `rowFormatter: function(row) {
           if(row.getData()._disable_edit) {
-            row.getElement().style.backgroundColor = "#888888";
+            row.getElement().style.backgroundColor = "#cccccc";
           }
         },`
             : ``
