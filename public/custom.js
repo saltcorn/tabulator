@@ -312,6 +312,7 @@ function pivotEditCheck(cell) {
 function pivot_edit_popup(e, cell) {
   if (!window.pivot_tabulator_edit_view) return;
   const data = cell.getRow().getData();
+  if (data.disableEdit) return;
   const field = cell.getField();
   const id = data.ids[field];
 
