@@ -501,8 +501,16 @@ const run = async (
     //row_values.add(column_calculation);
   }
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
+  const newRowState = {};
+  Object.entries(state).forEach(([k, v]) => {
+    if (k.includes(".") || k.includes("-") || k.includes(">")) return;
+    newRowState[k] = v;
+  });
   const new_row_obj = new_row_formula
-    ? eval_expression(new_row_formula, { ...state, user: extraArgs.req.user })
+    ? eval_expression(new_row_formula, {
+        ...newRowState,
+        user: extraArgs.req.user,
+      })
     : {};
   return (
     script(
