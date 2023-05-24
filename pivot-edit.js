@@ -405,7 +405,8 @@ const run = async (
         ids: {},
       };
     }
-    const theCell = edit_view
+    const theCell =
+      /*edit_view
       ? a(
           {
             class: "btn btn-outline-secondary btn-sm",
@@ -415,7 +416,7 @@ const run = async (
           },
           r[value_field]
         )
-      : r[value_field];
+      :*/ r[value_field];
     if (allValues[rowValue][colValue]) {
       //MULTIPLE PRESENT
       allValues[rowValue][
@@ -427,8 +428,7 @@ const run = async (
       rawColValues[colValue] = r[col_field];
     }
   });
-  //console.log(allValues);
-  if (edit_view) {
+  /* if (edit_view) {
     //need to insert in empty cells
     for (const rv of row_values) {
       const rawRowValue = allValues[rv].rawRowValue;
@@ -443,6 +443,8 @@ const run = async (
           );
     }
   }
+  console.log(allValues);
+*/
   const valueCell0 = typeToGridType(
     valField.type,
     valField,
@@ -453,7 +455,7 @@ const run = async (
     {}
   );
   const valueCell = edit_view
-    ? { ...valueCell0, formatter: "html", editor: false }
+    ? { ...valueCell0, editor: false, cellClick: "__pivot_edit_popup" }
     : valueCell0;
   const colValuesArray = [...col_values];
   if (colField.type?.name === "Date") {
@@ -544,7 +546,7 @@ const run = async (
       data: ${JSON.stringify(allValuesArray, null, 2)},
       layout:"Columns", 
       columns,
-      clipboard:true,
+      clipboard:true,     
       ${groupBy ? `groupBy: "groupVal",` : ""}
       ${
         groupBy && !group_calcs && column_calculation && calc_pos === "Top"
@@ -552,7 +554,14 @@ const run = async (
           : ""
       }
     });
-
+  ${
+    edit_view
+      ? `
+  window.pivot_tabulator_edit_view = '${edit_view}';
+  window.pivot_tabulator_table_pk = '${table.pk_name}';
+  `
+      : ""
+  }
   window.tabulator_table_${rndid}.on("cellEdited", function(cell){
     const rawColValues = ${JSON.stringify(rawColValues)};
     const row=cell.getRow().getData();

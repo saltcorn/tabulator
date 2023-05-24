@@ -309,6 +309,19 @@ function pivotEditCheck(cell) {
   return !row.disableEdit;
 }
 
+function pivot_edit_popup(e, cell) {
+  if (!window.pivot_tabulator_edit_view) return;
+  const data = cell.getRow().getData();
+  const field = cell.getField();
+  const id = data.ids[field];
+
+  if (id) {
+    const url = `/view/${window.pivot_tabulator_edit_view}?${window.pivot_tabulator_table_pk}=${id}`;
+    console.log(url);
+    ajax_modal(url);
+  }
+}
+
 function tabulator_edit_check(row) {
   return !row.getRow().getData()._disable_edit;
 }
