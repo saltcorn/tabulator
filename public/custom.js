@@ -318,10 +318,8 @@ function pivot_edit_popup(e, cell) {
 
   if (id) {
     const url = `/view/${window.pivot_tabulator_edit_view}?${window.pivot_tabulator_table_pk}=${id}`;
-    console.log(url);
     ajax_modal(url);
   } else {
-    console.log(data, { field, id });
     const url = `/view/${window.pivot_tabulator_edit_view}?${window.pivot_tabulator_row_field}=${data.rawRowValue}&${window.pivot_tabulator_col_field_name}=${field}
     `;
     console.log(url);

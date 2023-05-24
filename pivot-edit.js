@@ -405,18 +405,7 @@ const run = async (
         ids: {},
       };
     }
-    const theCell =
-      /*edit_view
-      ? a(
-          {
-            class: "btn btn-outline-secondary btn-sm",
-            href: `javascript:ajax_modal('/view/${edit_view}?${table.pk_name}=${
-              r[table.pk_name]
-            }')`,
-          },
-          r[value_field]
-        )
-      :*/ r[value_field];
+    const theCell = r[value_field];
     if (allValues[rowValue][colValue]) {
       //MULTIPLE PRESENT
       allValues[rowValue][
@@ -428,23 +417,7 @@ const run = async (
       rawColValues[colValue] = r[col_field];
     }
   });
-  /* if (edit_view) {
-    //need to insert in empty cells
-    for (const rv of row_values) {
-      const rawRowValue = allValues[rv].rawRowValue;
-      for (const cv of col_values)
-        if (!allValues[rv][cv])
-          allValues[rv][cv] = a(
-            {
-              class: "btn btn-outline-secondary btn-sm",
-              href: `javascript:ajax_modal('/view/${edit_view}?${row_field}=${rawRowValue}&${col_field_name}=${cv}')`,
-            },
-            "&nbsp;"
-          );
-    }
-  }
-  console.log(allValues);
-*/
+
   const valueCell0 = typeToGridType(
     valField.type,
     valField,
