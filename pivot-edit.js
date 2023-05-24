@@ -559,6 +559,8 @@ const run = async (
       ? `
   window.pivot_tabulator_edit_view = '${edit_view}';
   window.pivot_tabulator_table_pk = '${table.pk_name}';
+  window.pivot_tabulator_row_field = '${row_field}';
+  window.pivot_tabulator_col_field_name = '${col_field_name}';
   `
       : ""
   }
