@@ -533,7 +533,8 @@ const view_configuration_workflow = (req) =>
   });
 
 const get_state_fields = async (table_id, viewname, { show_view }) => {
-  const table_fields = await Field.find({ table_id });
+  const table = Table.findOne(table_id);
+  const table_fields = table.fields;
   return table_fields
     .filter((f) => !f.primary_key)
     .map((f) => {
