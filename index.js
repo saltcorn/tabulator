@@ -1766,9 +1766,11 @@ const get_db_rows = async (
   }
 
   if (disable_edit_if) {
-    rows.forEach((row) => {
+    const set_disable_edit = (row) => {
       if (eval_expression(disable_edit_if, row)) row._disable_edit = true;
-    });
+      (row._children || []).forEach(set_disable_edit);
+    };
+    rows.forEach(set_disable_edit);
   }
 
   if (alsoCount) {
