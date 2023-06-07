@@ -120,7 +120,11 @@ const configuration_workflow = (req) =>
                   calcOptions: ["row_field", group_by_options],
                 },
               },
-              { input_type: "section_header", label: "Columns" },
+              {
+                input_type: "section_header",
+                label: "Columns",
+                disabled: true,
+              },
               {
                 name: "col_field",
                 label: "Column field",
