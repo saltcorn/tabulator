@@ -13,6 +13,9 @@ const {
   eval_expression,
 } = require("@saltcorn/data/models/expression");
 const {
+  parse_view_select,
+} = require("@saltcorn/data/base-plugin/viewtemplates/viewable_fields");
+const {
   field_picker_fields,
   picked_fields_to_query,
   stateFieldsToWhere,
@@ -61,7 +64,7 @@ const configuration_workflow = (req) =>
   new Workflow({
     steps: [
       {
-        name: "Columns",
+        name: "Pivot grid",
         form: async (context) => {
           const table = await Table.findOne(
             context.table_id
@@ -237,6 +240,109 @@ const configuration_workflow = (req) =>
                   column_calculation: ["avg", "max", "min", "sum", "count"],
                 },
               },
+            ],
+          });
+        },
+      },
+      {
+        name: "Additional columns",
+        form: async (context) => {
+          const celltable = await Table.findOne(
+            context.table_id
+              ? { id: context.table_id }
+              : { name: context.exttable_name }
+          );
+          //console.log(context);
+          const row_field = await celltable.getField(context.row_field);
+          const table = Table.findOne(row_field.reftable_name);
+          const field_picker_repeat = await field_picker_fields({
+            table,
+            viewname: context.viewname,
+            req,
+          });
+          field_picker_repeat.push({
+            name: "frozen",
+            label: "Frozen",
+            type: "Bool",
+          });
+          field_picker_repeat.push({
+            name: "disable_edit",
+            label: "Disable editing",
+            type: "Bool",
+            showIf: { type: "Field" },
+          });
+          field_picker_repeat.push({
+            name: "column_calculation",
+            label: "Column Calculation",
+            type: "String",
+            attributes: {
+              options: [
+                "avg",
+                "max",
+                "min",
+                "sum",
+                "count",
+                { name: "__tabulator_colcalc_unique", label: "count unique" },
+                { name: "__tabulator_colcalc_counttrue", label: "count true" },
+                {
+                  name: "__tabulator_colcalc_countfalse",
+                  label: "count false",
+                },
+                {
+                  name: "__tabulator_colcalc_avgnonulls",
+                  label: "avg no nulls",
+                },
+                {
+                  name: "__tabulator_colcalc_sumroundquarter",
+                  label: "sum round to quarter",
+                },
+              ],
+            },
+          });
+          field_picker_repeat.push({
+            name: "calc_dps",
+            label: "Calculation decimal places",
+            type: "Integer",
+            showIf: {
+              column_calculation: [
+                "avg",
+                "max",
+                "min",
+                "sum",
+                "__tabulator_colcalc_avgnonulls",
+              ],
+            },
+          });
+          const use_field_picker_repeat = field_picker_repeat.filter(
+            (f) => !["state_field", "col_width_units"].includes(f.name)
+          );
+          field_picker_repeat.find((c) => c.name === "col_width").label =
+            "Column width (px)";
+          const fvs = field_picker_repeat.filter((c) => c.name === "fieldview");
+          fvs.forEach((fv) => {
+            if (fv?.attributes?.calcOptions?.[1])
+              Object.values(fv.attributes.calcOptions[1]).forEach((fvlst) => {
+                if (fvlst[0] === "as_text") fvlst.push("textarea");
+              });
+          });
+          // fix legacy values missing view_name
+          (context?.columns || []).forEach((column) => {
+            if (
+              column.type === "ViewLink" &&
+              column.view &&
+              !column.view_name
+            ) {
+              const view_select = parse_view_select(column.view);
+              column.view_name = view_select.viewname;
+            }
+          });
+          return new Form({
+            fields: [
+              new FieldRepeat({
+                name: "columns",
+                fancyMenuEditor: true,
+                fields: use_field_picker_repeat,
+              }),
             ],
           });
         },
