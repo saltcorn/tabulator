@@ -45,7 +45,7 @@ const {
   select,
   option,
 } = require("@saltcorn/markup/tags");
-const { typeToGridType } = require("./common");
+const { typeToGridType, get_tabulator_columns } = require("./common");
 const moment = require("moment");
 
 const get_state_fields = async (table_id, viewname, { show_view }) => {
@@ -372,6 +372,7 @@ const run = async (
     target_value,
     edit_view,
     col_bin_weeks,
+    columns,
   },
   state,
   extraArgs
@@ -384,6 +385,20 @@ const run = async (
   const rowField = fields.find((f) => f.name === row_field);
   const colField = fields.find((f) => f.name === col_field);
   const valField = fields.find((f) => f.name === value_field);
+  const rowTable = Table.findOne(rowField.reftable_name);
+
+  const { tabcolumns, dropdown_id, dropdown_actions } =
+    await get_tabulator_columns(
+      viewname,
+      rowTable,
+      rowTable.fields,
+      columns,
+      false,
+      extraArgs.req,
+      false, //header_filters,
+      false,
+      false
+    );
 
   const joinFields = {};
   let row_field_name = row_field;
@@ -482,6 +497,7 @@ const run = async (
         rowValue: label,
         groupVal: groupBy ? refRow[groupBy1] : undefined,
         ids: {},
+        ...refRow,
       };
     });
   }
@@ -500,7 +516,7 @@ const run = async (
     });
   }*/
 
-  rows.forEach((r) => {
+  for (const r of rows) {
     const rowValue = r[row_field_name];
     const colValue = xformCol(r[col_field_name]);
     row_values.add(rowValue);
@@ -523,7 +539,7 @@ const run = async (
       allValues[rowValue].ids[colValue] = r[table.pk_name];
       rawColValues[colValue] = r[col_field];
     }
-  });
+  }
 
   const valueCell0 = typeToGridType(
     valField.type,
@@ -552,6 +568,7 @@ const run = async (
       editor: false,
       frozen: true,
     },
+    ...tabcolumns,
     ...colValuesArray.map((cv) => ({
       ...valueCell,
       field: `${cv}`,
