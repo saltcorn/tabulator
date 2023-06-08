@@ -391,19 +391,6 @@ const run = async (
   const valField = fields.find((f) => f.name === value_field);
   const rowTable = Table.findOne(rowField.reftable_name);
 
-  const { tabcolumns, dropdown_id, dropdown_actions } =
-    await get_tabulator_columns(
-      viewname,
-      rowTable,
-      rowTable.fields,
-      columns,
-      false,
-      extraArgs.req,
-      false, //header_filters,
-      false,
-      false
-    );
-
   const joinFields = {};
   let row_field_name = row_field;
   let col_field_name = col_field;
@@ -470,7 +457,10 @@ const run = async (
     const reftable = Table.findOne({ name: rowField.reftable_name });
     const reffields = await reftable.getFields();
 
-    const joinFields = {};
+    const { joinFields, aggregations } = picked_fields_to_query(
+      columns,
+      reffields
+    );
     let groupBy1 = groupBy;
     if (groupBy) {
       const groupField = reffields.find((f) => f.name === groupBy);
@@ -491,6 +481,7 @@ const run = async (
     const refVals = await reftable.getJoinedRows({
       where: rowWhere,
       joinFields,
+      aggregations,
     });
     refVals.forEach((refRow) => {
       const value = refRow[reftable.pk_name];
@@ -565,6 +556,20 @@ const run = async (
       return da > db ? 1 : db > da ? -1 : 0;
     });
   }
+
+  const { tabcolumns, dropdown_id, dropdown_actions, calculators } =
+    await get_tabulator_columns(
+      viewname,
+      rowTable,
+      rowTable.fields,
+      columns,
+      false,
+      extraArgs.req,
+      false, //header_filters,
+      false,
+      false
+    );
+
   const tabCols = [
     {
       field: "rowValue",
@@ -588,6 +593,9 @@ const run = async (
     })),
   ];
   const allValuesArray = Object.values(allValues);
+  calculators.forEach((f) => {
+    allValuesArray.forEach(f);
+  });
   if (groupBy && !group_calcs && column_calculation) {
     const calcRow = {
       ids: {},
