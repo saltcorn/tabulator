@@ -351,6 +351,48 @@ const configuration_workflow = (req) =>
           });
         },
       },
+      {
+        name: "Additional options",
+        form: async (context) => {
+          const celltable = await Table.findOne(
+            context.table_id
+              ? { id: context.table_id }
+              : { name: context.exttable_name }
+          );
+          //console.log(context);
+          const row_field = await celltable.getField(context.row_field);
+          const table = Table.findOne(row_field.reftable_name);
+          const fields = table.fields;
+          for (const field of fields) {
+            await field.fill_fkey_options();
+          }
+          let tree_field_options = [];
+          //self join
+          for (const field of fields) {
+            if (field.is_fkey && field.reftable_name == table.name)
+              tree_field_options.push(field.name);
+          }
+          return new Form({
+            fields: [
+              {
+                name: "tree_field",
+                label: "Tree field",
+                type: "String",
+                attributes: {
+                  options: tree_field_options,
+                },
+              },
+              {
+                name: "disable_edit_if",
+                label: "Disable edit if",
+                sublabel: "Formula",
+                type: "String",
+                class: "validate-expression",
+              },
+            ],
+          });
+        },
+      },
     ],
   });
 
