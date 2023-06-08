@@ -458,7 +458,7 @@ const run = async (
     const reffields = await reftable.getFields();
 
     const { joinFields, aggregations } = picked_fields_to_query(
-      columns,
+      columns || [],
       reffields
     );
     let groupBy1 = groupBy;
@@ -562,7 +562,7 @@ const run = async (
       viewname,
       rowTable,
       rowTable.fields,
-      columns,
+      columns || [],
       false,
       extraArgs.req,
       false, //header_filters,
