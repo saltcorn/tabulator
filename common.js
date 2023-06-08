@@ -510,4 +510,15 @@ const get_tabulator_columns = async (
   };
 };
 
-module.exports = { typeToGridType, hashCol, get_tabulator_columns };
+//https://stackoverflow.com/a/55241491
+const nest = (items, id = null) => {
+  console.log("nestid", id);
+  return items
+    .filter((item) => item._parent === id)
+    .map((item) => ({
+      ...item,
+      _children: !item.id ? [] : nest(items, item.id),
+    }));
+};
+
+module.exports = { typeToGridType, hashCol, nest, get_tabulator_columns };

@@ -52,7 +52,12 @@ const {
   splitUniques,
 } = require("@saltcorn/data/base-plugin/viewtemplates/viewable_fields");
 const { mockReqRes } = require("@saltcorn/data/tests/mocks");
-const { typeToGridType, hashCol, get_tabulator_columns } = require("./common");
+const {
+  typeToGridType,
+  hashCol,
+  nest,
+  get_tabulator_columns,
+} = require("./common");
 const configuration_workflow = () =>
   new Workflow({
     steps: [
@@ -1372,12 +1377,7 @@ const get_db_rows = async (
         row._parent = row[tree_field];
       else row._parent = null;
     }
-    //https://stackoverflow.com/a/55241491
-    const nest = (items, id = null) =>
-      items
-        .filter((item) => item._parent === id)
-        .map((item) => ({ ...item, _children: nest(items, item.id) }));
-    //const old_rows = [...rows];
+
     rows = nest(rows);
   }
   if (groupBy1 && def_order_field) {

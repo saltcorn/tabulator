@@ -45,7 +45,7 @@ const {
   select,
   option,
 } = require("@saltcorn/markup/tags");
-const { typeToGridType, get_tabulator_columns } = require("./common");
+const { typeToGridType, nest, get_tabulator_columns } = require("./common");
 const moment = require("moment");
 
 const get_state_fields = async (table_id, viewname, { show_view }) => {
@@ -420,6 +420,7 @@ const run = async (
     col_bin_weeks,
     columns,
     disable_edit_if,
+    tree_field,
   },
   state,
   extraArgs
@@ -644,10 +645,21 @@ const run = async (
       if (!col.editable) col.editable = "__tabulator_edit_check";
     });
   }
-  const allValuesArray = Object.values(allValues);
+  let allValuesArray = Object.values(allValues);
   calculators.forEach((f) => {
     allValuesArray.forEach(f);
   });
+
+  if (tree_field) {
+    const my_ids = new Set(rows.map((r) => r.id));
+    for (const row of allValuesArray) {
+      if (row[tree_field] && my_ids.has(row[tree_field]))
+        row._parent = row[tree_field];
+      else row._parent = null;
+    }
+    allValuesArray = nest(allValuesArray);
+  }
+
   if (groupBy && !group_calcs && column_calculation) {
     const calcRow = {
       ids: {},
@@ -724,6 +736,11 @@ const run = async (
         }
       },`
           : ``
+      }
+      ${
+        tree_field
+          ? "dataTree:true,dataTreeStartExpanded:true,dataTreeSelectPropagate:true,"
+          : ""
       }
       ${groupBy ? `groupBy: "groupVal",` : ""}
       ${
