@@ -1,5 +1,5 @@
 /* eslint-env browser */
-/* globals view_post, $ */
+/* globals view_post, $, _sc_globalCsrf, tabulator_error_handler, ajax_modal */
 //custom max min header filter
 var minMaxFilterEditor = function (
   cell,
@@ -367,3 +367,52 @@ function pivotEditRecalc(cell, { column_calculation, calc_pos } = {}) {
     cells[cells.length - 1].setValue(result);
   }
 }
+
+const gen_save_row_from_cell =
+  ({ confirm_edits, rndid, hasCalculated, table_name }) =>
+  (row, cell, noid) => {
+    if (confirm_edits) {
+      if (cell.isEdited() && !window.confirm("Are you sure?")) {
+        cell.clearEdited();
+        cell.setValue(cell.getOldValue());
+        return;
+      }
+    }
+    const fld = cell.getField();
+    if (typeof row[fld] === "undefined") return;
+    const saveRow = { [fld]: row[fld] };
+    $.ajax({
+      type: "POST",
+      url: `/api/${table_name}/` + (noid ? "" : row.id || ""),
+      data: saveRow,
+      headers: {
+        "CSRF-Token": _sc_globalCsrf,
+      },
+      error: tabulator_error_handler,
+    }).done(function (resp) {
+      if (resp.success && typeof resp.success === "number" && !row.id && cell) {
+        window[`tabulator_table_${rndid}`].updateRow(cell.getRow(), {
+          id: resp.success,
+        });
+      }
+      if (hasCalculated) {
+        let id = noid ? resp.success : row.id;
+        $.ajax({
+          type: "GET",
+          url: `/api/${table_name}?id=` + id,
+          headers: {
+            "CSRF-Token": _sc_globalCsrf,
+          },
+          error: tabulator_error_handler,
+        }).done(function (resp) {
+          console.log("calc GET", resp);
+          if (resp.success && resp.success[0]) {
+            window[`tabulator_table_${rndid}`].updateRow(
+              cell.getRow(),
+              resp.success[0]
+            );
+          }
+        });
+      }
+    });
+  };

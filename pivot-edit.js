@@ -681,7 +681,18 @@ const run = async (
   `
       : ""
   }
+
   window.tabulator_table_${rndid}.on("cellEdited", function(cell){
+    if(${JSON.stringify(
+      tabcolumns.map((c) => c.field)
+    )}.includes(cell.getField())) {
+      const row=cell.getRow().getData();
+      gen_save_row_from_cell(${JSON.stringify({
+        rndid,
+        table_name: rowField.reftable_name,
+      })})(row, cell);
+      return;
+    }
     const rawColValues = ${JSON.stringify(rawColValues)};
     const row=cell.getRow().getData();
     if(row.disableEdit) return;

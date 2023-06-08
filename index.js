@@ -972,54 +972,12 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
           else return response
         },
     });
-    function save_row_from_cell( row, cell, noid) {
-      ${
-        confirm_edits
-          ? `if(cell.isEdited() && !window.confirm("Are you sure?")) {
-        cell.clearEdited();
-        cell.setValue(cell.getOldValue());
-        return;
-      };`
-          : ""
-      }
-      const fld = cell.getField()
-      if(typeof row[fld]==="undefined") return;
-      const saveRow = {[fld]: row[fld]}      
-       $.ajax({
-        type: "POST",
-        url: "/api/${table.name}/" + (noid?'':(row.id||"")),
-        data: saveRow,
-        headers: {
-          "CSRF-Token": _sc_globalCsrf,
-        },
-        error: tabulator_error_handler,
-      }).done(function (resp) {
-        if(resp.success &&typeof resp.success ==="number" && !row.id && cell) {
-          window.tabulator_table_${rndid}.updateRow(cell.getRow(), {id: resp.success});
-          
-        }
-        ${
-          hasCalculated
-            ? `
-        let id = noid ? resp.success : row.id
-        $.ajax({
-          type: "GET",
-          url: "/api/${table.name}?id=" +id,          
-          headers: {
-            "CSRF-Token": _sc_globalCsrf,
-          },
-          error: tabulator_error_handler,
-        }).done(function (resp) {
-          console.log("calc GET",resp)
-          if(resp.success && resp.success[0]) {
-            window.tabulator_table_${rndid}.updateRow(cell.getRow(), resp.success[0]);
-          }
-        })
-          `
-            : ""
-        }
-      });
-    }
+    const save_row_from_cell= gen_save_row_from_cell(${JSON.stringify({
+      confirm_edits,
+      hasCalculated,
+      rndid,
+      table_name: table.name,
+    })});
     if(${!!persistent}) {
       var firstFilter = true;
       window.tabulator_table_${rndid}.on("dataFiltered", function(filters, rows){
