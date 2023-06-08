@@ -306,7 +306,7 @@ function add_tabview_row(rndid) {
 
 function pivotEditCheck(cell) {
   const row = cell.getRow().getData();
-  return !row.disableEdit;
+  return !(row.disableEdit || row._disable_edit);
 }
 
 function pivot_edit_popup(e, cell) {
@@ -328,7 +328,8 @@ function pivot_edit_popup(e, cell) {
 }
 
 function tabulator_edit_check(row) {
-  return !row.getRow().getData()._disable_edit;
+  const data = row.getRow().getData();
+  return !(data._disable_edit || data.disableEdit);
 }
 
 function pivotEditRecalc(cell, { column_calculation, calc_pos } = {}) {

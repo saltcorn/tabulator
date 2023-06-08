@@ -384,7 +384,7 @@ const configuration_workflow = (req) =>
               },
               {
                 name: "disable_edit_if",
-                label: "Disable edit if",
+                label: "Disable row edit if",
                 sublabel: "Formula",
                 type: "String",
                 class: "validate-expression",
@@ -419,6 +419,7 @@ const run = async (
     edit_view,
     col_bin_weeks,
     columns,
+    disable_edit_if,
   },
   state,
   extraArgs
@@ -536,6 +537,10 @@ const run = async (
         ids: {},
         ...refRow,
       };
+      if (disable_edit_if) {
+        if (eval_expression(disable_edit_if, refRow))
+          allValues[label]._disable_edit = true;
+      }
     });
   }
   if (colField.is_fkey) {
@@ -634,6 +639,11 @@ const run = async (
       width: col_width || undefined,
     })),
   ];
+  if (disable_edit_if) {
+    tabCols.forEach((col) => {
+      if (!col.editable) col.editable = "__tabulator_edit_check";
+    });
+  }
   const allValuesArray = Object.values(allValues);
   calculators.forEach((f) => {
     allValuesArray.forEach(f);
@@ -705,7 +715,16 @@ const run = async (
       data: ${JSON.stringify(allValuesArray, null, 2)},
       layout:"Columns", 
       columns,
-      clipboard:true,     
+      clipboard:true,  
+      ${
+        disable_edit_if
+          ? `rowFormatter: function(row) {
+        if(row.getData()._disable_edit) {
+          row.getElement().style.backgroundColor = "#cccccc";
+        }
+      },`
+          : ``
+      }
       ${groupBy ? `groupBy: "groupVal",` : ""}
       ${
         groupBy && !group_calcs && column_calculation && calc_pos === "Top"
