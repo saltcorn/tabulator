@@ -472,8 +472,8 @@ const run = async (
         r[col_field] = new Date(r[col_field]).toISOString().split("T")[0];
       }
     });
-    if (col_field_format)
-      xformCol = (day) => moment(day).format(col_field_format);
+    //if (col_field_format)
+    //  xformCol = (day) => moment(day).format(col_field_format);
     if (state["_fromdate_" + col_field] && state["_todate_" + col_field]) {
       let start = new Date(state["_fromdate_" + col_field]);
       let end = new Date(state["_todate_" + col_field]);
@@ -487,7 +487,8 @@ const run = async (
           const dayStr = day.toISOString().split("T")[0];
           const xdayStr = xformCol(dayStr);
           col_values.add(
-            col_field_format ? moment(day).format(col_field_format) : dayStr
+            //col_field_format ? moment(day).format(col_field_format) :
+            dayStr
           );
           rawColValues[xdayStr] = dayStr;
         }
@@ -629,7 +630,7 @@ const run = async (
     ...colValuesArray.map((cv) => ({
       ...valueCell,
       field: `${cv}`,
-      title: `${cv}`,
+      title: col_field_format ? moment(cv).format(col_field_format) : `${cv}`,
       editable: "__pivotEditCheck",
       headerVertical: vertical_headers,
       [(calc_pos || "Bottom").toLowerCase() + "Calc"]:
