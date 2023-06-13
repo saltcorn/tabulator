@@ -512,7 +512,6 @@ const get_tabulator_columns = async (
 
 //https://stackoverflow.com/a/55241491
 const nest = (items, id = null) => {
-  console.log("nestid", id);
   return items
     .filter((item) => item._parent === id)
     .map((item) => ({

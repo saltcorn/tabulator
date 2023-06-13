@@ -651,7 +651,7 @@ const run = async (
   });
 
   if (tree_field) {
-    const my_ids = new Set(rows.map((r) => r.id));
+    const my_ids = new Set(allValuesArray.map((r) => r.id));
     for (const row of allValuesArray) {
       if (row[tree_field] && my_ids.has(row[tree_field]))
         row._parent = row[tree_field];
