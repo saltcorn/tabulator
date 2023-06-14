@@ -273,16 +273,29 @@ const get_tabulator_columns = async (
         targetNm = keypath[keypath.length - 1];
         key = keypath.join("_");
       }
-      if (column.field_type && column.field_obj) {
-        tcol = typeToGridType(
-          getState().types[column.field_type],
-          column.field_obj,
-          header_filters,
-          column,
-          calculators
-        );
+      if (column.fieldview === "subfield") {
+        const f = await table.getField(column.join_field);
+        tcol.editor = false;
+        const jkey = `${key}_${column.key}`;
+        calculators.push((row) => {
+          row[jkey] = (row[key] || {})[column.key];
+        });
+        tcol.field = jkey;
+        tcol.title = column.key;
+        tcol.headerFilter = !!header_filters;
+        set_json_col(tcol, f, column.key, header_filters);
+      } else {
+        if (column.field_type && column.field_obj) {
+          tcol = typeToGridType(
+            getState().types[column.field_type],
+            column.field_obj,
+            header_filters,
+            column,
+            calculators
+          );
+        }
+        tcol.field = key;
       }
-      tcol.field = key;
       tcol.editor = false;
     } else if (column.type === "Aggregation") {
       let table, fld, through;
