@@ -1318,7 +1318,7 @@ const get_db_rows = async (
   // console.log(aggregations);
 
   let rows = queriesObj?.get_rows_query
-    ? await queriesObj?.get_rows_query(where, joinFields, aggregations, q)
+    ? await queriesObj.get_rows_query(where, joinFields, aggregations, q)
     : await table.getJoinedRows({
         where,
         joinFields,

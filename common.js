@@ -361,7 +361,12 @@ const get_tabulator_columns = async (
     } else if (column.type === "ViewLink") {
       tcol.formatter = "html";
       const rndid = "col" + hashCol(column);
-      const { key } = view_linker(column, fields, req?.__, isNode);
+      const { key } = view_linker(
+        column,
+        fields,
+        req?.__ ? req.__ : (s) => s,
+        isNode
+      );
       calculators.push((row) => {
         row[rndid] = key(row);
       });

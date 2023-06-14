@@ -379,25 +379,29 @@ const gen_save_row_from_cell =
         return;
       }
     }
-    const fld = cell.getField();
-    if (typeof row[fld] === "undefined") return;
-    const saveRow = { [fld]: row[fld] };
-    $.ajax({
-      type: "POST",
-      url: `/api/${table_name}/` + (noid ? "" : row.id || ""),
-      data: saveRow,
-      headers: {
-        "CSRF-Token": _sc_globalCsrf,
-      },
-      error: tabulator_error_handler,
-    }).done(function (resp) {
-      if (resp.success && typeof resp.success === "number" && !row.id && cell) {
-        window[`tabulator_table_${rndid}`].updateRow(cell.getRow(), {
-          id: resp.success,
-        });
-      }
-      if (hasCalculated) {
-        let id = noid ? resp.success : row.id;
+    const isNode = typeof parent.saltcorn?.data === "undefined";
+    const postFn = (saveRow, cb) => {
+      const url = `/api/${table_name}/` + (noid ? "" : row.id || "");
+      if (isNode)
+        $.ajax({
+          type: "POST",
+          url: url,
+          data: saveRow,
+          headers: {
+            "CSRF-Token": _sc_globalCsrf,
+          },
+          error: tabulator_error_handler,
+        }).done(cb);
+      else
+        parent.router
+          .resolve({
+            pathname: `post${url}`,
+            query: new URLSearchParams(saveRow).toString(),
+          })
+          .then(cb);
+    };
+    const getFn = (id, cb) => {
+      if (isNode)
         $.ajax({
           type: "GET",
           url: `/api/${table_name}?id=` + id,
@@ -405,7 +409,27 @@ const gen_save_row_from_cell =
             "CSRF-Token": _sc_globalCsrf,
           },
           error: tabulator_error_handler,
-        }).done(function (resp) {
+        }).done(cb);
+      else
+        parent.router
+          .resolve({
+            pathname: `get/api/${table_name}`,
+            query: `id=${id}`,
+          })
+          .then(cb);
+    };
+    const fld = cell.getField();
+    if (typeof row[fld] === "undefined") return;
+    const saveRow = { [fld]: row[fld] };
+    postFn(saveRow, function (resp) {
+      if (resp.success && typeof resp.success === "number" && !row.id && cell) {
+        window[`tabulator_table_${rndid}`].updateRow(cell.getRow(), {
+          id: resp.success,
+        });
+      }
+      if (hasCalculated) {
+        let id = noid ? resp.success : row.id;
+        getFn(id, function (resp) {
           console.log("calc GET", resp);
           if (resp.success && resp.success[0]) {
             window[`tabulator_table_${rndid}`].updateRow(
