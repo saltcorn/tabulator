@@ -31,6 +31,9 @@ const {
   make_link,
   splitUniques,
 } = require("@saltcorn/data/base-plugin/viewtemplates/viewable_fields");
+
+const isNode = typeof window === "undefined";
+
 //copy from server/routes/list.js
 const typeToGridType = (t, field, header_filters, column, calculators) => {
   const jsgField = { field: field.name, title: field.label, editor: true };
@@ -358,7 +361,12 @@ const get_tabulator_columns = async (
     } else if (column.type === "ViewLink") {
       tcol.formatter = "html";
       const rndid = "col" + hashCol(column);
-      const { key } = view_linker(column, fields);
+      const { key } = view_linker(
+        column,
+        fields,
+        req?.__ ? req.__ : (s) => s,
+        isNode
+      );
       calculators.push((row) => {
         row[rndid] = key(row);
       });

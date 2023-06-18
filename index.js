@@ -707,7 +707,7 @@ const hideShowColsBtn = (
       )
     )
   );
-const run = async (table_id, viewname, cfg, state, extraArgs) => {
+const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
   const {
     columns,
     fit,
@@ -773,7 +773,8 @@ const run = async (table_id, viewname, cfg, state, extraArgs) => {
         cfg,
         state,
         extraArgs.req,
-        extraArgs.isPreview
+        extraArgs.isPreview,
+        queriesObj
       )
     ).rows;
   else {
@@ -1234,6 +1235,7 @@ const get_db_rows = async (
   state,
   req,
   isPreview,
+  queriesObj,
   limit,
   offset,
   alsoCount,
@@ -1315,14 +1317,16 @@ const get_db_rows = async (
 
   // console.log(aggregations);
 
-  let rows = await table.getJoinedRows({
-    where,
-    joinFields,
-    aggregations,
-    ...q,
-    forPublic: !req.user,
-    forUser: req.user,
-  });
+  let rows = queriesObj?.get_rows_query
+    ? await queriesObj.get_rows_query(where, joinFields, aggregations, q)
+    : await table.getJoinedRows({
+        where,
+        joinFields,
+        aggregations,
+        ...q,
+        forPublic: !req.user,
+        forUser: req.user,
+      });
   const { calculators } = await get_tabulator_columns(
     viewname,
     table,
@@ -1436,6 +1440,7 @@ const get_rows = async (
     state,
     req,
     false,
+    undefined,
     limit,
     offset,
     !!page,
@@ -1608,6 +1613,7 @@ module.exports = {
             {},
             mockReqRes.req,
             false,
+            undefined,
             5
           );
           if (!Array.isArray(rows))
@@ -1624,6 +1630,19 @@ module.exports = {
         add_preset,
         delete_preset,
       },
+      queries: ({ table_id, req }) => ({
+        async get_rows_query(where, joinFields, aggregations, q) {
+          const table = await Table.findOne({ id: table_id });
+          return await table.getJoinedRows({
+            where,
+            joinFields,
+            aggregations,
+            ...q,
+            forPublic: !req.user,
+            forUser: req.user,
+          });
+        },
+      }),
     },
     require("./pivot-edit"),
   ],
