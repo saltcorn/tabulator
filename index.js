@@ -827,7 +827,9 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
     pgSz * 3,
     true,
   ];
-  const hasCalculated = fields.some((f) => f.calculated);
+  const hasCalculated =
+    fields.some((f) => f.calculated) ||
+    columns.some((c) => c.type === "FormulaValue");
   const selected_rows_action_name = selected_rows_action
     ? ((x) => x?.description || x?.name)(
         getState().triggers.find((tr) => tr.name === selected_rows_action)
@@ -983,6 +985,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       hasCalculated,
       rndid,
       table_name: table.name,
+      viewname,
     })});
     if(${!!persistent}) {
       var firstFilter = true;

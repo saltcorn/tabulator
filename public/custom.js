@@ -370,7 +370,7 @@ function pivotEditRecalc(cell, { column_calculation, calc_pos } = {}) {
 }
 
 const gen_save_row_from_cell =
-  ({ confirm_edits, rndid, hasCalculated, table_name }) =>
+  ({ confirm_edits, rndid, hasCalculated, table_name, viewname }) =>
   (row, cell, noid) => {
     if (confirm_edits) {
       if (cell.isEdited() && !window.confirm("Are you sure?")) {
@@ -401,15 +401,7 @@ const gen_save_row_from_cell =
           .then(cb);
     };
     const getFn = (id, cb) => {
-      if (isNode)
-        $.ajax({
-          type: "GET",
-          url: `/api/${table_name}?id=` + id,
-          headers: {
-            "CSRF-Token": _sc_globalCsrf,
-          },
-          error: tabulator_error_handler,
-        }).done(cb);
+      if (isNode) view_post(viewname, "get_rows", { state: { id } }, cb);
       else
         parent.router
           .resolve({
@@ -430,12 +422,13 @@ const gen_save_row_from_cell =
       if (hasCalculated) {
         let id = noid ? resp.success : row.id;
         getFn(id, function (resp) {
-          console.log("calc GET", resp);
-          if (resp.success && resp.success[0]) {
-            window[`tabulator_table_${rndid}`].updateRow(
-              cell.getRow(),
-              resp.success[0]
-            );
+          const uprow = Array.isArray(resp.success)
+            ? resp.success[0]
+            : Array.isArray(resp)
+            ? resp[0]
+            : null;
+          if (uprow) {
+            window[`tabulator_table_${rndid}`].updateRow(cell.getRow(), uprow);
           }
         });
       }
