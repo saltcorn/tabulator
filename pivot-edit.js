@@ -383,6 +383,20 @@ const configuration_workflow = (req) =>
                 },
               },
               {
+                name: "row_order_field",
+                label: "Row order by",
+                type: "String",
+                attributes: {
+                  options: fields.map((f) => f.name),
+                },
+              },
+              {
+                name: "row_order_desc",
+                label: "Descending?",
+                type: "Bool",
+                showIf: { row_order_field: fields.map((f) => f.name) },
+              },
+              {
                 name: "disable_edit_if",
                 label: "Disable row edit if",
                 sublabel: "Formula",
@@ -421,6 +435,8 @@ const run = async (
     columns,
     disable_edit_if,
     tree_field,
+    row_order_field,
+    row_order_desc,
   },
   state,
   extraArgs
@@ -527,6 +543,8 @@ const run = async (
       where: rowWhere,
       joinFields,
       aggregations,
+      orderBy: row_order_field || undefined,
+      orderDesc: row_order_desc || undefined,
     });
     refVals.forEach((refRow) => {
       const value = refRow[reftable.pk_name];
