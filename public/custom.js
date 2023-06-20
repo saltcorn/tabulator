@@ -434,3 +434,13 @@ const gen_save_row_from_cell =
       }
     });
   };
+
+const sc_tab_downloadEncoder = function (fileContents, mimeType) {
+  //fileContents - the unencoded contents of the file
+  //mimeType - the suggested mime type for the output
+
+  //custom action to send blob to server could be included here
+  return new Blob([fileContents.replaceAll(/<[^>]*>/g, "")], {
+    type: mimeType,
+  }); //must return a blob to proceed with the download, return false to abort download
+};

@@ -936,6 +936,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
         persistence:${!!persistent}, 
         persistenceID:"tabview_${viewname}",
         movableColumns: ${!!movable_cols},
+        downloadEncoder: sc_tab_downloadEncoder,
         history: ${!!history},
         ${
           tree_field
