@@ -829,7 +829,8 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
   ];
   const hasCalculated =
     fields.some((f) => f.calculated) ||
-    columns.some((c) => c.type === "FormulaValue");
+    columns.some((c) => c.type === "FormulaValue") ||
+    columns.some((c) => c.type === "JoinField");
   const selected_rows_action_name = selected_rows_action
     ? ((x) => x?.description || x?.name)(
         getState().triggers.find((tr) => tr.name === selected_rows_action)
