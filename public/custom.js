@@ -400,16 +400,6 @@ const gen_save_row_from_cell =
           })
           .then(cb);
     };
-    const getFn = (id, cb) => {
-      if (isNode) view_post(viewname, "get_rows", { state: { id } }, cb);
-      else
-        parent.router
-          .resolve({
-            pathname: `get/api/${table_name}`,
-            query: `id=${id}`,
-          })
-          .then(cb);
-    };
     const fld = cell.getField();
     if (typeof row[fld] === "undefined") return;
     const saveRow = { [fld]: row[fld] };
@@ -421,7 +411,7 @@ const gen_save_row_from_cell =
       }
       if (hasCalculated) {
         let id = noid ? resp.success : row.id;
-        getFn(id, function (resp) {
+        view_post(viewname, "get_rows", { state: { id } }, (resp) => {
           const uprow = Array.isArray(resp.success)
             ? resp.success[0]
             : Array.isArray(resp)
