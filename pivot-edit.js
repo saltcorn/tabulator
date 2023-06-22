@@ -412,7 +412,7 @@ const configuration_workflow = (req) =>
 
 const isWeekend = (date) => ((d) => d === 0 || d === 6)(date.getDay());
 
-const get_rows = async (
+const get_db_rows = async (
   table,
   fields,
   viewname,
@@ -764,7 +764,7 @@ const run = async (table_id, viewname, config, state, extraArgs) => {
     rowField,
     rawColValues,
     valueCell,
-  } = await get_rows(table, fields, viewname, config, state, extraArgs);
+  } = await get_db_rows(table, fields, viewname, config, state, extraArgs);
 
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
   const newRowState = {};
@@ -834,6 +834,8 @@ const run = async (table_id, viewname, config, state, extraArgs) => {
       gen_save_row_from_cell(${JSON.stringify({
         rndid,
         table_name: rowField.reftable_name,
+        viewname,
+        hasCalculated: true,
       })})(row, cell);
       return;
     }
@@ -934,6 +936,23 @@ const edit_value = async (
   }
 };
 
+const get_rows = async (table_id, viewname, config, body, extraArgs) => {
+  const table = await Table.findOne({ id: table_id });
+  const fields = await table.getFields();
+
+  const state = body.state?.id ? { [config.row_field]: body.state.id } : {};
+  const {
+    tabCols,
+    allValuesArray,
+    col_field_name,
+    tabcolumns,
+    rowField,
+    rawColValues,
+    valueCell,
+  } = await get_db_rows(table, fields, viewname, config, state, extraArgs);
+  return { json: { success: allValuesArray } };
+};
+
 module.exports = {
   name: "Tabulator Pivot Edit",
   display_state_form: false,
@@ -942,5 +961,6 @@ module.exports = {
   run,
   routes: {
     edit_value,
+    get_rows,
   },
 };
