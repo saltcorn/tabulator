@@ -412,8 +412,9 @@ const configuration_workflow = (req) =>
 
 const isWeekend = (date) => ((d) => d === 0 || d === 6)(date.getDay());
 
-const run = async (
-  table_id,
+const get_rows = async (
+  table,
+  fields,
   viewname,
   {
     row_field,
@@ -441,11 +442,10 @@ const run = async (
   state,
   extraArgs
 ) => {
-  const table = await Table.findOne({ id: table_id });
-  const fields = await table.getFields();
   readState(state, fields);
   const where = await stateFieldsToWhere({ fields, state });
   const q = await stateFieldsToQuery({ state, fields, prefix: "a." });
+
   const rowField = fields.find((f) => f.name === row_field);
   const colField = fields.find((f) => f.name === col_field);
   const valField = fields.find((f) => f.name === value_field);
@@ -719,6 +719,53 @@ const run = async (
     else allValuesArray.push(calcRow);
     //row_values.add(column_calculation);
   }
+  return {
+    tabCols,
+    allValuesArray,
+    col_field_name,
+    tabcolumns,
+    rowField,
+    rawColValues,
+    valueCell,
+  };
+};
+
+const run = async (table_id, viewname, config, state, extraArgs) => {
+  const {
+    row_field,
+    col_field,
+    value_field,
+    vertical_headers,
+    col_field_format,
+    new_row_formula,
+    column_calculation,
+    row_where,
+    groupBy,
+    col_no_weekends,
+    group_calcs,
+    calc_pos,
+    col_width,
+    target_value,
+    edit_view,
+    col_bin_weeks,
+    columns,
+    disable_edit_if,
+    tree_field,
+    row_order_field,
+    row_order_desc,
+  } = config;
+  const table = await Table.findOne({ id: table_id });
+  const fields = await table.getFields();
+  const {
+    tabCols,
+    allValuesArray,
+    col_field_name,
+    tabcolumns,
+    rowField,
+    rawColValues,
+    valueCell,
+  } = await get_rows(table, fields, viewname, config, state, extraArgs);
+
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
   const newRowState = {};
   Object.entries(state).forEach(([k, v]) => {
