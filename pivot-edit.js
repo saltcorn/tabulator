@@ -853,7 +853,9 @@ const run = async (table_id, viewname, config, state, extraArgs) => {
     if(!id) {
       saveRow.${row_field} = row.rawRowValue;
       saveRow.${col_field} = rawColValues[fld];
+      saveRow._rowId = row.rawRowValue;
     } else {
+      saveRow._rowId = row.rawRowValue;
       saveRow.id = id
     }
     $.ajax({
@@ -865,9 +867,8 @@ const run = async (table_id, viewname, config, state, extraArgs) => {
       },
       error: tabulator_error_handler,
     }).done(function (resp) {
-      if(resp.id && !id && cell) {
-        row.ids[fld] = resp.id;
-        window.tabulator_table_${rndid}.updateRow(cell.getRow(), {ids: row.ids});       
+      if(Array.isArray(resp.success)) {
+        window.tabulator_table_${rndid}.updateRow(cell.getRow(), resp.success[0]);       
       }
       ${
         groupBy && !group_calcs && column_calculation
@@ -903,10 +904,8 @@ const run = async (table_id, viewname, config, state, extraArgs) => {
   );
 };
 
-const edit_value = async (
-  table_id,
-  viewname,
-  {
+const edit_value = async (table_id, viewname, config, body, { req, res }) => {
+  const {
     row_field,
     col_field,
     value_field,
@@ -920,20 +919,39 @@ const edit_value = async (
     group_calcs,
     calc_pos,
     col_width,
-  },
-  body,
-  { req, res }
-) => {
-  const { id, ...rowValues } = body;
+  } = config;
+  let { id, _rowId, ...rowValues } = body;
   const table = await Table.findOne({ id: table_id });
+  const fields = await table.getFields();
 
   if (id) {
     await table.updateRow(rowValues, id, req.user);
-    return;
   } else {
-    const id = await table.insertRow(rowValues, req.user);
-    return { json: { id } };
+    id = await table.insertRow(rowValues, req.user);
   }
+  const {
+    tabCols,
+    allValuesArray,
+    col_field_name,
+    tabcolumns,
+    rowField,
+    rawColValues,
+    valueCell,
+  } = await get_db_rows(
+    table,
+    fields,
+    viewname,
+    config,
+    { [config.row_field]: _rowId },
+    { req, res }
+  );
+  return {
+    json: {
+      success: body.state?.id
+        ? allValuesArray.filter((xs) => xs.groupVal !== "Total")
+        : allValuesArray,
+    },
+  };
 };
 
 const get_rows = async (table_id, viewname, config, body, extraArgs) => {
