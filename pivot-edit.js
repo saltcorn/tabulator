@@ -950,7 +950,13 @@ const get_rows = async (table_id, viewname, config, body, extraArgs) => {
     rawColValues,
     valueCell,
   } = await get_db_rows(table, fields, viewname, config, state, extraArgs);
-  return { json: { success: allValuesArray } };
+  return {
+    json: {
+      success: body.state?.id
+        ? allValuesArray.filter((xs) => xs.groupVal !== "Total")
+        : allValuesArray,
+    },
+  };
 };
 
 module.exports = {
