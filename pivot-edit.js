@@ -929,15 +929,7 @@ const edit_value = async (table_id, viewname, config, body, { req, res }) => {
   } else {
     id = await table.insertRow(rowValues, req.user);
   }
-  const {
-    tabCols,
-    allValuesArray,
-    col_field_name,
-    tabcolumns,
-    rowField,
-    rawColValues,
-    valueCell,
-  } = await get_db_rows(
+  const { allValuesArray } = await get_db_rows(
     table,
     fields,
     viewname,
@@ -947,7 +939,7 @@ const edit_value = async (table_id, viewname, config, body, { req, res }) => {
   );
   return {
     json: {
-      success: body.state?.id
+      success: _rowId
         ? allValuesArray.filter((xs) => xs.groupVal !== "Total")
         : allValuesArray,
     },
