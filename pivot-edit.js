@@ -858,6 +858,7 @@ const run = async (table_id, viewname, config, state, extraArgs) => {
       saveRow._rowId = row.rawRowValue;
       saveRow.id = id
     }
+    saveRow._state = ${JSON.stringify(state)}
     $.ajax({
       type: "POST",
       url: "/view/${viewname}/edit_value",
@@ -920,7 +921,7 @@ const edit_value = async (table_id, viewname, config, body, { req, res }) => {
     calc_pos,
     col_width,
   } = config;
-  let { id, _rowId, ...rowValues } = body;
+  let { id, _rowId, _state, ...rowValues } = body;
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
 
@@ -934,7 +935,7 @@ const edit_value = async (table_id, viewname, config, body, { req, res }) => {
     fields,
     viewname,
     config,
-    { [config.row_field]: _rowId },
+    { [config.row_field]: _rowId, ...(_state || {}) },
     { req, res }
   );
   return {
