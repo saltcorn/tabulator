@@ -687,7 +687,6 @@ const get_db_rows = async (
     if (header_wrap) col.headerWordWrap = true;
   });
 
-  console.log(tabCols);
   let allValuesArray = Object.values(allValues);
   calculators.forEach((f) => {
     allValuesArray.forEach(f);
