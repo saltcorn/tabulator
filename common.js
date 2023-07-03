@@ -85,6 +85,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.headerFilterFunc = "=";
     }
   } else if (t.name === "Float" || t.name === "Integer") {
+    console.log(t, column);
     jsgField.editor = "number";
     jsgField.sorter = "number";
     jsgField.hozAlign = "right";
@@ -109,6 +110,14 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
         stars: (field.attributes?.max || 5) - (field.attributes?.min || 1) + 1,
       };
       jsgField.editor = "star";
+    }
+    if (field.fieldview === "progress_bar") {
+      jsgField.formatter = "progress";
+      jsgField.formatterParams = {};
+      if (column.max) jsgField.formatterParams.max = +column.max;
+      jsgField.formatterParams.min = +column.min;
+      jsgField.hozAlign = "left";
+      jsgField.headerHozAlign = "left";
     }
   } else if (t.name === "Bool") {
     jsgField.editor = "tickCross";
