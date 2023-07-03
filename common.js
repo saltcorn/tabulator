@@ -85,7 +85,6 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.headerFilterFunc = "=";
     }
   } else if (t.name === "Float" || t.name === "Integer") {
-    console.log(t, column);
     jsgField.editor = "number";
     jsgField.sorter = "number";
     jsgField.hozAlign = "right";
