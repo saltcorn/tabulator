@@ -403,6 +403,26 @@ const configuration_workflow = (req) =>
                 type: "String",
                 class: "validate-expression",
               },
+              {
+                name: "fit",
+                label: "Layout Fit",
+                type: "String",
+                required: true,
+                attributes: {
+                  options: [
+                    "Columns",
+                    "Data",
+                    "DataFill",
+                    "DataStretch",
+                    "DataTable",
+                  ],
+                },
+              },
+              {
+                name: "header_wrap",
+                label: "Wrap column headers",
+                type: "Bool",
+              },
             ],
           });
         },
@@ -438,6 +458,7 @@ const get_db_rows = async (
     tree_field,
     row_order_field,
     row_order_desc,
+    header_wrap,
   },
   state,
   extraArgs
@@ -659,11 +680,14 @@ const get_db_rows = async (
       width: col_width || undefined,
     })),
   ];
-  if (disable_edit_if) {
-    tabCols.forEach((col) => {
-      if (!col.editable) col.editable = "__tabulator_edit_check";
-    });
-  }
+
+  tabCols.forEach((col) => {
+    if (disable_edit_if && !col.editable)
+      col.editable = "__tabulator_edit_check";
+    if (header_wrap) col.headerWordWrap = true;
+  });
+
+  console.log(tabCols);
   let allValuesArray = Object.values(allValues);
   calculators.forEach((f) => {
     allValuesArray.forEach(f);
@@ -753,6 +777,7 @@ const run = async (table_id, viewname, config, state, extraArgs) => {
     tree_field,
     row_order_field,
     row_order_desc,
+    fit,
   } = config;
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
@@ -791,7 +816,7 @@ const run = async (table_id, viewname, config, state, extraArgs) => {
     })
     window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}${rndid}", {
       data: ${JSON.stringify(allValuesArray, null, 2)},
-      layout:"Columns", 
+      layout:"fit${fit || "Columns"}", 
       columns,
       clipboard:true,  
       ${
