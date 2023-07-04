@@ -111,12 +111,15 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.editor = "star";
     }
     if (field.fieldview === "progress_bar") {
+      console.log(column);
       jsgField.formatter = "progress";
       jsgField.formatterParams = {};
       if (column.max && !isNaN(+column.max))
         jsgField.formatterParams.max = +column.max;
       if (column.min && !isNaN(+column.min))
         jsgField.formatterParams.min = +column.min;
+      if (column.bar_color) jsgField.formatterParams.color = column.bar_color;
+
       jsgField.hozAlign = "left";
       jsgField.headerHozAlign = "left";
     }
