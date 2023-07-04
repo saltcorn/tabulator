@@ -111,7 +111,6 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.editor = "star";
     }
     if (field.fieldview === "progress_bar") {
-      console.log(column);
       jsgField.formatter = "progress";
       jsgField.formatterParams = {};
       if (column.max && !isNaN(+column.max))
