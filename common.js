@@ -122,7 +122,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.hozAlign = "left";
       jsgField.headerHozAlign = "left";
     }
-    if (field.fieldview === "traffic_light") {
+    if (field.fieldview === "heat_cell") {
       jsgField.formatter = "html";
       const rndid = "col" + hashCol(column);
       const fv = t.fieldviews[column.fieldview];
