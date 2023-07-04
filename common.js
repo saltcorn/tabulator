@@ -122,6 +122,19 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.hozAlign = "left";
       jsgField.headerHozAlign = "left";
     }
+    if (field.fieldview === "traffic_light") {
+      jsgField.formatter = "html";
+      const rndid = "col" + hashCol(column);
+      const fv = t.fieldviews[column.fieldview];
+
+      calculators.push((row) => {
+        row[rndid] =
+          fv && row[column.field_name]
+            ? fv.run(row[column.field_name], undefined, field.attributes)
+            : "";
+      });
+      jsgField.field = rndid;
+    }
   } else if (t.name === "Bool") {
     jsgField.editor = "tickCross";
     jsgField.formatter = "tickCross";
