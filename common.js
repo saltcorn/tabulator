@@ -152,13 +152,13 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
     };
     jsgField.editor = "__flatpickerEditor";
 
-    if (field.fieldview === "showDay") {
+    if (column.fieldview === "showDay" || field.fieldview === "showDay") {
       jsgField.editorParams = { dayOnly: true };
       jsgField.formatter = "__isoDateFormatter";
-    } else if (field.fieldview === "format") {
+    } else if (column.fieldview === "format" || field.fieldview === "format") {
       jsgField.formatter = "__isoDateFormatter";
       jsgField.formatterParams = {
-        format: field.attributes.format,
+        format: column.format || field.attributes.format,
       };
     } else {
       jsgField.formatter = "datetime";
