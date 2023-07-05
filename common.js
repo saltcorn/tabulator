@@ -55,7 +55,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       if (jsgField.headerFilter) jsgField.headerFilter = "input";
     }
   } else if (t === "Key" || t === "File") {
-    if (field.fieldview === "Thumbnail") {
+    if (column.fieldview === "Thumbnail") {
       jsgField.formatter = "__optionalImageFormatter";
       jsgField.formatterParams = {
         height: field.attributes?.height
@@ -103,14 +103,14 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
     jsgField.headerFilter = !!header_filters && "__minMaxFilterEditor";
     jsgField.headerFilterFunc = "__minMaxFilterFunction";
     jsgField.headerFilterLiveFilter = false;
-    if (field.fieldview === "show_star_rating") {
+    if (column.fieldview === "show_star_rating") {
       jsgField.formatter = "star";
       jsgField.formatterParams = {
         stars: (field.attributes?.max || 5) - (field.attributes?.min || 1) + 1,
       };
       jsgField.editor = "star";
     }
-    if (field.fieldview === "progress_bar") {
+    if (column.fieldview === "progress_bar") {
       jsgField.formatter = "progress";
       jsgField.formatterParams = {};
       if (column.max && !isNaN(+column.max))
@@ -122,7 +122,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.hozAlign = "left";
       jsgField.headerHozAlign = "left";
     }
-    if (field.fieldview === "heat_cell") {
+    if (column.fieldview === "heat_cell") {
       jsgField.formatter = "html";
       const rndid = "col" + hashCol(column);
       const fv = t.fieldviews[column.fieldview];
@@ -175,7 +175,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
     jsgField.hozAlign = "center";
     jsgField.vertAlign = "center";
   } else if (t.name === "JSON") {
-    if (field.fieldview === "keys_expand_columns") {
+    if (column.fieldview === "keys_expand_columns") {
       const fv = t.fieldviews.keys_expand_columns;
       const ex = fv.expandColumns(field, column, column);
       jsgField.subcolumns = ex;
