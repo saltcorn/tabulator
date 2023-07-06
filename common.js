@@ -115,8 +115,13 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.formatterParams = {};
       if (column.max && !isNaN(+column.max))
         jsgField.formatterParams.max = +column.max;
+      else if (typeof field.attributes.max !== "undefined")
+        jsgField.formatterParams.max = +field.attributes.max;
       if (column.min && !isNaN(+column.min))
         jsgField.formatterParams.min = +column.min;
+      else if (typeof field.attributes.min !== "undefined")
+        jsgField.formatterParams.min = +field.attributes.min;
+
       if (column.bar_color) jsgField.formatterParams.color = column.bar_color;
 
       jsgField.hozAlign = "left";
