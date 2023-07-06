@@ -194,6 +194,26 @@ function optionalImageFormatter(cell, formatterParams, onRendered) {
   return el;
 }
 
+function heatCellFormatter(cell, formatterParams) {
+  const v = cell.getValue();
+  const attrs = formatterParams;
+  if (typeof v !== "number") return "";
+  const pcnt0 = (v - attrs.min) / (attrs.max - attrs.min);
+  const pcnt = attrs.reverse ? 1 - pcnt0 : pcnt0;
+  const backgroundColor = {
+    Rainbow: `hsl(${360 * pcnt},100%, 50%)`,
+    RedAmberGreen: `hsl(${100 * pcnt},100%, 50%)`,
+    WhiteToRed: `hsl(0,100%, ${100 * (1 - pcnt / 2)}%)`,
+  }[attrs.color_scale];
+  let el = document.createElement("div");
+  el.innerText = v;
+  el.style.width = "100%";
+  el.style.height = `${attrs.em_height || 1}em`;
+  el.style.backgroundColor = backgroundColor;
+  el.className = "px-2";
+  return el;
+}
+
 function add_preset(viewname) {
   let name = prompt("Name of new preset");
   if (!name) return;

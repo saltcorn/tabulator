@@ -128,17 +128,12 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.headerHozAlign = "left";
     }
     if (column.fieldview === "heat_cell") {
-      jsgField.formatter = "html";
-      const rndid = "col" + hashCol(column);
-      const fv = t.fieldviews[column.fieldview];
-
-      calculators.push((row) => {
-        row[rndid] =
-          fv && row[column.field_name]
-            ? fv.run(row[column.field_name], undefined, field.attributes)
-            : "";
-      });
-      jsgField.field = rndid;
+      jsgField.formatter = "__heatCellFormatter";
+      jsgField.formatterParams = { ...column };
+      if (typeof field.attributes.max !== "undefined")
+        jsgField.formatterParams.max = +field.attributes.max;
+      if (typeof field.attributes.min !== "undefined")
+        jsgField.formatterParams.min = +field.attributes.min;
     }
   } else if (t.name === "Bool") {
     jsgField.editor = "tickCross";
