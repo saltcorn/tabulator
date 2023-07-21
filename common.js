@@ -140,9 +140,14 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
     jsgField.formatter = "tickCross";
     jsgField.hozAlign = "center";
     jsgField.vertAlign = "center";
-    jsgField.editorParams = field.required ? {} : { tristate: true };
+    jsgField.editorParams = field.required
+      ? {}
+      : { tristate: true, indeterminateValue: "" };
     jsgField.formatterParams = field.required ? {} : { allowEmpty: true };
     jsgField.headerFilter = !!header_filters;
+    calculators.push((row) => {
+      if (row[column.field_name] === null) row[column.field_name] = "";
+    });
   } else if (t.name === "Date") {
     jsgField.sorter = "date";
 
