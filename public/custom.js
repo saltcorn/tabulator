@@ -438,7 +438,14 @@ const gen_save_row_from_cell =
             ? resp[0]
             : null;
           if (uprow) {
+            //save the children!!
+            const children = cell
+              .getRow()
+              .getTreeChildren()
+              .map((cr) => cr.getData());
             window[`tabulator_table_${rndid}`].updateRow(cell.getRow(), uprow);
+            if (!uprow._children?.length && children.length)
+              children.forEach((cr) => cell.getRow().addTreeChild(cr));
           }
         });
       }
