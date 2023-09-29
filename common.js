@@ -281,14 +281,16 @@ const get_tabulator_columns = async (
       Object.assign(f.attributes, column);
       f.fieldview = column.fieldview;
       if (column.fieldview === "subfield") {
-        tcol.editor = false;
-        const key = `${column.field_name}_${column.key}`;
-        calculators.push((row) => {
-          row[key] = (row[column.field_name] || {})[column.key];
-        });
-        tcol.field = key;
+        tcol.editor = "__jsonSubEditor";
+
+        tcol.field = f.name;
+
+        tcol.formatter = "__jsonSubFormatter";
         tcol.title = column.key;
+
         tcol.headerFilter = !!header_filters;
+        tcol.formatterParams = { subfield: column.key };
+        tcol.editorParams = { subfield: column.key };
         set_json_col(tcol, f, column.key, header_filters);
       } else
         tcol = typeToGridType(f.type, f, header_filters, column, calculators);

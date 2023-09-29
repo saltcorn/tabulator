@@ -461,3 +461,28 @@ const sc_tab_downloadEncoder = function (fileContents, mimeType) {
     type: mimeType,
   }); //must return a blob to proceed with the download, return false to abort download
 };
+
+function jsonSubFormatter(cell, formatterParams, onRendered) {
+  const val = cell.getValue();
+  if (!val) return "";
+  const subval = val[(formatterParams || {}).subfield];
+  return subval;
+}
+
+function jsonSubEditor(cell, onRendered, success, cancel, editorParams) {
+  const val = cell.getValue() || {};
+  const subval = val[editorParams.subfield] || "";
+  var editor = document.createElement("input");
+
+  editor.value = subval;
+  function successFunc(e) {
+    const newVal = { ...val };
+    newVal[editorParams.subfield] = editor.value;
+    success(newVal);
+  }
+
+  editor.addEventListener("change", successFunc);
+  editor.addEventListener("blur", successFunc);
+
+  return editor;
+}
