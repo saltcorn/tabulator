@@ -506,7 +506,11 @@ const get_tabulator_columns = async (
       if (column.calc_dps)
         tcol.bottomCalcParams = { precision: column.calc_dps };
     }
-    if (column.col_width) tcol.width = column.col_width;
+    if (column.col_width)
+      tcol.width =
+        column.col_width_units === "%"
+          ? `${column.col_width}%`
+          : column.col_width;
     tabcols.push(tcol);
   }
   let arndid;

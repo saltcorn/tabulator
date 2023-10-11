@@ -162,10 +162,15 @@ const view_configuration_workflow = (req) =>
             },
           });
           const use_field_picker_repeat = field_picker_repeat.filter(
-            (f) => !["state_field", "col_width_units"].includes(f.name)
+            (f) => !["state_field"].includes(f.name)
           );
-          field_picker_repeat.find((c) => c.name === "col_width").label =
-            "Column width (px)";
+          const cwunit_fld = field_picker_repeat.find(
+            (c) => c.name === "col_width_units"
+          );
+          if (cwunit_fld) {
+            cwunit_fld.attributes.options = ["px", "%"];
+            cwunit_fld.default = "px";
+          }
           const fvs = field_picker_repeat.filter((c) => c.name === "fieldview");
           fvs.forEach((fv) => {
             if (fv?.attributes?.calcOptions?.[1])
