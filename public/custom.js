@@ -462,6 +462,14 @@ const sc_tab_downloadEncoder = function (fileContents, mimeType) {
   }); //must return a blob to proceed with the download, return false to abort download
 };
 
+function ellipsizeFormatter(cell, formatterParams, onRendered) {
+  const s = cell.getValue();
+  const nchars = formatterParams?.nchars || 20;
+  if (!s || !s.length) return "";
+  if (s.length <= nchars) return s;
+  return s.substr(0, nchars - 3) + "...";
+}
+
 function jsonSubFormatter(cell, formatterParams, onRendered) {
   const val = cell.getValue();
   if (!val) return "";

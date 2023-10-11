@@ -53,6 +53,12 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.formatter = "textarea";
       jsgField.editor = false;
       if (jsgField.headerFilter) jsgField.headerFilter = "input";
+    } else if (column.fieldview === "ellipsize") {
+      jsgField.formatter = "__ellipsizeFormatter";
+      jsgField.formatterParams = {
+        nchars: column.nchars || 20,
+      };
+      jsgField.editor = "input";
     }
   } else if (t === "Key" || t === "File") {
     if (column.fieldview === "Thumbnail") {
