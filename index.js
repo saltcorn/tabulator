@@ -1584,8 +1584,8 @@ module.exports = {
   plugin_name: "tabulator",
   configuration_workflow,
   fieldviews: features.ellipsize
-    ? {}
-    : {
+    ? undefined
+    : () => ({
         ellipsize: {
           type: "String",
           isEdit: false,
@@ -1605,7 +1605,7 @@ module.exports = {
             return s.substr(0, (attrs.nchars || 20) - 3) + "...";
           },
         },
-      },
+      }),
   viewtemplates: () => [
     {
       name: "Tabulator",
