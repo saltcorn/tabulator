@@ -468,9 +468,11 @@ const get_tabulator_columns = async (
           column.action_name,
           "action_name"
         );
-        const action_label = column.action_label_formula
-          ? eval_expression(column.action_label, row)
-          : column.action_label || column.action_name;
+        const action_label =
+          (column.icon ? i({ class: column.icon }) : "") +
+          (column.action_label_formula
+            ? eval_expression(column.action_label, row)
+            : column.action_label || column.action_name);
         row[rndid] = column.in_dropdown
           ? url
           : action_link(url, req, { ...column, action_label });
