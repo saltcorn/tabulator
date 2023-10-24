@@ -114,6 +114,11 @@ const view_configuration_workflow = (req) =>
             type: "Bool",
           });
           field_picker_repeat.push({
+            name: "cssClass",
+            label: "CSS Class",
+            type: "String",
+          });
+          field_picker_repeat.push({
             name: "disable_edit",
             label: "Disable editing",
             type: "Bool",

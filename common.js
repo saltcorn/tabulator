@@ -507,6 +507,7 @@ const get_tabulator_columns = async (
     }
     if (column.header_label) tcol.title = column.header_label;
     if (column.frozen) tcol.frozen = true;
+    if (column.cssClass) tcol.cssClass = column.cssClass;
     if (column.disable_edit) tcol.editor = false;
     if (vert_col_headers) tcol.headerVertical = true;
     if (column.column_calculation) {
