@@ -300,6 +300,7 @@ const get_tabulator_columns = async (
         set_json_col(tcol, f, column.key, header_filters);
       } else
         tcol = typeToGridType(f.type, f, header_filters, column, calculators);
+      if (column.showif) tcol.showif = column.showif;
     } else if (column.type === "JoinField") {
       let refNm, targetNm, through, key, type;
       if (column.join_field.includes("->")) {
@@ -338,6 +339,7 @@ const get_tabulator_columns = async (
         tcol.field = key;
       }
       tcol.editor = false;
+      if (column.showif) tcol.showif = column.showif;
     } else if (column.type === "Aggregation") {
       let table, fld, through;
       const rndid = "col" + hashCol(column);
@@ -383,6 +385,10 @@ const get_tabulator_columns = async (
             type.fieldviews[column.agg_fieldview].run(x, req, column);
       }
       calculators.push((row) => {
+        if (column.showif && !eval_expression(column.showif, row, req.user)) {
+          row[rndid] = "";
+          return;
+        }
         let value = row[targetNm];
 
         row[rndid] = showValue(value);
@@ -392,7 +398,11 @@ const get_tabulator_columns = async (
     } else if (column.type === "FormulaValue") {
       const rndid = "col" + hashCol(column);
       calculators.push((row) => {
-        row[rndid] = eval_expression(column.formula, row);
+        if (column.showif && !eval_expression(column.showif, row, req.user)) {
+          row[rndid] = "";
+          return;
+        }
+        row[rndid] = eval_expression(column.formula, row, req.user);
       });
       tcol.field = rndid;
       tcol.headerFilter = !!header_filters && "input";
@@ -406,6 +416,10 @@ const get_tabulator_columns = async (
         isNode
       );
       calculators.push((row) => {
+        if (column.showif && !eval_expression(column.showif, row, req.user)) {
+          row[rndid] = "";
+          return;
+        }
         row[rndid] = key(row);
       });
       tcol.field = rndid;
@@ -426,6 +440,10 @@ const get_tabulator_columns = async (
 
       const { key } = make_link(column, fields);
       calculators.push((row) => {
+        if (column.showif && !eval_expression(column.showif, row, req.user)) {
+          row[rndid] = "";
+          return;
+        }
         row[rndid] = key(row);
       });
       tcol.field = rndid;
@@ -460,6 +478,10 @@ const get_tabulator_columns = async (
       //console.log(column);
       const rndid = "col" + hashCol(column);
       calculators.push((row) => {
+        if (column.showif && !eval_expression(column.showif, row, req.user)) {
+          row[rndid] = "";
+          return;
+        }
         const url = action_url(
           viewname,
           table,
