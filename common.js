@@ -527,7 +527,6 @@ const get_tabulator_columns = async (
       }
       continue;
     }
-    console.log(column);
     if (column.alignment && column.alignment !== "Default") {
       tcol.hozAlign = column.alignment.toLowerCase();
     }
