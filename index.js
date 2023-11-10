@@ -867,6 +867,12 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
           r[col.field] = lu_map[r[col.field]][col.lookupFkeys.field];
       });
     }
+    if (col.showif)
+      rows.forEach((r) => {
+        if (!eval_expression(col.showif, r, extraArgs.req?.user))
+          r[col.field] = null;
+      });
+
     if (header_wrap) col.headerWordWrap = true;
   }
   if (disable_edit_if) {
