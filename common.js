@@ -505,6 +505,10 @@ const get_tabulator_columns = async (
       }
       continue;
     }
+    console.log(column);
+    if (column.alignment && column.alignment !== "Default") {
+      tcol.hozAlign = column.alignment.toLowerCase();
+    }
     if (column.header_label) tcol.title = column.header_label;
     if (column.frozen) tcol.frozen = true;
     if (column.cssClass) tcol.cssClass = column.cssClass;

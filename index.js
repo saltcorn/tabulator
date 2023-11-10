@@ -107,6 +107,8 @@ const view_configuration_workflow = (req) =>
             table,
             viewname: context.viewname,
             req,
+            has_align: true,
+            has_showif: true,
           });
           field_picker_repeat.push({
             name: "frozen",
