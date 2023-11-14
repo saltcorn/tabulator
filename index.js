@@ -8,8 +8,12 @@ const { getState, features } = require("@saltcorn/data/db/state");
 const Form = require("@saltcorn/data/models/form");
 const View = require("@saltcorn/data/models/view");
 const Workflow = require("@saltcorn/data/models/workflow");
-const { eval_expression } = require("@saltcorn/data/models/expression");
+const {
+  eval_expression,
+  jsexprToWhere,
+} = require("@saltcorn/data/models/expression");
 const { check_view_columns } = require("@saltcorn/data/plugin-testing");
+const { mergeIntoWhere } = require("@saltcorn/data/utils");
 const {
   field_picker_fields,
   picked_fields_to_query,
@@ -39,6 +43,7 @@ const {
   text_attr,
   select,
   option,
+  code,
   link,
 } = require("@saltcorn/markup/tags");
 const { post_btn, localeDate, localeDateTime } = require("@saltcorn/markup");
@@ -357,6 +362,27 @@ const view_configuration_workflow = (req) =>
                 attributes: {
                   options: fields.map((f) => f.name),
                 },
+              },
+              {
+                name: "include_fml",
+                label: req.__("Row inclusion formula"),
+                class: "validate-expression",
+                tab: "Content",
+                sublabel:
+                  req.__("Only include rows where this formula is true. ") +
+                  req.__("In scope:") +
+                  " " +
+                  [
+                    ...fields.map((f) => f.name),
+                    "user",
+                    "year",
+                    "month",
+                    "day",
+                    "today()",
+                  ]
+                    .map((s) => code(s))
+                    .join(", "),
+                type: "String",
               },
               {
                 name: "def_order_descending",
@@ -1254,6 +1280,7 @@ const get_db_rows = async (
     vert_col_headers,
     dropdown_frozen,
     disable_edit_if,
+    include_fml,
   },
   state,
   req,
@@ -1339,7 +1366,11 @@ const get_db_rows = async (
   }
 
   // console.log(aggregations);
-
+  if (include_fml) {
+    const ctx = { ...state, user_id: req.user?.id || null, user: req.user };
+    let where1 = jsexprToWhere(include_fml, ctx, fields);
+    mergeIntoWhere(where, where1 || {});
+  }
   let rows = queriesObj?.get_rows_query
     ? await queriesObj.get_rows_query(where, joinFields, aggregations, q)
     : await table.getJoinedRows({
