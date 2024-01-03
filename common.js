@@ -413,7 +413,12 @@ const get_tabulator_columns = async (
         column,
         fields,
         req?.__ ? req.__ : (s) => s,
-        isNode
+        isNode,
+        req?.user,
+        "",
+        {},
+        req,
+        viewname
       );
       calculators.push((row) => {
         if (column.showif && !eval_expression(column.showif, row, req.user)) {
