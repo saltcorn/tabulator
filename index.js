@@ -1621,7 +1621,7 @@ module.exports = {
         features?.version_plugin_serve_path
           ? "@" + require("./package.json").version
           : ""
-      }/tabulator_${stylesheet}.min.css`,
+      }/tabulator_${stylesheet || "bootstrap5"}.min.css`,
     },
   ],
   sc_plugin_api_version: 1,
