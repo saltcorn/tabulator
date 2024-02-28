@@ -543,6 +543,15 @@ const view_configuration_workflow = (req) =>
                 class: "validate-expression",
               },
               {
+                name: "row_color_formula",
+                label: "Row color formula",
+                sublabel:
+                  "Formula for row background color. Ex.: <code>age>65 ?'#aaffaa': null</code>",
+                type: "String",
+                tab: "Functionality",
+                class: "validate-expression",
+              },
+              {
                 name: "selected_rows_action_once",
                 label: "Run action once for all rows",
                 type: "Bool",
@@ -783,6 +792,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
     ajax_load,
     confirm_edits,
     disable_edit_if,
+    row_color_formula,
   } = cfg;
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
@@ -959,10 +969,21 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
             : `data: ${JSON.stringify(rows)},`
         }
         ${
-          disable_edit_if
+          disable_edit_if || row_color_formula
             ? `rowFormatter: function(row) {
           if(row.getData()._disable_edit) {
             row.getElement().style.backgroundColor = "#cccccc";
+          } ${
+            row_color_formula
+              ? `const rowcol = (new Function("{${fields
+                  .map((f) => f.name)
+                  .join(",")}}", "return "+${JSON.stringify(
+                  row_color_formula
+                )}))(row.getData());
+                if(rowcol) {
+                  row.getElement().style.backgroundColor = rowcol;
+          }`
+              : ""
           }
         },`
             : ``
