@@ -423,7 +423,8 @@ const get_tabulator_columns = async (
         "",
         {},
         req,
-        viewname
+        viewname,
+        true //get label in data for sorting
       );
       calculators.push((row) => {
         if (column.showif && !eval_expression(column.showif, row, req.user)) {
