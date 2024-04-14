@@ -622,4 +622,26 @@ const nest = (items, id = null) => {
     }));
 };
 
-module.exports = { typeToGridType, hashCol, nest, get_tabulator_columns };
+const getDarkStyle = (req) => {
+  const state = getState();
+  if (state.plugin_cfgs) {
+    let anyBsThemeCfg = state.plugin_cfgs["any-bootstrap-theme"];
+    if (!anyBsThemeCfg)
+      anyBsThemeCfg = state.plugin_cfgs["@saltcorn/any-bootstrap-theme"];
+    if (anyBsThemeCfg && anyBsThemeCfg.mode === "dark") {
+      let tabulatorCfg = state.plugin_cfgs["tabulator"];
+      if (!tabulatorCfg)
+        tabulatorCfg = state.plugin_cfgs["@saltcorn/tabulator"];
+      if (tabulatorCfg) return tabulatorCfg.stylesheet_dark;
+    }
+  }
+  return undefined;
+};
+
+module.exports = {
+  typeToGridType,
+  hashCol,
+  nest,
+  get_tabulator_columns,
+  getDarkStyle,
+};
