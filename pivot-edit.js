@@ -45,7 +45,12 @@ const {
   select,
   option,
 } = require("@saltcorn/markup/tags");
-const { typeToGridType, nest, get_tabulator_columns } = require("./common");
+const {
+  typeToGridType,
+  nest,
+  get_tabulator_columns,
+  getDarkStyle,
+} = require("./common");
 const moment = require("moment");
 
 const get_state_fields = async (table_id, viewname, { show_view }) => {
@@ -631,7 +636,7 @@ const get_db_rows = async (
     {
       type: "Field",
     },
-    {}
+    []
   );
   const valueCell = edit_view
     ? { ...valueCell0, editor: false, cellClick: "__pivot_edit_popup" }
@@ -802,9 +807,19 @@ const run = async (table_id, viewname, config, state, extraArgs) => {
         user: extraArgs.req.user,
       })
     : {};
+  const darkStyle = await getDarkStyle(extraArgs.req);
   return (
     script(
       domReady(`
+      ${
+        darkStyle
+          ? `document.body.innerHTML += '<link rel="stylesheet" href="/plugins/public/tabulator${
+              features?.version_plugin_serve_path
+                ? "@" + require("./package.json").version
+                : ""
+            }/tabulator_${darkStyle}.min.css" type="text/css"/>';`
+          : ""
+      }
     const columns=${JSON.stringify(tabCols, null, 2)};   
     columns.forEach(col=>{
       Object.entries(col).forEach(([k,v])=>{

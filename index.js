@@ -936,7 +936,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       col.editable = "__tabulator_edit_check";
     });
   }
-  const darkStyle = getDarkStyle(extraArgs.req);
+  const darkStyle = await getDarkStyle(extraArgs.req);
   return fragment(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
