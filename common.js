@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const db = require("@saltcorn/data/db");
 const { getState, features } = require("@saltcorn/data/db/state");
 const { eval_expression } = require("@saltcorn/data/models/expression");
+const { interpolate } = require("@saltcorn/data/utils");
 const { post_btn, localeDate, localeDateTime } = require("@saltcorn/markup");
 const {
   text,
@@ -279,8 +280,83 @@ const get_tabulator_columns = async (
   req,
   header_filters,
   vert_col_headers,
-  dropdown_frozen
+  dropdown_frozen,
+  layout
 ) => {
+  if (layout?.list_columns && layout.besides) {
+    const typeMap = {
+      field: "Field",
+      join_field: "JoinField",
+      view_link: "ViewLink",
+      view: "View",
+      link: "Link",
+      action: "Action",
+      blank: "Text",
+      aggregation: "Aggregation",
+      dropdown_menu: "DropdownMenu",
+    };
+    const toArray = (x) =>
+      !x ? [] : Array.isArray(x) ? x : x.above ? x.above : [x];
+    const newCols = layout.besides.map(({ contents, ...rest }) => {
+      if (!contents) contents = rest;
+      const col = {
+        ...contents,
+        ...rest,
+        type: typeMap[contents.type] || contents.type,
+      };
+      switch (contents.type) {
+        case "link":
+          col.link_text = contents.text;
+          col.link_url = contents.url;
+          col.link_url_formula = contents.isFormula?.url;
+          col.link_text_formula = contents.isFormula?.text;
+          break;
+        case "view_link":
+          col.view_label_formula = contents.isFormula?.label;
+          break;
+        /*case "dropdown_menu":
+          col.dropdown_columns = get_viewable_fields_from_layout(
+            viewname,
+            statehash,
+            table,
+            fields,
+            columns,
+            isShow,
+            req,
+            __,
+            (state = {}),
+            srcViewName,
+            toArray(contents.contents)
+          );
+          break;*/
+        case "blank":
+          if (contents.isFormula?.text) {
+            col.type = "FormulaValue";
+            col.formula = col.contents;
+          }
+          if (contents.isHTML)
+            col.interpolator = (row) =>
+              interpolate(contents.contents, row, req?.user);
+          break;
+        case "action":
+          col.action_label_formula = contents.isFormula?.action_label;
+          break;
+      }
+      return col;
+    });
+    return await get_tabulator_columns(
+      viewname,
+      table,
+      fields,
+      newCols,
+      isShow,
+      req,
+      header_filters,
+      vert_col_headers,
+      dropdown_frozen
+    );
+  }
+
   const tabcols = [];
   const calculators = [];
   const dropdown_actions = [];

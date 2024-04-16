@@ -1003,6 +1003,7 @@ const hideShowColsBtn = (
 const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
   const {
     columns,
+    layout,
     fit,
     responsiveLayout,
     hideColsBtn,
@@ -1087,7 +1088,8 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       extraArgs.req,
       header_filters,
       vert_col_headers,
-      dropdown_frozen
+      dropdown_frozen,
+      layout
     );
 
   if (selectable)
