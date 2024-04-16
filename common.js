@@ -297,7 +297,8 @@ const get_tabulator_columns = async (
     };
     const toArray = (x) =>
       !x ? [] : Array.isArray(x) ? x : x.above ? x.above : [x];
-    const newCols = layout.besides.map(({ contents, ...rest }) => {
+    let dropCols = [];
+    const layoutCol2Col = ({ contents, ...rest }) => {
       if (!contents) contents = rest;
       const col = {
         ...contents,
@@ -314,21 +315,12 @@ const get_tabulator_columns = async (
         case "view_link":
           col.view_label_formula = contents.isFormula?.label;
           break;
-        /*case "dropdown_menu":
-          col.dropdown_columns = get_viewable_fields_from_layout(
-            viewname,
-            statehash,
-            table,
-            fields,
-            columns,
-            isShow,
-            req,
-            __,
-            (state = {}),
-            srcViewName,
-            toArray(contents.contents)
-          );
-          break;*/
+        case "dropdown_menu":
+          dropCols = [
+            ...dropCols,
+            ...toArray(contents.contents).map(layoutCol2Col),
+          ];
+          break;
         case "blank":
           if (contents.isFormula?.text) {
             col.type = "FormulaValue";
@@ -343,13 +335,18 @@ const get_tabulator_columns = async (
           break;
       }
       return col;
+    };
+    const newCols = layout.besides.map(layoutCol2Col);
+    dropCols.forEach((c) => {
+      c.in_dropdown = true;
     });
-    //console.log(newCols);
+    const allNewCols = [...newCols, ...dropCols];
+    //console.log(allNewCols);
     return await get_tabulator_columns(
       viewname,
       table,
       fields,
-      newCols,
+      allNewCols,
       isShow,
       req,
       header_filters,
