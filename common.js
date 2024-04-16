@@ -344,6 +344,7 @@ const get_tabulator_columns = async (
       }
       return col;
     });
+    //console.log(newCols);
     return await get_tabulator_columns(
       viewname,
       table,
@@ -382,6 +383,19 @@ const get_tabulator_columns = async (
       } else
         tcol = typeToGridType(f.type, f, header_filters, column, calculators);
       if (column.showif) tcol.showif = column.showif;
+    } else if (column.type === "Text") {
+      const rndid = "col" + hashCol(column);
+      calculators.push((row) => {
+        if (column.showif && !eval_expression(column.showif, row, req.user)) {
+          row[rndid] = "";
+          return;
+        }
+        row[rndid] = column.interpolator
+          ? column.interpolator(row)
+          : text(column.contents);
+      });
+      tcol.field = rndid;
+      tcol.headerFilter = !!header_filters && "input";
     } else if (column.type === "JoinField") {
       let refNm, targetNm, through, key, type;
       if (column.join_field.includes("->")) {
