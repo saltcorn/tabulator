@@ -291,6 +291,13 @@ const new_columns_step = (req) => ({
         .filter((f) => !f.calculated || f.stored)
         .map((f) => f.name);
     });
+    const agg_fieldview_options = {};
+
+    Object.values(getState().types).forEach((t) => {
+      agg_fieldview_options[t.name] = Object.entries(t.fieldviews)
+        .filter(([k, v]) => !v.isEdit && !v.isFilter)
+        .map(([k, v]) => k);
+    });
     const pages = await Page.find();
     const groups = (await PageGroup.find()).map((g) => ({
       name: g.name,
@@ -370,6 +377,7 @@ const new_columns_step = (req) => ({
       triggerActions,
       builtInActions,
       actionConfigForms,
+      agg_fieldview_options,
       //fieldViewConfigForms,
       field_view_options: {
         ...field_view_options,
