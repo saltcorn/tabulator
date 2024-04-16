@@ -1199,7 +1199,10 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       }`
           : ""
       }
-    window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}${rndid}", {
+    window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname.replaceAll(
+        " ",
+        ""
+      )}${rndid}", {
         ${
           ajax_load
             ? `
@@ -1497,7 +1500,10 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
 
     div({ id: "jsGridNotify", class: "my-1" }),
 
-    div({ id: `tabgrid${viewname}${rndid}`, style: { height: "100%" } })
+    div({
+      id: `tabgrid${viewname.replaceAll(" ", "")}${rndid}`,
+      style: { height: "100%" },
+    })
   );
 };
 
