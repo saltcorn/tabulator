@@ -163,7 +163,6 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       format: "iso",
     };
     jsgField.editor = "__flatpickerEditor";
-
     if (column.fieldview === "showDay" || field.fieldview === "showDay") {
       jsgField.editorParams = { dayOnly: true };
       jsgField.formatter = "__isoDateFormatter";
@@ -301,6 +300,8 @@ const get_tabulator_columns = async (
     const layoutCol2Col = ({ contents, ...rest }) => {
       if (!contents) contents = rest;
       const col = {
+        ...rest?.configuration,
+        ...contents?.configuration,
         ...contents,
         ...rest,
         type: typeMap[contents.type] || contents.type,
