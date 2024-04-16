@@ -1538,6 +1538,7 @@ const get_db_rows = async (
   fields,
   viewname,
   {
+    layout,
     columns,
     groupBy,
     def_order_field,
@@ -1659,7 +1660,8 @@ const get_db_rows = async (
     req,
     header_filters,
     vert_col_headers,
-    dropdown_frozen
+    dropdown_frozen,
+    layout
   );
   calculators.forEach((f) => {
     rows.forEach(f);
