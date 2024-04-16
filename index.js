@@ -320,6 +320,7 @@ const new_columns_step = (req) => ({
         Text: "blank",
         DropdownMenu: "dropdown_menu",
         Aggregation: "aggregation",
+        FormulaValue: "blank",
       };
       (context.columns || []).forEach((col) => {
         const newCol = {
@@ -338,6 +339,12 @@ const new_columns_step = (req) => ({
         delete newCol.contents.configuration.type;
 
         switch (col.type) {
+          case "FormulaValue":
+            newCol.contents.isFormula = {
+              text: true,
+            };
+            newCol.contents.contents = col.formula;
+            break;
           case "Action":
             newCol.contents.isFormula = {
               action_label: !!col.action_label_formula,
