@@ -22,6 +22,7 @@ const {
   option,
   link,
 } = require("@saltcorn/markup/tags");
+const User = require("@saltcorn/data/models/user");
 
 const {
   action_url,
@@ -622,4 +623,35 @@ const nest = (items, id = null) => {
     }));
 };
 
-module.exports = { typeToGridType, hashCol, nest, get_tabulator_columns };
+const getDarkStyle = async (req) => {
+  const state = getState();
+  const extracter = () => {
+    let tabulatorCfg = state.plugin_cfgs["tabulator"];
+    if (!tabulatorCfg) tabulatorCfg = state.plugin_cfgs["@saltcorn/tabulator"];
+    return tabulatorCfg ? tabulatorCfg.stylesheet_dark : undefined;
+  };
+  if (state.plugin_cfgs) {
+    if (req.user?.id) {
+      const user = await User.findOne({ id: req.user.id });
+      // does an user overwrite the global setting?
+      if (user?._attributes?.layout?.config?.mode) {
+        if (user._attributes.layout.config.mode === "dark") return extracter();
+        else return undefined;
+      }
+    }
+    // does the global setting say dark mode?
+    let anyBsThemeCfg = state.plugin_cfgs["any-bootstrap-theme"];
+    if (!anyBsThemeCfg)
+      anyBsThemeCfg = state.plugin_cfgs["@saltcorn/any-bootstrap-theme"];
+    if (anyBsThemeCfg?.mode === "dark") return extracter();
+  }
+  return undefined;
+};
+
+module.exports = {
+  typeToGridType,
+  hashCol,
+  nest,
+  get_tabulator_columns,
+  getDarkStyle,
+};
