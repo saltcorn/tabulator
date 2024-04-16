@@ -171,6 +171,11 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.formatterParams = {
         format: column.format || field.attributes.format,
       };
+    } else if (
+      column.fieldview === "relative" ||
+      field.fieldview === "relative"
+    ) {
+      jsgField.formatter = "__relativeDateFormatter";
     } else {
       jsgField.formatter = "datetime";
       jsgField.formatterParams = {
@@ -418,7 +423,8 @@ const get_tabulator_columns = async (
         "",
         {},
         req,
-        viewname
+        viewname,
+        true //get label in data for sorting
       );
       calculators.push((row) => {
         if (column.showif && !eval_expression(column.showif, row, req.user)) {
