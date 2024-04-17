@@ -68,6 +68,7 @@ const {
   hashCol,
   nest,
   get_tabulator_columns,
+  getDarkStyle,
 } = require("./common");
 const configuration_workflow = () =>
   new Workflow({
@@ -90,6 +91,24 @@ const configuration_workflow = () =>
                     "modern",
                     "simple",
                     "site",
+                    "site_dark",
+                  ],
+                },
+              },
+              {
+                name: "stylesheet_dark",
+                label: "Dark mode stylesheet",
+                type: "String",
+                required: false,
+                attributes: {
+                  options: [
+                    "bootstrap5",
+                    "bootstrap4",
+                    "midnight",
+                    "modern",
+                    "simple",
+                    "site",
+                    "site_dark",
                   ],
                 },
               },
@@ -833,6 +852,7 @@ const view_configuration_workflow = (req) =>
                     "modern",
                     "simple",
                     "site",
+                    "site_dark",
                   ],
                 },
                 tab: "Layout",
@@ -1179,12 +1199,23 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       col.editable = "__tabulator_edit_check";
     });
   }
+  const darkStyle = await getDarkStyle(extraArgs.req);
   return fragment(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
     style(`.tabulator-popup-container {background: white}`),
     script(
       domReady(`
+      ${
+        darkStyle
+          ? `document.body.innerHTML += '<link rel="stylesheet" href="/plugins/public/tabulator${
+              features?.version_plugin_serve_path
+                ? "@" + require("./package.json").version
+                : ""
+            }/tabulator_${darkStyle}.min.css" type="text/css"/>';`
+          : ""
+      }
+
       const columns=${JSON.stringify(use_tabcolumns)};   
       const dropdown_actions = ${JSON.stringify(dropdown_actions)};
       window.actionPopup = (e, row) => {
