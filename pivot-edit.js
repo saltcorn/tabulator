@@ -828,7 +828,10 @@ const run = async (table_id, viewname, config, state, extraArgs) => {
         }
       })
     })
-    window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}${rndid}", {
+    window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname.replaceAll(
+        " ",
+        ""
+      )}${rndid}", {
       data: ${JSON.stringify(allValuesArray, null, 2)},
       layout:"fit${fit || "Columns"}", 
       columns,
@@ -940,7 +943,11 @@ const run = async (table_id, viewname, config, state, extraArgs) => {
       : ""
   }
     `)
-    ) + div({ id: `tabgrid${viewname}${rndid}`, style: { height: "100%" } })
+    ) +
+    div({
+      id: `tabgrid${viewname.replaceAll(" ", "")}${rndid}`,
+      style: { height: "100%" },
+    })
   );
 };
 

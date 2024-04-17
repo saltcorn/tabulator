@@ -3,9 +3,13 @@ const User = require("@saltcorn/data/models/user");
 const FieldRepeat = require("@saltcorn/data/models/fieldrepeat");
 
 const Table = require("@saltcorn/data/models/table");
+const Library = require("@saltcorn/data/models/library");
+const Page = require("@saltcorn/data/models/page");
+const PageGroup = require("@saltcorn/data/models/page_group");
 const Trigger = require("@saltcorn/data/models/trigger");
 const { getState, features } = require("@saltcorn/data/db/state");
 const Form = require("@saltcorn/data/models/form");
+const File = require("@saltcorn/data/models/file");
 const View = require("@saltcorn/data/models/view");
 const Workflow = require("@saltcorn/data/models/workflow");
 const {
@@ -25,6 +29,8 @@ const {
   getActionConfigFields,
   readState,
   run_action_column,
+  calcfldViewOptions,
+  calcrelViewOptions,
 } = require("@saltcorn/data/plugin-helper");
 const {
   text,
@@ -115,122 +121,377 @@ const configuration_workflow = () =>
 
 const public_user_role = features?.public_user_role || 10;
 
+const old_columns_step = (req) => ({
+  name: "Columns",
+  form: async (context) => {
+    const table = await Table.findOne(
+      context.table_id
+        ? { id: context.table_id }
+        : { name: context.exttable_name }
+    );
+    //console.log(context);
+    const field_picker_repeat = await field_picker_fields({
+      table,
+      viewname: context.viewname,
+      req,
+      has_align: true,
+      has_showif: true,
+    });
+    field_picker_repeat.push({
+      name: "frozen",
+      label: "Frozen",
+      type: "Bool",
+    });
+    field_picker_repeat.push({
+      name: "cssClass",
+      label: "CSS Class",
+      type: "String",
+    });
+    field_picker_repeat.push({
+      name: "disable_edit",
+      label: "Disable editing",
+      type: "Bool",
+      showIf: { type: "Field" },
+    });
+    field_picker_repeat.push({
+      name: "column_calculation",
+      label: "Column Calculation",
+      type: "String",
+      attributes: {
+        options: [
+          "avg",
+          "max",
+          "min",
+          "sum",
+          "count",
+          { name: "__tabulator_colcalc_unique", label: "count unique" },
+          { name: "__tabulator_colcalc_counttrue", label: "count true" },
+          {
+            name: "__tabulator_colcalc_countfalse",
+            label: "count false",
+          },
+          {
+            name: "__tabulator_colcalc_avgnonulls",
+            label: "avg no nulls",
+          },
+          {
+            name: "__tabulator_colcalc_sumroundquarter",
+            label: "sum round to quarter",
+          },
+        ],
+      },
+    });
+    field_picker_repeat.push({
+      name: "calc_dps",
+      label: "Calculation decimal places",
+      type: "Integer",
+      showIf: {
+        column_calculation: [
+          "avg",
+          "max",
+          "min",
+          "sum",
+          "__tabulator_colcalc_avgnonulls",
+        ],
+      },
+    });
+    const use_field_picker_repeat = field_picker_repeat.filter(
+      (f) => !["state_field"].includes(f.name)
+    );
+    const cwunit_fld = field_picker_repeat.find(
+      (c) => c.name === "col_width_units"
+    );
+    if (cwunit_fld) {
+      cwunit_fld.attributes.options = ["px", "%"];
+      cwunit_fld.default = "px";
+    }
+    const fvs = field_picker_repeat.filter((c) => c.name === "fieldview");
+    fvs.forEach((fv) => {
+      if (fv?.attributes?.calcOptions?.[1])
+        Object.values(fv.attributes.calcOptions[1]).forEach((fvlst) => {
+          if (fvlst[0] === "as_text") fvlst.push("textarea");
+        });
+    });
+    // fix legacy values missing view_name
+    (context?.columns || []).forEach((column) => {
+      if (column.type === "ViewLink" && column.view && !column.view_name) {
+        const view_select = parse_view_select(column.view);
+        column.view_name = view_select.viewname;
+      }
+    });
+    return new Form({
+      fields: [
+        new FieldRepeat({
+          name: "columns",
+          fancyMenuEditor: true,
+          fields: use_field_picker_repeat,
+        }),
+      ],
+    });
+  },
+});
+
+const new_columns_step = (req) => ({
+  name: req.__("Columns"),
+  builder: async (context) => {
+    const table = Table.findOne(context.table_id || context.exttable_name);
+    const fields = table.getFields();
+
+    const boolfields = fields.filter((f) => f.type && f.type.name === "Bool");
+    const stateActions = Object.entries(getState().actions).filter(
+      ([k, v]) => !v.disableInBuilder
+    );
+    const builtInActions = [
+      "Delete",
+      "GoBack",
+      ...boolfields.map((f) => `Toggle ${f.name}`),
+    ];
+    const actions = [...builtInActions, ...stateActions.map(([k, v]) => k)];
+    const triggerActions = [];
+    (
+      await Trigger.find({
+        when_trigger: { or: ["API call", "Never"] },
+      })
+    ).forEach((tr) => {
+      actions.push(tr.name);
+      triggerActions.push(tr.name);
+    });
+    (
+      await Trigger.find({
+        table_id: context.table_id,
+      })
+    ).forEach((tr) => {
+      actions.push(tr.name);
+      triggerActions.push(tr.name);
+    });
+    for (const field of fields) {
+      if (field.type === "Key") {
+        field.reftable = Table.findOne({
+          name: field.reftable_name,
+        });
+        if (field.reftable) await field.reftable.getFields();
+      }
+    }
+    const actionConfigForms = {};
+    for (const [name, action] of stateActions) {
+      if (action.configFields) {
+        actionConfigForms[name] = await getActionConfigFields(action, table, {
+          mode: "show",
+        });
+      }
+    }
+    //const fieldViewConfigForms = await calcfldViewConfig(fields, false);
+    const { field_view_options, handlesTextStyle } = calcfldViewOptions(
+      fields,
+      "show"
+    );
+    if (table.name === "users") {
+      fields.push(
+        new Field({
+          name: "verification_url",
+          label: "Verification URL",
+          type: "String",
+        })
+      );
+      field_view_options.verification_url = ["as_text", "as_link"];
+    }
+    const rel_field_view_options = await calcrelViewOptions(table, "show");
+    const roles = await User.get_roles();
+    const { parent_field_list } = await table.get_parent_relations(true, true);
+
+    const { child_field_list, child_relations } =
+      await table.get_child_relations(true);
+    var agg_field_opts = {};
+    child_relations.forEach(({ table, key_field, through }) => {
+      const aggKey =
+        (through ? `${through.name}->` : "") +
+        `${table.name}.${key_field.name}`;
+      agg_field_opts[aggKey] = table.fields
+        .filter((f) => !f.calculated || f.stored)
+        .map((f) => f.name);
+    });
+    const agg_fieldview_options = {};
+
+    Object.values(getState().types).forEach((t) => {
+      agg_fieldview_options[t.name] = Object.entries(t.fieldviews)
+        .filter(([k, v]) => !v.isEdit && !v.isFilter)
+        .map(([k, v]) => k);
+    });
+    const pages = await Page.find();
+    const groups = (await PageGroup.find()).map((g) => ({
+      name: g.name,
+    }));
+    const images = await File.find({ mime_super: "image" });
+    const library = (await Library.find({})).filter((l) =>
+      l.suitableFor("show")
+    );
+    const myviewrow = View.findOne({ name: context.viewname });
+    // generate layout for legacy views
+    if (!context.layout?.list_columns) {
+      const newCols = [];
+      const actionDropdown = [];
+      const typeMap = {
+        Field: "field",
+        JoinField: "join_field",
+        ViewLink: "view_link",
+        Link: "link",
+        Action: "action",
+        Text: "blank",
+        DropdownMenu: "dropdown_menu",
+        Aggregation: "aggregation",
+        FormulaValue: "blank",
+      };
+      (context.columns || []).forEach((col) => {
+        const newCol = {
+          ...col,
+          contents: {
+            ...col,
+            configuration: { ...col },
+            type: typeMap[col.type],
+          },
+        };
+        delete newCol._columndef;
+        delete newCol.type;
+
+        delete newCol.contents._columndef;
+        delete newCol.contents.configuration._columndef;
+        delete newCol.contents.configuration.type;
+
+        switch (col.type) {
+          case "FormulaValue":
+            newCol.contents.isFormula = {
+              text: true,
+            };
+            newCol.contents.contents = col.formula;
+            break;
+          case "Action":
+            newCol.contents.isFormula = {
+              action_label: !!col.action_label_formula,
+            };
+            break;
+          case "ViewLink":
+            newCol.contents.isFormula = {
+              label: !!col.view_label_formula,
+            };
+            break;
+          case "Link":
+            newCol.contents.isFormula = {
+              url: !!col.link_url_formula,
+              text: !!col.link_text_formula,
+            };
+            newCol.contents.text = col.link_text;
+            newCol.contents.url = col.link_url;
+            break;
+        }
+        if (col.in_dropdown)
+          actionDropdown.push({ ...col, type: typeMap[col.type] });
+        else newCols.push(newCol);
+      });
+      if (actionDropdown.length) {
+        newCols.push({ type: "dropdown_menu", contents: actionDropdown });
+      }
+      context.layout = {
+        besides: newCols,
+        list_columns: true,
+      };
+    }
+    return {
+      tableName: table.name,
+      fields: fields.map((f) => f.toBuilder),
+      images,
+      actions,
+      triggerActions,
+      builtInActions,
+      actionConfigForms,
+      agg_fieldview_options,
+      //fieldViewConfigForms,
+      field_view_options: {
+        ...field_view_options,
+        ...rel_field_view_options,
+      },
+      parent_field_list,
+      child_field_list,
+      agg_field_opts,
+      min_role: (myviewrow || {}).min_role,
+      roles,
+      library,
+      additionalColumnFields: [
+        {
+          name: "frozen",
+          label: "Frozen",
+          type: "Bool",
+        },
+        {
+          name: "cssClass",
+          label: "CSS Class",
+          type: "String",
+        },
+        {
+          name: "disable_edit",
+          label: "Disable editing",
+          type: "Bool",
+          showIf: { type: "Field" },
+        },
+        {
+          name: "column_calculation",
+          label: "Column Calculation",
+          type: "String",
+          attributes: {
+            options: [
+              "avg",
+              "max",
+              "min",
+              "sum",
+              "count",
+              { name: "__tabulator_colcalc_unique", label: "count unique" },
+              { name: "__tabulator_colcalc_counttrue", label: "count true" },
+              {
+                name: "__tabulator_colcalc_countfalse",
+                label: "count false",
+              },
+              {
+                name: "__tabulator_colcalc_avgnonulls",
+                label: "avg no nulls",
+              },
+              {
+                name: "__tabulator_colcalc_sumroundquarter",
+                label: "sum round to quarter",
+              },
+            ],
+          },
+        },
+        {
+          name: "calc_dps",
+          label: "Calculation decimal places",
+          type: "Integer",
+          showIf: {
+            column_calculation: [
+              "avg",
+              "max",
+              "min",
+              "sum",
+              "__tabulator_colcalc_avgnonulls",
+            ],
+          },
+        },
+      ],
+      pages,
+      page_groups: groups,
+      allowMultiStepAction: true,
+      handlesTextStyle,
+      mode: "list",
+      ownership:
+        !!table.ownership_field_id ||
+        !!table.ownership_formula ||
+        table.name === "users",
+    };
+  },
+});
+
 const view_configuration_workflow = (req) =>
   new Workflow({
     steps: [
-      {
-        name: "Columns",
-        form: async (context) => {
-          const table = await Table.findOne(
-            context.table_id
-              ? { id: context.table_id }
-              : { name: context.exttable_name }
-          );
-          //console.log(context);
-          const field_picker_repeat = await field_picker_fields({
-            table,
-            viewname: context.viewname,
-            req,
-            has_align: true,
-            has_showif: true,
-          });
-          field_picker_repeat.push({
-            name: "frozen",
-            label: "Frozen",
-            type: "Bool",
-          });
-          field_picker_repeat.push({
-            name: "cssClass",
-            label: "CSS Class",
-            type: "String",
-          });
-          field_picker_repeat.push({
-            name: "disable_edit",
-            label: "Disable editing",
-            type: "Bool",
-            showIf: { type: "Field" },
-          });
-          field_picker_repeat.push({
-            name: "column_calculation",
-            label: "Column Calculation",
-            type: "String",
-            attributes: {
-              options: [
-                "avg",
-                "max",
-                "min",
-                "sum",
-                "count",
-                { name: "__tabulator_colcalc_unique", label: "count unique" },
-                { name: "__tabulator_colcalc_counttrue", label: "count true" },
-                {
-                  name: "__tabulator_colcalc_countfalse",
-                  label: "count false",
-                },
-                {
-                  name: "__tabulator_colcalc_avgnonulls",
-                  label: "avg no nulls",
-                },
-                {
-                  name: "__tabulator_colcalc_sumroundquarter",
-                  label: "sum round to quarter",
-                },
-              ],
-            },
-          });
-          field_picker_repeat.push({
-            name: "calc_dps",
-            label: "Calculation decimal places",
-            type: "Integer",
-            showIf: {
-              column_calculation: [
-                "avg",
-                "max",
-                "min",
-                "sum",
-                "__tabulator_colcalc_avgnonulls",
-              ],
-            },
-          });
-          const use_field_picker_repeat = field_picker_repeat.filter(
-            (f) => !["state_field"].includes(f.name)
-          );
-          const cwunit_fld = field_picker_repeat.find(
-            (c) => c.name === "col_width_units"
-          );
-          if (cwunit_fld) {
-            cwunit_fld.attributes.options = ["px", "%"];
-            cwunit_fld.default = "px";
-          }
-          const fvs = field_picker_repeat.filter((c) => c.name === "fieldview");
-          fvs.forEach((fv) => {
-            if (fv?.attributes?.calcOptions?.[1])
-              Object.values(fv.attributes.calcOptions[1]).forEach((fvlst) => {
-                if (fvlst[0] === "as_text") fvlst.push("textarea");
-              });
-          });
-          // fix legacy values missing view_name
-          (context?.columns || []).forEach((column) => {
-            if (
-              column.type === "ViewLink" &&
-              column.view &&
-              !column.view_name
-            ) {
-              const view_select = parse_view_select(column.view);
-              column.view_name = view_select.viewname;
-            }
-          });
-          return new Form({
-            fields: [
-              new FieldRepeat({
-                name: "columns",
-                fancyMenuEditor: true,
-                fields: use_field_picker_repeat,
-              }),
-            ],
-          });
-        },
-      },
+      features?.list_builder ? new_columns_step(req) : old_columns_step(req),
       {
         name: "Options",
         form: async (context) => {
@@ -777,6 +1038,7 @@ const hideShowColsBtn = (
 const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
   const {
     columns,
+    layout,
     fit,
     responsiveLayout,
     hideColsBtn,
@@ -861,7 +1123,8 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       extraArgs.req,
       header_filters,
       vert_col_headers,
-      dropdown_frozen
+      dropdown_frozen,
+      layout
     );
 
   if (selectable)
@@ -974,7 +1237,10 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       }`
           : ""
       }
-    window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname}${rndid}", {
+    window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname.replaceAll(
+        " ",
+        ""
+      )}${rndid}", {
         ${
           ajax_load
             ? `
@@ -1272,7 +1538,10 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
 
     div({ id: "jsGridNotify", class: "my-1" }),
 
-    div({ id: `tabgrid${viewname}${rndid}`, style: { height: "100%" } })
+    div({
+      id: `tabgrid${viewname.replaceAll(" ", "")}${rndid}`,
+      style: { height: "100%" },
+    })
   );
 };
 
@@ -1321,6 +1590,7 @@ const get_db_rows = async (
   fields,
   viewname,
   {
+    layout,
     columns,
     groupBy,
     def_order_field,
@@ -1442,7 +1712,8 @@ const get_db_rows = async (
     req,
     header_filters,
     vert_col_headers,
-    dropdown_frozen
+    dropdown_frozen,
+    layout
   );
   calculators.forEach((f) => {
     rows.forEach(f);
