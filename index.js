@@ -430,7 +430,6 @@ const new_columns_step = (req) => ({
           name: "disable_edit",
           label: "Disable editing",
           type: "Bool",
-          showIf: { type: "Field" },
         },
         {
           name: "column_calculation",
