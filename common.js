@@ -727,14 +727,16 @@ function addFiveToColor(hexColor) {
 const getDarkStyle = async (req) => {
   const state = getState();
   const buildDarkStyle = ({ backgroundColorDark }) => {
-    return `
+    return backgroundColorDark
+      ? `
     .tabulator-row, .tabulator-header, .tabulator-col, .tabulator  { 
       background-color: ${backgroundColorDark} !important;
     }
     .tabulator-row-even {
       background-color: ${addFiveToColor(backgroundColorDark)} !important;
     }
-    `;
+    `
+      : null;
   };
   if (state.plugin_cfgs) {
     let anyBsThemeCfg = state.plugin_cfgs["any-bootstrap-theme"];
