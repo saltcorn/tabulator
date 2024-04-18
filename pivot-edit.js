@@ -813,11 +813,10 @@ const run = async (table_id, viewname, config, state, extraArgs) => {
       domReady(`
       ${
         darkStyle
-          ? `document.body.innerHTML += '<link rel="stylesheet" href="/plugins/public/tabulator${
-              features?.version_plugin_serve_path
-                ? "@" + require("./package.json").version
-                : ""
-            }/tabulator_${darkStyle}.min.css" type="text/css"/>';`
+          ? `
+      var styleElement = document.createElement('style');
+      styleElement.textContent = ${JSON.stringify(darkStyle)};
+      document.head.appendChild(styleElement);`
           : ""
       }
     const columns=${JSON.stringify(tabCols, null, 2)};   
