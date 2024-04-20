@@ -95,23 +95,6 @@ const configuration_workflow = () =>
                   ],
                 },
               },
-              {
-                name: "stylesheet_dark",
-                label: "Dark mode stylesheet",
-                type: "String",
-                required: false,
-                attributes: {
-                  options: [
-                    "bootstrap5",
-                    "bootstrap4",
-                    "midnight",
-                    "modern",
-                    "simple",
-                    "site",
-                    "site_dark",
-                  ],
-                },
-              },
             ],
           });
         },
@@ -1207,11 +1190,10 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       domReady(`
       ${
         darkStyle
-          ? `document.body.innerHTML += '<link rel="stylesheet" href="/plugins/public/tabulator${
-              features?.version_plugin_serve_path
-                ? "@" + require("./package.json").version
-                : ""
-            }/tabulator_${darkStyle}.min.css" type="text/css"/>';`
+          ? `
+      var styleElement = document.createElement('style');
+      styleElement.textContent = ${JSON.stringify(darkStyle)};
+      document.head.appendChild(styleElement);`
           : ""
       }
 
