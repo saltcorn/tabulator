@@ -291,7 +291,13 @@ const new_columns_step = (req) => ({
         `${table.name}.${key_field.name}`;
       agg_field_opts[aggKey] = table.fields
         .filter((f) => !f.calculated || f.stored)
-        .map((f) => f.name);
+        .map((f) => ({
+          name: f.name,
+          label: f.label,
+          ftype: f.type.name || f.type,
+          table_name: table.name,
+          table_id: table.id,
+        }));
     });
     const agg_fieldview_options = {};
 
@@ -378,6 +384,7 @@ const new_columns_step = (req) => ({
         list_columns: true,
       };
     }
+    console.log("agg gield opts", agg_field_opts);
     return {
       tableName: table.name,
       fields: fields.map((f) => f.toBuilder),
