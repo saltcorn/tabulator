@@ -33,7 +33,7 @@ const {
   make_link,
   splitUniques,
 } = require("@saltcorn/data/base-plugin/viewtemplates/viewable_fields");
-
+const { picked_fields_to_query } = require("@saltcorn/data/plugin-helper");
 const isNode = typeof window === "undefined";
 
 //copy from server/routes/list.js
@@ -344,6 +344,7 @@ const get_tabulator_columns = async (
     });
     const allNewCols = [...newCols, ...dropCols];
     //console.log(allNewCols);
+    picked_fields_to_query(allNewCols, fields);
     return await get_tabulator_columns(
       viewname,
       table,
