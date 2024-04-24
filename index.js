@@ -384,7 +384,6 @@ const new_columns_step = (req) => ({
         list_columns: true,
       };
     }
-    console.log("agg gield opts", agg_field_opts);
     return {
       tableName: table.name,
       fields: fields.map((f) => f.toBuilder),
