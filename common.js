@@ -730,10 +730,13 @@ const getDarkStyle = async (req) => {
   const buildDarkStyle = ({ backgroundColorDark }) => {
     return backgroundColorDark
       ? `
-    .tabulator-row, .tabulator-header, .tabulator-col, .tabulator  { 
+    .tabulator-row, .tabulator-header, .tabulator-header-filter,
+    .tabulator-footer, tabulator-footer-contents,
+    .tabulator-col, tabulator-paginator,
+    .tabulator * {
       background-color: ${backgroundColorDark} !important;
     }
-    .tabulator-row-even {
+    .tabulator-row-even * {
       background-color: ${addFiveToColor(backgroundColorDark)} !important;
     }
     `
