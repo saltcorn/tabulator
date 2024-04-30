@@ -1400,6 +1400,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
     }
     window.allnonecols= (do_show, e) =>{
       columns.forEach(col=>{
+        if(col.frozen && !do_show) return;
         if (do_show) window.tabulator_table_${rndid}.showColumn(col.field);
         else window.tabulator_table_${rndid}.hideColumn(col.field);
         $(e).closest("form").find("input").prop("checked", do_show)
