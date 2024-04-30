@@ -24,6 +24,7 @@ const {
   link,
 } = require("@saltcorn/markup/tags");
 const User = require("@saltcorn/data/models/user");
+const Table = require("@saltcorn/data/models/table");
 
 const {
   action_url,
@@ -271,6 +272,36 @@ const set_json_col = (tcol, field, key, header_filters) => {
   }
 };
 
+const set_join_fieldviews = async ({ columns, fields }) => {
+  for (const segment of columns) {
+    const { join_field, join_fieldview, type } = segment;
+    if (!join_fieldview || type !== "JoinField") continue;
+    const keypath = join_field.split(".");
+
+    let field,
+      theFields = fields;
+    for (let i = 0; i < keypath.length; i++) {
+      const refNm = keypath[i];
+      field = theFields.find((f) => f.name === refNm);
+      if (!field || !field.reftable_name) break;
+      const table = await Table.findOne({ name: field.reftable_name });
+      if (!table) break;
+      theFields = await table.getFields();
+    }
+    if (!field) continue;
+    segment.field_obj = field;
+    if (field && field.type === "File") segment.field_type = "File";
+    else if (
+      field?.type.name &&
+      field.type.fieldviews &&
+      field.type.fieldviews[join_fieldview]
+    ) {
+      segment.field_type = field.type.name;
+      segment.fieldview = join_fieldview;
+    }
+  }
+};
+
 const get_tabulator_columns = async (
   viewname,
   table,
@@ -335,6 +366,8 @@ const get_tabulator_columns = async (
         case "action":
           col.action_label_formula = contents.isFormula?.action_label;
           break;
+        case "join_field":
+          col.join_fieldview = contents.fieldview;
       }
       return col;
     };
@@ -345,6 +378,7 @@ const get_tabulator_columns = async (
     const allNewCols = [...newCols, ...dropCols];
     //console.log(allNewCols);
     picked_fields_to_query(allNewCols, fields);
+    await set_join_fieldviews({ columns: allNewCols, fields });
     return await get_tabulator_columns(
       viewname,
       table,
@@ -768,4 +802,5 @@ module.exports = {
   nest,
   get_tabulator_columns,
   getDarkStyle,
+  set_join_fieldviews,
 };

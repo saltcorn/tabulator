@@ -69,6 +69,7 @@ const {
   nest,
   get_tabulator_columns,
   getDarkStyle,
+  set_join_fieldviews,
 } = require("./common");
 const configuration_workflow = () =>
   new Workflow({
@@ -866,36 +867,6 @@ const get_state_fields = async (table_id, viewname, { show_view }) => {
       sf.required = false;
       return sf;
     });
-};
-
-const set_join_fieldviews = async ({ columns, fields }) => {
-  for (const segment of columns) {
-    const { join_field, join_fieldview, type } = segment;
-    if (!join_fieldview || type !== "JoinField") continue;
-    const keypath = join_field.split(".");
-
-    let field,
-      theFields = fields;
-    for (let i = 0; i < keypath.length; i++) {
-      const refNm = keypath[i];
-      field = theFields.find((f) => f.name === refNm);
-      if (!field || !field.reftable_name) break;
-      const table = await Table.findOne({ name: field.reftable_name });
-      if (!table) break;
-      theFields = await table.getFields();
-    }
-    if (!field) continue;
-    segment.field_obj = field;
-    if (field && field.type === "File") segment.field_type = "File";
-    else if (
-      field?.type.name &&
-      field.type.fieldviews &&
-      field.type.fieldviews[join_fieldview]
-    ) {
-      segment.field_type = field.type.name;
-      segment.fieldview = join_fieldview;
-    }
-  }
 };
 
 const addRowButton = (rndid) =>
