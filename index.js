@@ -278,6 +278,10 @@ const new_columns_step = (req) => ({
       );
       field_view_options.verification_url = ["as_text", "as_link"];
     }
+    for (const field of fields) {
+      if (field_view_options[field.name]?.[0] === "as_text")
+        field_view_options[field.name].push("textarea");
+    }
     const rel_field_view_options = await calcrelViewOptions(table, "show");
     const roles = await User.get_roles();
     const { parent_field_list } = await table.get_parent_relations(true, true);
