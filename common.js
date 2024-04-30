@@ -54,7 +54,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
     jsgField.sorter = "string";
     if (column.fieldview === "textarea") {
       jsgField.formatter = "textarea";
-      jsgField.editor = false;
+      jsgField.editor = "textarea";
       if (jsgField.headerFilter) jsgField.headerFilter = "input";
     } else if (column.fieldview === "ellipsize") {
       jsgField.formatter = "__ellipsizeFormatter";
