@@ -260,14 +260,14 @@ const new_columns_step = (req) => ({
     for (const [name, action] of stateActions) {
       if (action.configFields) {
         actionConfigForms[name] = await getActionConfigFields(action, table, {
-          mode: "show",
+          mode: "list",
         });
       }
     }
     //const fieldViewConfigForms = await calcfldViewConfig(fields, false);
     const { field_view_options, handlesTextStyle } = calcfldViewOptions(
       fields,
-      "show"
+      "list"
     );
     if (table.name === "users") {
       fields.push(
@@ -283,7 +283,7 @@ const new_columns_step = (req) => ({
       if (field_view_options[field.name]?.[0] === "as_text")
         field_view_options[field.name].push("textarea");
     }
-    const rel_field_view_options = await calcrelViewOptions(table, "show");
+    const rel_field_view_options = await calcrelViewOptions(table, "list");
     const roles = await User.get_roles();
     const { parent_field_list } = await table.get_parent_relations(true, true);
 
