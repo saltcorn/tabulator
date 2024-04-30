@@ -1816,7 +1816,7 @@ const run_action = async (
   if (state_action) {
     const cfgFields = await getActionConfigFields(state_action, table);
     cfgFields.forEach(({ name }) => {
-      col.configuration[name] = col[name];
+      if (typeof col[name] !== "undefined") col.configuration[name] = col[name];
     });
   }
   try {
