@@ -491,39 +491,49 @@ const get_tabulator_columns = async (
             db.sqlsanitize(column.aggwhere || "")
           ).toLowerCase()
         );
-      tcol.formatter = "html";
-      let showValue = (value) => {
-        if (value === true)
-          return i({
-            class: "fas fa-lg fa-check-circle text-success",
-          });
-        else if (value === false)
-          return i({
-            class: "fas fa-lg fa-times-circle text-danger",
-          });
-        if (value instanceof Date) return localeDateTime(value);
-        if (Array.isArray(value))
-          return value.map((v) => showValue(v)).join(", ");
-        return value?.toString ? value.toString() : value;
-      };
-      if (column.agg_fieldview && column.agg_field?.includes("@")) {
-        const tname = column.agg_field.split("@")[1];
-        const type = getState().types[tname];
-        if (type?.fieldviews[column.agg_fieldview])
-          showValue = (x) =>
-            type.fieldviews[column.agg_fieldview].run(x, req, column);
-      }
-      calculators.push((row) => {
-        if (column.showif && !eval_expression(column.showif, row, req.user)) {
-          row[rndid] = "";
-          return;
-        }
-        let value = row[targetNm];
+      if (column.agg_fieldview === "format" && column.format) {
+        tcol.formatter = "__isoDateFormatter";
+        tcol.formatterParams = {
+          format: column.format,
+        };
+        tcol.field = targetNm;
 
-        row[rndid] = showValue(value);
-      });
-      tcol.field = rndid; //db.sqlsanitize(targetNm);
-      tcol.headerFilter = !!header_filters;
+        tcol.headerFilter = !!header_filters;
+      } else {
+        tcol.formatter = "html";
+        let showValue = (value) => {
+          if (value === true)
+            return i({
+              class: "fas fa-lg fa-check-circle text-success",
+            });
+          else if (value === false)
+            return i({
+              class: "fas fa-lg fa-times-circle text-danger",
+            });
+          if (value instanceof Date) return localeDateTime(value);
+          if (Array.isArray(value))
+            return value.map((v) => showValue(v)).join(", ");
+          return value?.toString ? value.toString() : value;
+        };
+        if (column.agg_fieldview && column.agg_field?.includes("@")) {
+          const tname = column.agg_field.split("@")[1];
+          const type = getState().types[tname];
+          if (type?.fieldviews[column.agg_fieldview])
+            showValue = (x) =>
+              type.fieldviews[column.agg_fieldview].run(x, req, column);
+        }
+        calculators.push((row) => {
+          if (column.showif && !eval_expression(column.showif, row, req.user)) {
+            row[rndid] = "";
+            return;
+          }
+          let value = row[targetNm];
+
+          row[rndid] = showValue(value);
+        });
+        tcol.field = rndid; //db.sqlsanitize(targetNm);
+        tcol.headerFilter = !!header_filters;
+      }
     } else if (column.type === "FormulaValue") {
       const rndid = "col" + hashCol(column);
       calculators.push((row) => {
