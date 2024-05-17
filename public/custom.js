@@ -536,7 +536,8 @@ function customPasteParser(clipboard) {
           }
 
           columnMap = columnMap.slice(startCol, startCol + colWidth);
-
+          const commaDecimal =
+            Intl.NumberFormat(window._sc_locale).format(1.5) === "1,5";
           data.forEach((item) => {
             var row = {};
             var itemLength = item.length;
@@ -546,7 +547,7 @@ function customPasteParser(clipboard) {
               if (
                 col.definition.editor === "number" &&
                 typeof val === "string" &&
-                window._sc_locale == "de"
+                commaDecimal
               ) {
                 row[col.field] = val.replaceAll(".", "").replaceAll(",", ".");
               } else row[col.field] = val;
