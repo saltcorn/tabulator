@@ -420,7 +420,7 @@ const gen_save_row_from_cell =
           })
           .then(cb);
     };
-    const fld = cell.getField();
+    const fld = typeof cell === "string" ? cell : cell.getField();
     if (typeof row[fld] === "undefined") return;
     const saveRow = { [fld]: row[fld] };
     postFn(saveRow, function (resp) {

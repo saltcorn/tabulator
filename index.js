@@ -765,6 +765,13 @@ const view_configuration_workflow = (req) =>
                 tab: "Functionality",
               },
               {
+                name: "select_range",
+                label: "Select range",
+                sublabel: "Select range for copy/paste",
+                type: "Bool",
+                tab: "Functionality",
+              },
+              {
                 name: "confirm_edits",
                 label: "Confirm all edits",
                 sublabel:
@@ -1038,6 +1045,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
     confirm_edits,
     disable_edit_if,
     row_color_formula,
+    select_range,
   } = cfg;
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
@@ -1256,6 +1264,23 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
         },
         paginationSizeSelector: ${JSON.stringify(paginationSizeChoices)},
         clipboard:true,
+        ${
+          select_range
+            ? `selectableRange:1,
+        selectableRangeColumns:true,
+        selectableRangeRows:true,
+        selectableRangeClearCells:true,
+        editTriggerEvent:"dblclick",
+        clipboardCopyStyled:false,
+        clipboardCopyConfig:{
+            rowHeaders:false,
+            columnHeaders:false,
+        },
+        clipboardCopyRowRange:"range",
+        clipboardPasteParser:"range",
+        clipboardPasteAction:"range",`
+            : ""
+        }
         ${persistent ? `initialHeaderFilter,` : ""}
         persistence:${!!persistent}, 
         persistenceID:"tabview_${viewname}",
@@ -1328,6 +1353,19 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
           console.error(e)
         }
       })
+    }
+    ${
+      select_range
+        ? `window.tabulator_table_${rndid}.on("clipboardPasted", function(clipboard, rowData, rows){         
+          rows.forEach((row, ix)=>{
+            const keys = Object.keys(rowData[ix])
+            keys.forEach((key)=>{
+              save_row_from_cell(row.data, key)
+            })
+          })
+
+        })`
+        : ``
     }
     window.tabulator_table_${rndid}.on("cellEdited", function(cell){
       const row=cell.getRow().getData();
