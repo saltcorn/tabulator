@@ -429,7 +429,7 @@ const gen_save_row_from_cell =
           id: resp.success,
         });
       }
-      if (hasCalculated) {
+      if (hasCalculated && typeof cell !== "string") {
         let id = noid ? resp.success : row.id;
         view_post(viewname, "get_rows", { state: { id } }, (resp) => {
           const uprow = Array.isArray(resp.success)
@@ -494,6 +494,76 @@ function jsonSubEditor(cell, onRendered, success, cancel, editorParams) {
 
   return editor;
 }
+
+function customPasteParser(clipboard) {
+  console.log("pasting", clipboard);
+
+  var data = [],
+    rows = [],
+    range = this.table.modules.selectRange.activeRange,
+    singleCell = false,
+    bounds,
+    startCell,
+    colWidth,
+    columnMap,
+    startCol;
+
+  if (range) {
+    bounds = range.getBounds();
+    startCell = bounds.start;
+
+    if (bounds.start === bounds.end) {
+      singleCell = true;
+    }
+
+    if (startCell) {
+      //get data from clipboard into array of columns and rows.
+      clipboard = clipboard.split("\n");
+
+      clipboard.forEach(function (row) {
+        data.push(row.split("\t"));
+      });
+
+      if (data.length) {
+        columnMap = this.table.columnManager.getVisibleColumnsByIndex();
+        startCol = columnMap.indexOf(startCell.column);
+
+        if (startCol > -1) {
+          if (singleCell) {
+            colWidth = data[0].length;
+          } else {
+            colWidth = columnMap.indexOf(bounds.end.column) - startCol + 1;
+          }
+
+          columnMap = columnMap.slice(startCol, startCol + colWidth);
+
+          data.forEach((item) => {
+            var row = {};
+            var itemLength = item.length;
+
+            columnMap.forEach(function (col, i) {
+              const val = item[i % itemLength];
+              if (
+                col.definition.editor === "number" &&
+                typeof val === "string" &&
+                window._sc_locale == "de"
+              ) {
+                row[col.field] = val.replaceAll(".", "").replaceAll(",", ".");
+              } else row[col.field] = val;
+            });
+
+            rows.push(row);
+          });
+
+          return rows;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
 function relativeDateFormatter(cell, formatterParams, onRendered) {
   const val = cell.getValue();
   if (!val) return "";

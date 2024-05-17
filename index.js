@@ -1277,7 +1277,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
             columnHeaders:false,
         },
         clipboardCopyRowRange:"range",
-        clipboardPasteParser:"range",
+        clipboardPasteParser:customPasteParser,
         clipboardPasteAction:"range",`
             : ""
         }
