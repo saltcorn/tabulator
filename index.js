@@ -857,6 +857,13 @@ const view_configuration_workflow = (req) =>
                 },
                 tab: "Layout",
               },
+              {
+                name: "height",
+                label: "Height",
+                type: "String",
+                sublabel: "Example: 500px or 50vh. Default is 100%",
+                tab: "Layout",
+              },
             ],
           });
         },
@@ -1046,6 +1053,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
     disable_edit_if,
     row_color_formula,
     select_range,
+    height,
   } = cfg;
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
@@ -1541,7 +1549,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
 
     div({
       id: `tabgrid${viewname.replaceAll(" ", "")}${rndid}`,
-      style: { height: "100%" },
+      style: { height: height || "100%" },
     })
   );
 };
