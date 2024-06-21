@@ -547,6 +547,7 @@ const get_tabulator_columns = async (
         row[rndid] = eval_expression(column.formula, row, req.user);
       });
       tcol.field = rndid;
+      tcol.formatter = "html";
       tcol.headerFilter = !!header_filters && "input";
     } else if (column.type === "ViewLink") {
       tcol.formatter = "html";
