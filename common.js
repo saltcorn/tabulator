@@ -395,6 +395,7 @@ const get_tabulator_columns = async (
   const tabcols = [];
   const calculators = [];
   const dropdown_actions = [];
+  const cellStyles = {};
   for (const column of columns) {
     let tcol = {};
     if (column.type === "Field") {
@@ -419,6 +420,7 @@ const get_tabulator_columns = async (
       if (column.showif) tcol.showif = column.showif;
     } else if (column.type === "Text") {
       const rndid = "col" + hashCol(column);
+      if (column.style) cellStyles[rndid] = column.style;
       calculators.push((row) => {
         if (column.showif && !eval_expression(column.showif, row, req.user)) {
           row[rndid] = "";
@@ -536,6 +538,7 @@ const get_tabulator_columns = async (
       }
     } else if (column.type === "FormulaValue") {
       const rndid = "col" + hashCol(column);
+      if (column.style) cellStyles[rndid] = column.style;
       calculators.push((row) => {
         if (column.showif && !eval_expression(column.showif, row, req.user)) {
           row[rndid] = "";
@@ -743,6 +746,7 @@ const get_tabulator_columns = async (
     calculators,
     dropdown_id: arndid,
     dropdown_actions,
+    cellStyles,
   };
 };
 

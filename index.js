@@ -1092,7 +1092,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
   }
 
   await set_join_fieldviews({ columns, fields });
-  const { tabcolumns, dropdown_id, dropdown_actions } =
+  const { tabcolumns, dropdown_id, dropdown_actions, cellStyles } =
     await get_tabulator_columns(
       viewname,
       table,
@@ -1183,6 +1183,18 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
     style(`.tabulator-popup-container {background: white}`),
+    style(
+      Object.entries(cellStyles || {})
+        .map(
+          ([fld, style]) =>
+            `.tabulator-cell[tabulator-field="${fld}"] {${Object.entries(
+              style || {}
+            )
+              .map(([k, v]) => `${k}: ${v};`)
+              .join("")}}`
+        )
+        .join("\n")
+    ),
     script(
       domReady(`
       ${
