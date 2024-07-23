@@ -416,6 +416,13 @@ const new_columns_step = (req) => ({
           type: "Bool",
         },
         {
+          name: "in_context_menu",
+          label: "In context menu",
+          sublabel:
+            "The context menu appears when the user right-clicks on a row",
+          type: "Bool",
+        },
+        {
           name: "cssClass",
           label: "CSS Class",
           type: "String",
