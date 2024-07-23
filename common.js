@@ -694,6 +694,7 @@ const get_tabulator_columns = async (
         column.col_width_units === "%"
           ? `${column.col_width}%`
           : column.col_width;
+    if (column.in_context_menu) tcol.in_context_menu = true;
     tabcols.push(tcol);
   }
   let arndid;

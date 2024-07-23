@@ -1122,7 +1122,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       clipboard: false,
       frozen: tabcolumns[0].frozen,
     });
-  const use_tabcolumns = hide_null_columns
+  const use_tabcolumns0 = hide_null_columns
     ? tabcolumns.filter(
         (c) =>
           !c.field ||
@@ -1132,6 +1132,10 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
           )
       )
     : tabcolumns;
+  const use_tabcolumns = use_tabcolumns0.filter((c) => !c.in_context_menu);
+  const context_menu_tabcolumns = use_tabcolumns0.filter(
+    (c) => c.in_context_menu
+  );
   if (ajax_load && hide_null_columns) rows = [];
 
   const pgSz = pagination_size || 20;
@@ -1185,6 +1189,27 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       col.editable = "__tabulator_edit_check";
     });
   }
+  let rowContextMenu = undefined;
+  if (context_menu_tabcolumns.length) {
+    const menuCode = context_menu_tabcolumns.map((c) => {
+      if (c.formatter === "html")
+        return `menu.push({
+          label: component.getData().${c.field},
+          action: function(){}
+        });`;
+    });
+    rowContextMenu = `function(e, component){
+        //component - column/cell/row component that triggered the menu
+        //e - click event object
+
+        var menu = [];
+
+        ${menuCode.join("\n")}
+
+        return menu;
+    }`;
+  }
+
   const darkStyle = await getDarkStyle(extraArgs.req);
   return fragment(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
@@ -1313,6 +1338,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
         persistenceID:"tabview_${viewname}",
         movableColumns: ${!!movable_cols},
         downloadEncoder: sc_tab_downloadEncoder,
+        ${rowContextMenu ? `rowContextMenu: ${rowContextMenu},` : ""}
         history: ${!!history},
         ${
           tree_field
