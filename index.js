@@ -1893,12 +1893,15 @@ const run_action = async (
   body,
   { req, res }
 ) => {
-  const col = columns.find(
-    (c) =>
-      c.type === "Action" &&
-      c.action_name === body.action_name &&
-      body.action_name
-  );
+  const col = body.rndid
+    ? columns.find((c) => c.type === "Action" && c.rndid === body.rndid)
+    : columns.find(
+        //legacy
+        (c) =>
+          c.type === "Action" &&
+          c.action_name === body.action_name &&
+          body.action_name
+      );
   //console.log({ col, body });
   const table = await Table.findOne({ id: table_id });
   const row = await table.getRow({ id: body.id });

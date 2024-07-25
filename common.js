@@ -624,7 +624,7 @@ const get_tabulator_columns = async (
       };
     } else if (column.type === "Action") {
       tcol.formatter = "html";
-      //console.log(column);
+      //console.log("actioncol", column);
       const rndid = "col" + hashCol(column);
       calculators.push((row) => {
         if (column.showif && !eval_expression(column.showif, row, req.user)) {
@@ -636,8 +636,9 @@ const get_tabulator_columns = async (
           table,
           column.action_name,
           row,
-          column.action_name,
-          "action_name"
+          column.rndid || column.action_name,
+          column.rndid ? "rndid" : "action_name",
+          column.confirm
         );
         const action_label =
           (column.icon ? i({ class: column.icon }) : "") +
