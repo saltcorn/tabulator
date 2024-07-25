@@ -1192,7 +1192,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
   let rowContextMenu = undefined;
   if (context_menu_tabcolumns.length) {
     const menuCode = context_menu_tabcolumns.map((c) => {
-      if (c.formatter === "html")
+      if (c.formatter === "html" || !c.formatter)
         return `menu.push({
           label: component.getData().${c.field},
           action: function(){}
