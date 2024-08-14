@@ -519,6 +519,20 @@ const get_tabulator_columns = async (
         tcol.field = targetNm;
 
         tcol.headerFilter = !!header_filters;
+      } else if (column.agg_fieldview === "show_with_html") {
+        tcol.formatter = "html";
+        const rndid = "col" + hashCol(column);
+
+        calculators.push((row) => {
+          row[rndid] = row[targetNm]
+            ? interpolate(column.configuration?.code || column.code, {
+                it: row[targetNm],
+              })
+            : "";
+        });
+        tcol.field = rndid;
+        tcol.headerFilter = !!header_filters && "input";
+        tcol.editor = false;
       } else {
         tcol.formatter = "html";
         let showValue = (value) => {
