@@ -40,7 +40,25 @@ const isNode = typeof window === "undefined";
 //copy from server/routes/list.js
 const typeToGridType = (t, field, header_filters, column, calculators) => {
   const jsgField = { field: field.name, title: field.label, editor: true };
-  if (t.name === "String" && field.attributes && field.attributes.options) {
+  if (column.fieldview === "show_with_html") {
+    jsgField.formatter = "html";
+    const rndid = "col" + hashCol(column);
+
+    calculators.push((row) => {
+      row[rndid] = row[column.field_name]
+        ? interpolate(column.configuration?.code || column.code, {
+            it: row[column.field_name],
+          })
+        : "";
+    });
+    jsgField.field = rndid;
+    jsgField.headerFilter = !!header_filters && "input";
+    jsgField.editor = false;
+  } else if (
+    t.name === "String" &&
+    field.attributes &&
+    field.attributes.options
+  ) {
     jsgField.editor = "list";
 
     const values = field.attributes.options.split(",").map((o) => o.trim());
