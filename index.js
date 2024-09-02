@@ -890,6 +890,51 @@ const get_state_fields = async (table_id, viewname, { show_view }) => {
     });
 };
 
+const initial_config = async ({ table_id, exttable_name }) => {
+  const table = Table.findOne(
+    table_id ? { id: table_id } : { name: exttable_name }
+  );
+
+  const fields = table.getFields().filter((f) => !f.primary_key);
+  const columns = [];
+  const layoutCols = [];
+  fields.forEach((f) => {
+    if (!f.type) return;
+    if (f.type === "File") {
+      const col = {
+        type: "field",
+        fieldview: "Link",
+        field_name: f.name,
+      };
+      columns.push({ ...col, type: "Field" });
+      layoutCols.push({ contents: col, header_label: f.label });
+    } else if (f.is_fkey) {
+      const col = {
+        type: "join_field",
+        fieldview: "as_text",
+        join_field: `${f.name}.${f.attributes?.summary_field || "id"}`,
+      };
+      columns.push({ ...col, type: "JoinField" });
+      layoutCols.push({ contents: col, header_label: f.label });
+    } else {
+      const fieldview = f.type?.fieldviews?.show
+        ? "show"
+        : f.type?.fieldviews?.as_text
+        ? "as_text"
+        : undefined;
+      const col = {
+        type: "field",
+        fieldview,
+        field_name: f.name,
+      };
+      columns.push({ ...col, type: "Field" });
+      layoutCols.push({ contents: col, header_label: f.label });
+    }
+  });
+
+  return { columns, layout: { list_columns: true, besides: layoutCols } };
+};
+
 const addRowButton = (rndid) =>
   button(
     {
@@ -2037,6 +2082,7 @@ module.exports = {
       get_state_fields,
       configuration_workflow: view_configuration_workflow,
       run,
+      initial_config,
       configCheck: async (view) => {
         const colcheck = await check_view_columns(
           view,
