@@ -2149,6 +2149,7 @@ module.exports = {
     },
     require("./pivot-edit"),
   ],
+  ready_for_mobile: true,
 };
 
 const fragment = (...args) => args.filter((s) => s).join("");
