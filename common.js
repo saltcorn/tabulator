@@ -485,9 +485,13 @@ const get_tabulator_columns = async (
             calculators
           );
         }
+
         tcol.field = key;
       }
       tcol.editor = false;
+      if (typeof tcol.headerFilter === "undefined")
+        tcol.headerFilter = !!header_filters;
+
       if (column.showif) tcol.showif = column.showif;
     } else if (column.type === "Aggregation") {
       let table, fld, through;
