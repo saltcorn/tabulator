@@ -432,6 +432,8 @@ const get_tabulator_columns = async (
         tcol.headerFilter = !!header_filters;
         tcol.formatterParams = { subfield: column.key };
         tcol.editorParams = { subfield: column.key };
+        tcol.accessorDownload = "__jsonSubAccessor";
+        tcol.accessorDownloadParams = { subfield: column.key };
         set_json_col(tcol, f, column.key, header_filters);
       } else
         tcol = typeToGridType(f.type, f, header_filters, column, calculators);
