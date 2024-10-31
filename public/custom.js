@@ -478,10 +478,9 @@ function jsonSubFormatter(cell, formatterParams, onRendered) {
 }
 
 function jsonSubAccessor(value, data, type, params, column, row) {
-  console.log("subaccesor", { value, data, type, params, column, row });
-
-  if (!value) return "";
-  const subval = value[(params || {}).subfield];
+  //if (!value || typeof value !== "object") return "";
+  const rdata = row.getData();
+  const subval = rdata?.[(params || {}).field]?.[(params || {}).subfield];
   return subval;
 }
 
