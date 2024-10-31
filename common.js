@@ -701,13 +701,18 @@ const get_tabulator_columns = async (
       for (const { label, row_key } of tcol.subcolumns) {
         const [fld, subfld] = row_key;
         const scol = {};
-        scol.editor = false;
-        const key = `${fld}_${subfld}`;
-        calculators.push((row) => {
-          row[key] = (row[fld] || {})[subfld];
-        });
-        scol.field = key;
+
+        //scol.editor = false;
+        //const key = `${fld}_${subfld}`;
+        //calculators.push((row) => {
+        //row[key] = (row[fld] || {})[subfld];
+        //});
+        scol.field = fld;
         scol.title = subfld;
+        scol.editor = "__jsonSubEditor";
+        scol.formatter = "__jsonSubFormatter";
+        scol.formatterParams = { subfield: subfld };
+        scol.editorParams = { subfield: subfld };
         if (vert_col_headers) scol.headerVertical = true;
         set_json_col(scol, tcol.field, subfld, header_filters);
         tabcols.push(scol);
