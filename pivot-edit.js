@@ -44,6 +44,7 @@ const {
   text_attr,
   select,
   option,
+  link,
 } = require("@saltcorn/markup/tags");
 const {
   typeToGridType,
@@ -428,6 +429,22 @@ const configuration_workflow = (req) =>
                 label: "Wrap column headers",
                 type: "Bool",
               },
+              {
+                name: "override_stylesheet",
+                label: "Override stylesheet",
+                type: "String",
+                attributes: {
+                  options: [
+                    "bootstrap5",
+                    "bootstrap4",
+                    "midnight",
+                    "modern",
+                    "simple",
+                    "site",
+                    "site_dark",
+                  ],
+                },
+              },
             ],
           });
         },
@@ -782,6 +799,7 @@ const run = async (table_id, viewname, config, state, extraArgs) => {
     row_order_field,
     row_order_desc,
     fit,
+    override_stylesheet,
   } = config;
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
@@ -946,7 +964,15 @@ const run = async (table_id, viewname, config, state, extraArgs) => {
     div({
       id: `tabgrid${viewname.replaceAll(" ", "")}${rndid}`,
       style: { height: "100%" },
-    })
+    }) +
+    (override_stylesheet
+      ? link({
+          rel: "stylesheet",
+          href: `/plugins/public/tabulator@${
+            require("./package.json").version
+          }/tabulator_${override_stylesheet}.min.css`,
+        })
+      : "")
   );
 };
 
