@@ -708,6 +708,7 @@ const get_tabulator_columns = async (
         });
         scol.field = key;
         scol.title = subfld;
+        if (vert_col_headers) scol.headerVertical = true;
         set_json_col(scol, tcol.field, subfld, header_filters);
         tabcols.push(scol);
       }
