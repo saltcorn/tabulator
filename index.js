@@ -1546,7 +1546,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       download_csv
         ? `document.getElementById("tabulator-download-csv").addEventListener("click", function(){
             const selectedData = window.tabulator_table_${rndid}.getSelectedData();
-            window.tabulator_table_${rndid}.download("csv", "${viewname}.csv",{}, selectedData.length>0 ? "selected" : "all");
+            window.tabulator_table_${rndid}.download(tabCustomCsvDownload, "${viewname}.csv",{}, selectedData.length>0 ? "selected" : "all");
           });`
         : ""
     }`)

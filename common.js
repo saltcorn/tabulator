@@ -432,8 +432,8 @@ const get_tabulator_columns = async (
         tcol.headerFilter = !!header_filters;
         tcol.formatterParams = { subfield: column.key };
         tcol.editorParams = { subfield: column.key };
-        tcol.accessorDownload = "__jsonSubAccessor";
-        tcol.accessorDownloadParams = { subfield: column.key, field: f.name };
+        //tcol.accessorDownload = "__jsonSubAccessor";
+        //tcol.accessorDownloadParams = { subfield: column.key, field: f.name };
         set_json_col(tcol, f, column.key, header_filters);
       } else
         tcol = typeToGridType(f.type, f, header_filters, column, calculators);
@@ -715,8 +715,8 @@ const get_tabulator_columns = async (
         scol.formatter = "__jsonSubFormatter";
         scol.formatterParams = { subfield: subfld };
         scol.editorParams = { subfield: subfld };
-        scol.accessorDownload = "__jsonSubAccessor";
-        scol.accessorDownloadParams = { subfield: subfld, field: fld };
+        //scol.accessorDownload = "__jsonSubAccessor";
+        //scol.accessorDownloadParams = { subfield: subfld, field: fld };
         if (vert_col_headers) scol.headerVertical = true;
         set_json_col(scol, tcol.field, subfld, header_filters);
         tabcols.push(scol);
