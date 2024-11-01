@@ -477,6 +477,28 @@ function jsonSubFormatter(cell, formatterParams, onRendered) {
   return subval;
 }
 
+function toLocaleStringFormatter(cell, formatterParams, onRendered) {
+  const val = cell.getValue();
+  if (typeof val === "undefined" || val === null) return "";
+  const subval = val[(formatterParams || {}).subfield];
+  const attrs = formatterParams || {};
+  return val.toLocaleString(formatterParams.locale || window._sc_locale, {
+    style: attrs.style,
+    currency: attrs.currency,
+    currencyDisplay: attrs.currencyDisplay,
+    unit: attrs.unit,
+    unitDisplay: attrs.unitDisplay,
+    maximumSignificantDigits:
+      attrs.maximumSignificantDigits === 0
+        ? 0
+        : attrs.maximumSignificantDigits || undefined,
+    maximumFractionDigits:
+      attrs.maximumFractionDigits == 0
+        ? 0
+        : attrs.maximumFractionDigits || undefined,
+  });
+}
+
 function jsonSubAccessor(value, data, type, params, column, row) {
   //if (!value || typeof value !== "object") return "";
   const rdata = row.getData();

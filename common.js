@@ -130,6 +130,10 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
     jsgField.headerFilter = !!header_filters && "__minMaxFilterEditor";
     jsgField.headerFilterFunc = "__minMaxFilterFunction";
     jsgField.headerFilterLiveFilter = false;
+    if (column.fieldview === "to_locale_string") {
+      jsgField.formatter = "__toLocaleStringFormatter";
+      jsgField.formatterParams = column;
+    }
     if (column.fieldview === "show_star_rating") {
       jsgField.formatter = "star";
       jsgField.formatterParams = {
