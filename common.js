@@ -273,7 +273,21 @@ const set_json_col = (tcol, field, key, header_filters) => {
         tcol.headerFilterLiveFilter = false;
         break;
       case "String":
-        tcol.headerFilter = header_filters && "input";
+        if (schemaType.options) {
+          tcol.editor = "list";
+
+          const values = schemaType.options.split(",").map((o) => o.trim());
+          if (!field.required) values.unshift("");
+
+          tcol.editorParams = {
+            values,
+            autocomplete: true,
+            listOnEmpty: true,
+          };
+          tcol.cellEditing = "__storeRowEditing";
+          tcol.jsonEditSubfield = schemaType.key;
+          if (header_filters) tcol.headerFilterParams = { values };
+        } else tcol.headerFilter = header_filters && "input";
         break;
       case "Bool":
         tcol.formatter = "tickCross";

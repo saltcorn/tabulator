@@ -389,6 +389,11 @@ function pivotEditRecalc(cell, { column_calculation, calc_pos } = {}) {
   }
 }
 
+let lastRowEdited;
+const storeRowEditing = (cell) => {
+  lastRowEdited = { ...cell.getRow().getData() };
+};
+
 const gen_save_row_from_cell =
   ({ confirm_edits, rndid, hasCalculated, table_name, viewname }) =>
   (row, cell, noid) => {
@@ -421,9 +426,24 @@ const gen_save_row_from_cell =
           .then(cb);
     };
     const fld = typeof cell === "string" ? cell : cell.getField();
+    const colDef = cell.getColumn().getDefinition();
+    let rerender = false;
+    //for JSON list edits (json with options in schema)
+    if (colDef && colDef.jsonEditSubfield && lastRowEdited) {
+      let oldVal = lastRowEdited[fld];
+      if (typeof oldVal == "object" && oldVal[colDef.jsonEditSubfield] !== null)
+        oldVal[colDef.jsonEditSubfield] = row[fld];
+      else {
+        oldVal = { [colDef.jsonEditSubfield]: row[fld] };
+      }
+      row[fld] = oldVal;
+      rerender = true;
+    }
+
     if (typeof row[fld] === "undefined") return;
     const saveRow = { [fld]: row[fld] };
     postFn(saveRow, function (resp) {
+      if (rerender) cell.getRow().reformat();
       if (resp.success && typeof resp.success === "number" && !row.id && cell) {
         window[`tabulator_table_${rndid}`].updateRow(cell.getRow(), {
           id: resp.success,

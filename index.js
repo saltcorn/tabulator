@@ -1465,6 +1465,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
         })`
         : ``
     }
+    window.tabulator_table_${rndid}.on("cellEditing", function(cell) {storeRowEditing(cell)})
     window.tabulator_table_${rndid}.on("cellEdited", function(cell){
       const row=cell.getRow().getData();
       if(cell.getField()==="${dropdown_id}"){
