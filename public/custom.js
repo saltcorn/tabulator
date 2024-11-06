@@ -711,7 +711,7 @@ function run_action_multi_edit(edit_name, rndid, viewname) {
 }
 function final_action_multi_edit(edit_name, rndid, viewname) {
   //get form data
-  const action_edit_row = get_form_record({ viewname });
+  const action_edit_row = get_form_record({ viewname: edit_name });
   view_post(
     viewname,
     "run_selected_rows_action",
@@ -721,7 +721,7 @@ function final_action_multi_edit(edit_name, rndid, viewname) {
       rndid,
     },
     () => {
-      reload_embedded_view("viewname");
+      reload_embedded_view(viewname);
       close_saltcorn_modal();
     }
   );

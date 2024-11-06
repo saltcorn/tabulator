@@ -1994,8 +1994,18 @@ const run_selected_rows_action = async (
 ) => {
   if (selected_rows_action.startsWith("Edit:")) {
     if (action_edit_row) {
-
-      return {}
+      const table = Table.findOne(table_id);
+      const fields = new Set(table.fields.map((f) => f.name));
+      const upd = {};
+      Object.keys(action_edit_row).forEach((k) => {
+        const v = action_edit_row[k];
+        if (v === "" || typeof v === "undefined") return;
+        if (fields.has(k)) upd[k] = v;
+      });
+      for (const row of rows) {
+        await table.updateRow(upd, row.id, req.user || { role_id: 100 });
+      }
+      return {};
     } else
       return {
         json: {
