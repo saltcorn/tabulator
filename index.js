@@ -547,6 +547,16 @@ const view_configuration_workflow = (req) =>
               when_trigger: { or: ["API call", "Never"] },
             })
           ).map((tr) => tr.name);
+          const editViewOnTable = await View.find({
+            table_id: table.id,
+            viewtemplate: "Edit",
+          });
+          action_options.push(
+            ...editViewOnTable.map((v) => ({
+              label: `${v.name} [Edit]`,
+              name: `Edit:` + v.name,
+            }))
+          );
 
           return new Form({
             fields: [
