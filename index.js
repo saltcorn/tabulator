@@ -1597,7 +1597,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
           title: "on selected rows",
           onClick: `run_selected_rows_action('${viewname}', ${selectable}, '${rndid}', ${!!tree_field})`,
         },
-        selected_rows_action_name
+        selected_rows_action_name.replaceAll("Edit:", "")
       ),
 
     remove_unselected_btn &&
@@ -1989,9 +1989,19 @@ const run_selected_rows_action = async (
   table_id,
   viewname,
   { selected_rows_action, selected_rows_action_once },
-  { rows },
+  { rows, action_edit_row },
   { req, res }
 ) => {
+  if (selected_rows_action.startsWith("Edit:")) {
+    return {
+      json: {
+        eval_js: `run_action_multi_edit("${selected_rows_action.replaceAll(
+          "Edit:",
+          ""
+        )}")`,
+      },
+    };
+  }
   const table = await Table.findOne({ id: table_id });
 
   const trigger = await Trigger.findOne({ name: selected_rows_action });

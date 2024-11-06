@@ -695,6 +695,10 @@ function tabCustomCsvDownload(list, options = {}, setFileContents) {
   setFileContents(fileContents, "text/csv");
 }
 
+function run_action_multi_edit(edit_name) {
+  ajax_modal(`/view/${edit_name}`, { onOpen() {} });
+}
+
 function relativeDateFormatter(cell, formatterParams, onRendered) {
   const val = cell.getValue();
   if (!val) return "";
