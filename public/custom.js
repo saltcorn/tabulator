@@ -264,6 +264,8 @@ function tabUserGroupBy(e, rndid, orderFld, orderDesc) {
   window["tabulator_table_" + rndid].setGroupBy(e.value);
 }
 
+let tab_selected_rows;
+
 function run_selected_rows_action(viewname, selectable, rndid, hasChildren) {
   const rows0 = window["tabulator_table_" + rndid].getRows("active");
   let rows1 = [];
@@ -280,8 +282,10 @@ function run_selected_rows_action(viewname, selectable, rndid, hasChildren) {
     go(rows0);
   }
   const rows = rows1.map((r) => r.getData());
+  tab_selected_rows = rows;
   view_post(viewname, "run_selected_rows_action", {
     rows,
+    rndid,
   });
 }
 
@@ -695,8 +699,32 @@ function tabCustomCsvDownload(list, options = {}, setFileContents) {
   setFileContents(fileContents, "text/csv");
 }
 
-function run_action_multi_edit(edit_name) {
-  ajax_modal(`/view/${edit_name}`, { onOpen() {} });
+function run_action_multi_edit(edit_name, rndid, viewname) {
+  ajax_modal(`/view/${edit_name}`, {
+    onOpen() {
+      $('#scmodal button[onclick="ajaxSubmitForm(this)"]').attr(
+        "onclick",
+        `final_action_multi_edit("${edit_name}", "${rndid}", "${viewname}")`
+      );
+    },
+  });
+}
+function final_action_multi_edit(edit_name, rndid, viewname) {
+  //get form data
+  const action_edit_row = get_form_record({ viewname });
+  view_post(
+    viewname,
+    "run_selected_rows_action",
+    {
+      rows: tab_selected_rows,
+      action_edit_row,
+      rndid,
+    },
+    () => {
+      reload_embedded_view("viewname");
+      close_saltcorn_modal();
+    }
+  );
 }
 
 function relativeDateFormatter(cell, formatterParams, onRendered) {

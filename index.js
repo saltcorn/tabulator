@@ -1989,18 +1989,22 @@ const run_selected_rows_action = async (
   table_id,
   viewname,
   { selected_rows_action, selected_rows_action_once },
-  { rows, action_edit_row },
+  { rows, action_edit_row, rndid },
   { req, res }
 ) => {
   if (selected_rows_action.startsWith("Edit:")) {
-    return {
-      json: {
-        eval_js: `run_action_multi_edit("${selected_rows_action.replaceAll(
-          "Edit:",
-          ""
-        )}")`,
-      },
-    };
+    if (action_edit_row) {
+
+      return {}
+    } else
+      return {
+        json: {
+          eval_js: `run_action_multi_edit("${selected_rows_action.replaceAll(
+            "Edit:",
+            ""
+          )}", "${rndid}", "${viewname}")`,
+        },
+      };
   }
   const table = await Table.findOne({ id: table_id });
 
