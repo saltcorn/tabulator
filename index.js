@@ -1602,9 +1602,10 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
     selected_rows_action &&
       button(
         {
-          class: "btn btn-sm btn-primary mx-1",
+          class: "btn btn-sm btn-primary mx-1 tabselrowaction",
           title: "on selected rows",
-          onClick: `run_selected_rows_action('${viewname}', ${selectable}, '${rndid}', ${!!tree_field})`,
+          onClick: `press_store_button(this);run_selected_rows_action('${viewname}', ${selectable}, '${rndid}', ${!!tree_field})`,
+          "data-label": selected_rows_action_name,
         },
         selected_rows_action_name
       ),

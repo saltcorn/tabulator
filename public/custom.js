@@ -283,10 +283,21 @@ function run_selected_rows_action(viewname, selectable, rndid, hasChildren) {
   }
   const rows = rows1.map((r) => r.getData());
   tab_selected_rows = rows;
-  view_post(viewname, "run_selected_rows_action", {
-    rows,
-    rndid,
-  });
+  view_post(
+    viewname,
+    "run_selected_rows_action",
+    {
+      rows,
+      rndid,
+    },
+    () => {
+      //unset spinner
+      $(`button.tabselrowaction`).each(function () {
+        let $btn = $(this);
+        $btn.text($btn.attr("data-label"));
+      });
+    }
+  );
 }
 
 function tabulator_colcalc_unique(values, data, calcParams) {
