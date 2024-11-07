@@ -704,7 +704,7 @@ function run_action_multi_edit(edit_name, rndid, viewname) {
     onOpen() {
       $('#scmodal button[onclick="ajaxSubmitForm(this)"]').attr(
         "onclick",
-        `final_action_multi_edit("${edit_name}", "${rndid}", "${viewname}")`
+        `press_store_button(this);final_action_multi_edit("${edit_name}", "${rndid}", "${viewname}")`
       );
     },
   });
