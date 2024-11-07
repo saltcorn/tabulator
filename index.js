@@ -1208,9 +1208,13 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
     columns.some((c) => c.type === "FormulaValue") ||
     columns.some((c) => c.type === "JoinField");
   const selected_rows_action_name = selected_rows_action
-    ? ((x) => x?.description || x?.name)(
-        getState().triggers.find((tr) => tr.name === selected_rows_action)
-      ) || selected_rows_action
+    ? selected_rows_action.startsWith("Edit:")
+      ? ((x) => x?.description || x?.name)(
+          View.findOne({ name: selected_rows_action.replaceAll("Edit:", "") })
+        ) || selected_rows_action.replaceAll("Edit:", "")
+      : ((x) => x?.description || x?.name)(
+          getState().triggers.find((tr) => tr.name === selected_rows_action)
+        ) || selected_rows_action
     : "";
 
   const rndid = Math.floor(Math.random() * 16777215).toString(16);
@@ -1266,6 +1270,11 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
   }
 
   const darkStyle = await getDarkStyle(extraArgs.req);
+
+  let selected_rows_label;
+  if (selected_rows_action) {
+  }
+
   return fragment(
     //script(`var edit_fields=${JSON.stringify(jsfields)};`),
     //script(domReady(versionsField(table.name))),
@@ -1597,7 +1606,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
           title: "on selected rows",
           onClick: `run_selected_rows_action('${viewname}', ${selectable}, '${rndid}', ${!!tree_field})`,
         },
-        selected_rows_action_name.replaceAll("Edit:", "")
+        selected_rows_action_name
       ),
 
     remove_unselected_btn &&
