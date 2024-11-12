@@ -153,6 +153,27 @@ function dateFilterFunction(headerValue, rowValue0, rowData, filterParams) {
 }
 
 function optionalImageFormatter(cell, formatterParams, onRendered) {
+  if (formatterParams.fieldview === "Download link") {
+    let el = document.createElement("a");
+    let src = cell.getValue();
+    el.setAttribute("href", `/files/download/${src}`);
+    el.textContent = src;
+    return el;
+  } else if (formatterParams.fieldview === "Link") {
+    let el = document.createElement("a");
+    let src = cell.getValue();
+    el.setAttribute("href", `/files/serve/${src}`);
+    el.textContent = src;
+    return el;
+  } else if (formatterParams.fieldview === "Link (new tab)") {
+    let el = document.createElement("a");
+    let src = cell.getValue();
+    el.setAttribute("href", `/files/serve/${src}`);
+    el.setAttribute("target", `_blank`);
+    el.textContent = src;
+    return el;
+  }
+
   var el = document.createElement("img"),
     src = cell.getValue();
 

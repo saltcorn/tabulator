@@ -283,6 +283,9 @@ const new_columns_step = (req) => ({
     for (const field of fields) {
       if (field_view_options[field.name]?.[0] === "as_text")
         field_view_options[field.name].push("textarea");
+      if(field.type === "File")
+        field_view_options[field.name].unshift("Select");
+
     }
     const rel_field_view_options = await calcrelViewOptions(table, "list");
     const roles = await User.get_roles();

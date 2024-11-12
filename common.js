@@ -82,20 +82,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.editor = "input";
     }
   } else if (t === "Key" || t === "File") {
-    if (column.fieldview === "Thumbnail") {
-      jsgField.formatter = "__optionalImageFormatter";
-      jsgField.formatterParams = {
-        height: field.attributes?.height
-          ? `${field.attributes?.height || 50}px`
-          : undefined,
-        width: `${field.attributes?.width || 50}px`,
-        urlPrefix: "/files/resize/",
-        urlSuffix:
-          `/${field.attributes?.width || 50}` +
-          (field.attributes?.height ? `/${field.attributes.height}` : ""),
-      };
-      jsgField.editor = false;
-    } else {
+    if (column.fieldview === "Select" || !column.fieldview) {
       jsgField.editor = "list";
       const values = {};
       (field.options || []).forEach(
@@ -110,6 +97,20 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.formatter = "__lookupIntToString";
       jsgField.headerFilter = !!header_filters;
       jsgField.headerFilterFunc = "=";
+    } else {
+      jsgField.formatter = "__optionalImageFormatter";
+      jsgField.formatterParams = {
+        fieldview: column.fieldview,
+        height: field.attributes?.height
+          ? `${field.attributes?.height || 50}px`
+          : undefined,
+        width: `${field.attributes?.width || 50}px`,
+        urlPrefix: "/files/resize/",
+        urlSuffix:
+          `/${field.attributes?.width || 50}` +
+          (field.attributes?.height ? `/${field.attributes.height}` : ""),
+      };
+      jsgField.editor = false;
     }
   } else if (t.name === "Float" || t.name === "Integer") {
     jsgField.editor = "number";
