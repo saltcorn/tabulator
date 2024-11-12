@@ -657,6 +657,12 @@ const view_configuration_workflow = (req) =>
                 },
               },
               {
+                name: "def_order_descending",
+                label: req.__("Default order descending?"),
+                type: "Bool",
+                tab: "Content",
+              },
+              {
                 name: "include_fml",
                 label: req.__("Row inclusion formula"),
                 class: "validate-expression",
@@ -676,12 +682,6 @@ const view_configuration_workflow = (req) =>
                     .map((s) => code(s))
                     .join(", "),
                 type: "String",
-              },
-              {
-                name: "def_order_descending",
-                label: req.__("Default order descending?"),
-                type: "Bool",
-                tab: "Content",
               },
               {
                 name: "hideColsBtn",
