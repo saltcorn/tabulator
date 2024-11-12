@@ -283,9 +283,8 @@ const new_columns_step = (req) => ({
     for (const field of fields) {
       if (field_view_options[field.name]?.[0] === "as_text")
         field_view_options[field.name].push("textarea");
-      if(field.type === "File")
+      if (field.type === "File")
         field_view_options[field.name].unshift("Select");
-
     }
     const rel_field_view_options = await calcrelViewOptions(table, "list");
     const roles = await User.get_roles();
@@ -1789,7 +1788,7 @@ const get_db_rows = async (
   }
   //const rows_per_page = default_state && default_state._rows_per_page;
   //if (!q.limit && rows_per_page) q.limit = rows_per_page;
-  if (!q.orderBy) q.orderBy = table.pk_name;
+  if (!q.orderBy) q.orderBy = def_order_field || table.pk_name;
   if (limit && !postFetchSort && !postFetchFilter) q.limit = limit;
   else if (isPreview) q.limit = 20;
   if (offset && !postFetchSort && !postFetchFilter) q.offset = offset;
@@ -1811,6 +1810,14 @@ const get_db_rows = async (
           target: groupField?.attributes?.summary_field || "id",
         };
     }
+  }
+
+  if (
+    def_order_field &&
+    def_order_descending &&
+    typeof q.orderDesc === "undefined"
+  ) {
+    q.orderDesc = true;
   }
 
   // console.log(aggregations);
