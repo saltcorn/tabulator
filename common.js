@@ -326,8 +326,10 @@ const set_join_fieldviews = async ({ columns, fields }) => {
     }
     if (!field) continue;
     segment.field_obj = field;
-    if (field && field.type === "File") segment.field_type = "File";
-    else if (
+    if (field && field.type === "File") {
+      await field.fill_fkey_options();
+      segment.field_type = "File";
+    } else if (
       field?.type.name &&
       field.type.fieldviews &&
       field.type.fieldviews[join_fieldview]
@@ -484,7 +486,16 @@ const get_tabulator_columns = async (
         targetNm = keypath[keypath.length - 1];
         key = keypath.join("_");
       }
-      if (column.fieldview === "subfield") {
+      if (column.field_type === "File") {
+        tcol = typeToGridType(
+          "File",
+          column.field_obj,
+          header_filters,
+          column,
+          calculators
+        );
+        tcol.field = key;
+      } else if (column.fieldview === "subfield") {
         const f = await table.getField(column.join_field);
         tcol.editor = false;
         const jkey = `${key}_${column.key}`;
