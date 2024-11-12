@@ -143,6 +143,7 @@ const old_columns_step = (req) => ({
       type: "String",
       attributes: {
         options: [
+          "",
           "avg",
           "max",
           "min",
@@ -436,8 +437,10 @@ const new_columns_step = (req) => ({
           name: "column_calculation",
           label: "Column Calculation",
           type: "String",
+          required: true,
           attributes: {
             options: [
+              "",
               "avg",
               "max",
               "min",
