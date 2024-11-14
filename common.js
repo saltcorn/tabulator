@@ -82,7 +82,13 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.editor = "input";
     }
   } else if (t === "Key" || t === "File") {
-    if (column.fieldview === "Select" || !column.fieldview) {
+    console.log("key file col", column);
+
+    if (
+      column.fieldview === "Select" ||
+      column.fieldview === "show" ||
+      !column.fieldview
+    ) {
       jsgField.editor = "list";
       const values = {};
       (field.options || []).forEach(
