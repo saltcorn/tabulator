@@ -70,6 +70,7 @@ const {
   get_tabulator_columns,
   getDarkStyle,
   set_join_fieldviews,
+  isDark,
 } = require("./common");
 const configuration_workflow = () =>
   new Workflow({
@@ -1665,6 +1666,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
 
     div({
       id: `tabgrid${viewname.replaceAll(" ", "")}${rndid}`,
+      class: isDark(extraArgs.req) ? "table-dark" : undefined,
       style: { height: height || "100%" },
     })
   );

@@ -856,6 +856,18 @@ function addFiveToColor(hexColor) {
     .padStart(6, "0")}`;
 }
 
+const isDark = (req) => {
+  const state = getState();
+  if (req?.user?._attributes?.layout?.config?.mode)
+    return req?.user?._attributes?.layout?.config?.mode === "dark";
+  if (state.plugin_cfgs) {
+    const layout_name = state.getLayoutPlugin(req?.user).plugin_name
+    const plugin_cfg = state.plugin_cfgs[layout_name]
+    if(plugin_cfg?.mode) return plugin_cfg.mode==="dark"
+  }
+  return false;
+};
+
 const getDarkStyle = async (req) => {
   const state = getState();
   const buildDarkStyle = ({ backgroundColorDark }) => {
@@ -900,4 +912,5 @@ module.exports = {
   get_tabulator_columns,
   getDarkStyle,
   set_join_fieldviews,
+  isDark,
 };
