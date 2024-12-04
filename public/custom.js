@@ -462,7 +462,7 @@ const gen_save_row_from_cell =
           .then(cb);
     };
     const fld = typeof cell === "string" ? cell : cell.getField();
-    const colDef = cell.getColumn().getDefinition();
+    const colDef = typeof cell === "string" ? undefined : cell.getColumn().getDefinition();
     let rerender = false;
     //for JSON list edits (json with options in schema)
     if (colDef && colDef.jsonEditSubfield && lastRowEdited) {

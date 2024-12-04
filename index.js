@@ -1479,7 +1479,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
     }
     ${
       select_range
-        ? `window.tabulator_table_${rndid}.on("clipboardPasted", function(clipboard, rowData, rows){         
+        ? `window.tabulator_table_${rndid}.on("clipboardPasted", function(clipboard, rowData, rows){
           rows.forEach((row, ix)=>{
             const keys = Object.keys(rowData[ix])
             keys.forEach((key)=>{
