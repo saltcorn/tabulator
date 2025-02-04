@@ -861,9 +861,9 @@ const isDark = (req) => {
   if (req?.user?._attributes?.layout?.config?.mode)
     return req?.user?._attributes?.layout?.config?.mode === "dark";
   if (state.plugin_cfgs) {
-    const layout_name = state.getLayoutPlugin(req?.user).plugin_name
-    const plugin_cfg = state.plugin_cfgs[layout_name]
-    if(plugin_cfg?.mode) return plugin_cfg.mode==="dark"
+    const layout_name = state.getLayoutPlugin(req?.user).plugin_name;
+    const plugin_cfg = state.plugin_cfgs[layout_name];
+    if (plugin_cfg?.mode) return plugin_cfg.mode === "dark";
   }
   return false;
 };
@@ -885,6 +885,9 @@ const getDarkStyle = async (req) => {
     `
       : null;
   };
+  if (state.getLightDarkMode) {
+    if (state.getLightDarkMode(req.user) === "light") return null;
+  }
   if (state.plugin_cfgs) {
     let anyBsThemeCfg = state.plugin_cfgs["any-bootstrap-theme"];
     if (!anyBsThemeCfg)
