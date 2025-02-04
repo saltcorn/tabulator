@@ -1743,20 +1743,32 @@ const get_db_rows = async (
 ) => {
   const fieldNames = new Set(fields.map((f) => f.name));
 
-  const where = await stateFieldsToWhere({ fields, state, table });
+  const where = await stateFieldsToWhere({
+    fields,
+    state,
+    table,
+    prefix: "a.",
+  });
+  const whereForCount = stateFieldsToWhere({
+    fields,
+    state,
+    table,
+  });
   const q = await stateFieldsToQuery({ state, fields, prefix: "a." });
   let postFetchSort;
   let postFetchFilter;
   if (filter) {
     filter.forEach(({ field, type, value }) => {
-      if (fieldNames.has(field))
-        where[field] =
+      if (fieldNames.has(field)) {
+        const wh_val =
           type === "like"
             ? { ilike: value }
             : value.start || value.end
             ? { gt: value.start, lt: value.end }
             : value;
-      else {
+        where[field] = wh_val;
+        whereForCount[field] = wh_val;
+      } else {
         if (!postFetchFilter) postFetchFilter = [];
         const valS = `${value}`;
         if (type === "like")
@@ -1827,6 +1839,7 @@ const get_db_rows = async (
     const ctx = { ...state, user_id: req.user?.id || null, user: req.user };
     let where1 = jsexprToWhere(include_fml, ctx, fields);
     mergeIntoWhere(where, where1 || {});
+    mergeIntoWhere(whereForCount, where1 || {});
   }
   let rows = queriesObj?.get_rows_query
     ? await queriesObj.get_rows_query(where, joinFields, aggregations, q)
@@ -1928,7 +1941,7 @@ const get_db_rows = async (
   }
 
   if (alsoCount) {
-    const count = await table.countRows(where);
+    const count = await table.countRows(whereForCount);
     return { rows, count };
   } else return { rows };
 };
