@@ -734,7 +734,7 @@ function tabCustomCsvDownload(list, options = {}, setFileContents) {
 function run_action_multi_edit(edit_name, rndid, viewname) {
   ajax_modal(`/view/${edit_name}`, {
     onOpen() {
-      $('#scmodal button[onclick="ajaxSubmitForm(this)"]').attr(
+      $('#scmodal button[onclick^="ajaxSubmitForm"]').attr(
         "onclick",
         `press_store_button(this);final_action_multi_edit("${edit_name}", "${rndid}", "${viewname}")`
       );
