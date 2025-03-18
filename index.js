@@ -1998,7 +1998,8 @@ const run_action = async (
       );
   //console.log({ col, body });
   const table = await Table.findOne({ id: table_id });
-  const row = await table.getRow({ id: body.id });
+  const pk = table.pk_name;
+  const row = await table.getRow({ [pk]: body[pk] });
   const state_action = getState().actions[col.action_name];
   col.configuration = col.configuration || {};
   if (state_action) {
@@ -2041,7 +2042,11 @@ const run_selected_rows_action = async (
         if (fields.has(k)) upd[k] = v;
       });
       for (const row of rows) {
-        await table.updateRow(upd, row.id, req.user || { role_id: 100 });
+        await table.updateRow(
+          upd,
+          row[table.pk_name],
+          req.user || { role_id: 100 }
+        );
       }
       return {};
     } else
