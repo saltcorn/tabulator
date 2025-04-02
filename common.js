@@ -858,6 +858,12 @@ function addFiveToColor(hexColor) {
 
 const isDark = (req) => {
   const state = getState();
+
+  // first, try to use central method for detecting if in dark mode. if this is wrong, fix it in Saltcorn core.
+  if (state.getLightDarkMode)
+    return state.getLightDarkMode(req.user) === "dark";
+
+  // this is only for legacy saltcorn versions that dont have getLightDarkMode
   if (req?.user?._attributes?.layout?.config?.mode)
     return req?.user?._attributes?.layout?.config?.mode === "dark";
   if (state.plugin_cfgs) {
