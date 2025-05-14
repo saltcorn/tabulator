@@ -1125,9 +1125,6 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
   } = cfg;
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
-  for (const field of fields) {
-    await field.fill_fkey_options();
-  }
   readState(state, fields);
   let groupBy1 = groupBy;
   if (groupBy1) {

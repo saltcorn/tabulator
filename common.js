@@ -444,6 +444,9 @@ const get_tabulator_columns = async (
     if (column.type === "Field") {
       let f = fields.find((fld) => fld.name === column.field_name);
       if (!f) return {};
+      if ((f.is_fkey || f.type === "File") && typeof f.options === "undefined")
+        await f.fill_fkey_options();
+
       Object.assign(f.attributes, column);
       f.fieldview = column.fieldview;
       if (column.fieldview === "subfield") {
