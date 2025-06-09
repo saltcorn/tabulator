@@ -53,6 +53,7 @@ const {
   link,
 } = require("@saltcorn/markup/tags");
 const { post_btn, localeDate, localeDateTime } = require("@saltcorn/markup");
+const db = require("@saltcorn/data/db");
 
 const {
   action_url,
@@ -2105,16 +2106,18 @@ module.exports = {
       }/custom.js`,
     },
     {
-      script: "/plugins/public/tabulator/luxon.min.js",
+      script: `/plugins/public/tabulator@${
+        require("./package.json").version
+      }/luxon.min.js`,
     },
     {
-      script: "/flatpickr.min.js",
+      script: `/static_assets/${db.connectObj.version_tag}/flatpickr.min.js`,
     },
     {
-      css: `/flatpickr.min.css`,
+      css: `/static_assets/${db.connectObj.version_tag}/flatpickr.min.css`,
     },
     {
-      script: "/gridedit.js",
+      script: `/static_assets/${db.connectObj.version_tag}/gridedit.js`,
     },
     {
       css: `/plugins/public/tabulator${
