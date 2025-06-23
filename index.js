@@ -1953,7 +1953,10 @@ const get_rows = async (
   //console.log({ filter, sort, state, page, size });
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
-  let limit = size === "true" ? undefined : size || cfg.pagination_size || 50;
+  let limit =
+    size === "true" || size === true
+      ? undefined
+      : size || cfg.pagination_size || 50;
   const offset = page && limit ? (+page - 1) * (+limit || 20) : 0;
   const { rows, count } = await get_db_rows(
     table,
@@ -1970,10 +1973,16 @@ const get_rows = async (
     filter,
     sort
   );
+  console.log({ size, page, nrows: rows.length });
 
   if (page) {
     if (size)
-      return { json: { data: rows, last_page: Math.ceil(count / +size) } };
+      return {
+        json: {
+          data: rows,
+          last_page: size === true ? 1 : Math.ceil(count / +size),
+        },
+      };
     else return { json: { data: rows } };
   } else return { json: rows };
 };
