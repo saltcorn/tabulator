@@ -1327,14 +1327,34 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       }`
           : ""
       }
+    const isWeb = getIsNode();
+    const buildMobileAjaxParams = () => {
+      if (isWeb) return {};
+      const { jwt, tenantAppName } = parent.saltcorn.data.state.getState().mobileConfig;
+      const result = {
+        "X-Requested-With": "XMLHttpRequest",
+        "X-Saltcorn-Client": "mobile-app",
+        Authorization: \`jwt \${jwt}\`
+      };
+      if (tenantAppName) result["X-Saltcorn-App"] = tenantAppName;
+      return result;
+    };
+
+    const buildMobileAjaxUrl = () => {
+      if (isWeb) return {};
+      const path = "/view/${viewname}/get_rows";
+      const { server_path } = parent.saltcorn.data.state.getState().mobileConfig;
+      return \`\${server_path}\${path}\`;
+    };
     window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname.replaceAll(
-        " ",
-        ""
-      )}${rndid}", {
+      " ",
+      "",
+    )}${rndid}", {
         ${
           ajax_load
             ? `
-        ajaxURL: "/view/${viewname}/get_rows",
+        ajaxURL: isWeb ? 
+          "/view/${viewname}/get_rows" : buildMobileAjaxUrl(),
         ${
           pagination_enabled
             ? 'paginationMode:"remote",'
@@ -1348,9 +1368,9 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
         ajaxContentType:"json",
         ajaxConfig:{
           method: "POST",
-          headers: {
+          headers: isWeb ? {
             "CSRF-Token": _sc_globalCsrf,
-          },
+          } : buildMobileAjaxParams()
         },
         `
             : `data: ${JSON.stringify(rows)},`
