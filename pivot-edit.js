@@ -1051,4 +1051,5 @@ module.exports = {
     edit_value,
     get_rows,
   },
+  mobile_render_server_side: true,
 };
