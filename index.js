@@ -1347,9 +1347,9 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       return \`\${server_path}\${path}\`;
     };
     window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname.replaceAll(
-      " ",
-      "",
-    )}${rndid}", {
+        " ",
+        ""
+      )}${rndid}", {
         ${
           ajax_load
             ? `
@@ -2265,6 +2265,7 @@ module.exports = {
           ? "@" + require("./package.json").version
           : ""
       }/tabulator.min.js`,
+      onlyViews: ["Tabulator", "Tabulator Pivot Edit"],
     },
     {
       script: `/plugins/public/tabulator${
@@ -2272,11 +2273,13 @@ module.exports = {
           ? "@" + require("./package.json").version
           : ""
       }/custom.js`,
+      onlyViews: ["Tabulator", "Tabulator Pivot Edit"],
     },
     {
       script: `/plugins/public/tabulator@${
         require("./package.json").version
       }/luxon.min.js`,
+      onlyViews: ["Tabulator", "Tabulator Pivot Edit"],
     },
     {
       script: `/static_assets/${db.connectObj.version_tag}/flatpickr.min.js`,
@@ -2293,6 +2296,7 @@ module.exports = {
           ? "@" + require("./package.json").version
           : ""
       }/tabulator_${stylesheet || "bootstrap5"}.min.css`,
+      onlyViews: ["Tabulator", "Tabulator Pivot Edit"],
     },
   ],
   sc_plugin_api_version: 1,
