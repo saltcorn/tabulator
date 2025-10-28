@@ -897,6 +897,12 @@ const getDarkStyle = async (req) => {
   if (state.getLightDarkMode) {
     if (state.getLightDarkMode(req.user) === "light") return null;
   }
+  const layout = state.getLayout(req.user);
+
+  if (layout?.config?.backgroundColorDark)
+    return buildDarkStyle({
+      backgroundColorDark: layout?.config?.backgroundColorDark,
+    });
   if (state.plugin_cfgs) {
     let anyBsThemeCfg = state.plugin_cfgs["any-bootstrap-theme"];
     if (!anyBsThemeCfg)
