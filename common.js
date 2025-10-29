@@ -903,7 +903,7 @@ const getDarkStyle = async (req) => {
     return buildDarkStyle({
       backgroundColorDark: layout?.config?.backgroundColorDark,
     });
-  if (state.plugin_cfgs) {
+  if (state.plugin_cfgs && !state.getLightDarkMode) {
     let anyBsThemeCfg = state.plugin_cfgs["any-bootstrap-theme"];
     if (!anyBsThemeCfg)
       anyBsThemeCfg = state.plugin_cfgs["@saltcorn/any-bootstrap-theme"];
@@ -920,7 +920,11 @@ const getDarkStyle = async (req) => {
     // does the global setting say dark mode?
     if (anyBsThemeCfg?.mode === "dark") return buildDarkStyle(anyBsThemeCfg);
   }
-  return null;
+  return state.getLightDarkMode
+    ? buildDarkStyle({ //in dark mode but no background color found, use a default
+        backgroundColorDark: "#424242",
+      })
+    : null;
 };
 
 module.exports = {
