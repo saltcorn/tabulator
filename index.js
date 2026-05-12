@@ -1494,23 +1494,30 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       }
       function _tab_calc_sz() {
         const holder = _tabEl ? _tabEl.querySelector('.tabulator-tableholder') : null;
-        if (!holder) return ${pagination_size || 20};
-        const rowH = window._tab_row_h_${rndid} || 35;
-        return Math.max(5, Math.floor(holder.clientHeight / rowH));
+        if (!holder || !window._tab_row_h_${rndid}) return ${pagination_size || 20};
+        return Math.max(5, Math.floor(holder.clientHeight / window._tab_row_h_${rndid}));
       }
       _tab.on("tableBuilt", function() {
-        _tabEl.style.height = _tab_fill_h() + "px";
-        _tab.setHeight(_tab_fill_h());
-        _tab.setPageSize(_tab_calc_sz());
+        const h = _tab_fill_h();
+        _tabEl.style.height = h + "px";
+        _tab.setHeight(h);
       });
-      _tab.on("dataLoaded", function(data) {
-        if (!data || !data.length) return;
-        const rows = _tab.getRows();
-        if (!rows.length) return;
-        const rh = rows[0].getElement().offsetHeight;
-        if (rh > 0) window._tab_row_h_${rndid} = rh;
-        const newSz = _tab_calc_sz();
-        if (newSz !== _tab.getPageSize()) _tab.setPageSize(newSz);
+      var _tab_adjusting_${rndid} = false;
+      _tab.on("renderComplete", function() {
+        if (_tab_adjusting_${rndid}) return;
+        requestAnimationFrame(function() {
+          const rows = _tab.getRows("visible");
+          if (rows && rows.length) {
+            const rh = rows[0].getElement().offsetHeight;
+            if (rh > 0) window._tab_row_h_${rndid} = rh;
+          }
+          const newSz = _tab_calc_sz();
+          if (newSz !== _tab.getPageSize()) {
+            _tab_adjusting_${rndid} = true;
+            _tab.setPageSize(newSz);
+            setTimeout(function() { _tab_adjusting_${rndid} = false; }, 200);
+          }
+        });
       });
       var _tab_resize_timer_${rndid};
       window.addEventListener("resize", function() {
