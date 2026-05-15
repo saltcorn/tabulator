@@ -90,7 +90,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
       jsgField.editor = "list";
       const values = {};
       (field.options || []).forEach(
-        ({ label, value }) => (values[value] = label)
+        ({ label, value }) => (values[value] = label),
       );
       calculators.push((row) => {
         if (row[field.name]) row[field.name] = `${row[field.name]}`;
@@ -109,10 +109,9 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
           ? `${field.attributes?.height || 50}px`
           : undefined,
         width: `${field.attributes?.width || 50}px`,
-        urlPrefix: "/files/resize/",
-        urlSuffix:
-          `/${field.attributes?.width || 50}` +
-          (field.attributes?.height ? `/${field.attributes.height}` : ""),
+        urlPrefix:
+          `/files/resize/${field.attributes?.width || 50}/` +
+          (field.attributes?.height ? `${field.attributes.height}/` : "0/"),
       };
       jsgField.editor = false;
     }
@@ -355,7 +354,7 @@ const get_tabulator_columns = async (
   header_filters,
   vert_col_headers,
   dropdown_frozen,
-  layout
+  layout,
 ) => {
   if (layout?.list_columns && layout.besides) {
     const typeMap = {
@@ -431,7 +430,7 @@ const get_tabulator_columns = async (
       req,
       header_filters,
       vert_col_headers,
-      dropdown_frozen
+      dropdown_frozen,
     );
   }
 
@@ -500,7 +499,7 @@ const get_tabulator_columns = async (
           column.field_obj,
           header_filters,
           column,
-          calculators
+          calculators,
         );
         tcol.field = key;
       } else if (column.fieldview === "subfield") {
@@ -521,7 +520,7 @@ const get_tabulator_columns = async (
             column.field_obj,
             header_filters,
             column,
-            calculators
+            calculators,
           );
         }
 
@@ -552,7 +551,7 @@ const get_tabulator_columns = async (
             "_" +
             fld +
             db.sqlsanitize(column.aggwhere || "")
-          ).toLowerCase()
+          ).toLowerCase(),
         );
       if (column.agg_fieldview === "format" && column.format) {
         tcol.formatter = "__isoDateFormatter";
@@ -637,7 +636,7 @@ const get_tabulator_columns = async (
         {},
         req,
         viewname,
-        true //get label in data for sorting
+        true, //get label in data for sorting
       );
       calculators.push((row) => {
         if (column.showif && !eval_expression(column.showif, row, req.user)) {
@@ -713,7 +712,7 @@ const get_tabulator_columns = async (
           row,
           column.rndid || column.action_name,
           column.rndid ? "rndid" : "action_name",
-          column.confirm
+          column.confirm,
         );
         const action_label =
           (column.icon ? i({ class: column.icon }) : "") +
@@ -792,7 +791,7 @@ const get_tabulator_columns = async (
           class: "btn btn-sm btn-xs btn-outline-secondary dropdown-toggle",
           disabled: true,
         },
-        "Action"
+        "Action",
       );
       dropdown_actions.forEach(({ label, column, rndid, wholeLink }) => {
         const action = row[rndid];
@@ -921,7 +920,8 @@ const getDarkStyle = async (req) => {
     if (anyBsThemeCfg?.mode === "dark") return buildDarkStyle(anyBsThemeCfg);
   }
   return state.getLightDarkMode
-    ? buildDarkStyle({ //in dark mode but no background color found, use a default
+    ? buildDarkStyle({
+        //in dark mode but no background color found, use a default
         backgroundColorDark: "#424242",
       })
     : null;
