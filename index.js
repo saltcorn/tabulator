@@ -822,12 +822,21 @@ const view_configuration_workflow = (req) =>
                 tab: "Layout",
               },
               {
+                name: "auto_pagination_size",
+                label: "Auto pagination size",
+                sublabel:
+                  "Automatically fit rows to viewport height (overrides Pagination size)",
+                type: "Bool",
+                tab: "Layout",
+                showIf: { pagination_enabled: true },
+              },
+              {
                 name: "pagination_size",
                 label: "Pagination size",
                 type: "Integer",
                 default: 20,
                 tab: "Layout",
-                showIf: { pagination_enabled: true },
+                showIf: { pagination_enabled: true, auto_pagination_size: false },
               },
               {
                 name: "selected_rows_action",
@@ -1123,6 +1132,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
     row_color_formula,
     select_range,
     height,
+    auto_pagination_size,
   } = cfg;
   const table = await Table.findOne({ id: table_id });
   const fields = await table.getFields();
@@ -1402,7 +1412,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
         paginationSize:${
           !pagination_enabled && ajax_load ? 100 : pagination_size || 20
         },
-        paginationSizeSelector: ${JSON.stringify(paginationSizeChoices)},
+        paginationSizeSelector: ${auto_pagination_size ? false : JSON.stringify(paginationSizeChoices)},
         clipboard:true,
         ${
           select_range
@@ -1472,6 +1482,57 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
           else return response
         },
     });
+    ${
+      auto_pagination_size && pagination_enabled
+        ? `
+    (function(){
+      const _tab = window.tabulator_table_${rndid};
+      const _tabEl = document.getElementById("tabgrid${viewname.replaceAll(" ", "")}${rndid}");
+      function _tab_fill_h() {
+        if (!_tabEl) return 400;
+        return Math.max(200, Math.floor(window.innerHeight - _tabEl.getBoundingClientRect().top - 10));
+      }
+      function _tab_calc_sz() {
+        const holder = _tabEl ? _tabEl.querySelector('.tabulator-tableholder') : null;
+        if (!holder || !window._tab_row_h_${rndid}) return ${pagination_size || 20};
+        return Math.max(5, Math.floor(holder.clientHeight / window._tab_row_h_${rndid}));
+      }
+      _tab.on("tableBuilt", function() {
+        const h = _tab_fill_h();
+        _tabEl.style.height = h + "px";
+        _tab.setHeight(h);
+      });
+      var _tab_adjusting_${rndid} = false;
+      _tab.on("renderComplete", function() {
+        if (_tab_adjusting_${rndid}) return;
+        requestAnimationFrame(function() {
+          const rows = _tab.getRows("visible");
+          if (rows && rows.length) {
+            const rh = rows[0].getElement().offsetHeight;
+            if (rh > 0) window._tab_row_h_${rndid} = rh;
+          }
+          const newSz = _tab_calc_sz();
+          if (newSz !== _tab.getPageSize()) {
+            _tab_adjusting_${rndid} = true;
+            _tab.setPageSize(newSz);
+            setTimeout(function() { _tab_adjusting_${rndid} = false; }, 200);
+          }
+        });
+      });
+      var _tab_resize_timer_${rndid};
+      window.addEventListener("resize", function() {
+        clearTimeout(_tab_resize_timer_${rndid});
+        _tab_resize_timer_${rndid} = setTimeout(function() {
+          const h = _tab_fill_h();
+          _tabEl.style.height = h + "px";
+          _tab.setHeight(h);
+          _tab.setPageSize(_tab_calc_sz());
+        }, 150);
+      });
+    })();
+    `
+        : ""
+    }
     const save_row_from_cell= gen_save_row_from_cell(${JSON.stringify({
       confirm_edits,
       hasCalculated,
@@ -1685,7 +1746,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
     div({
       id: `tabgrid${viewname.replaceAll(" ", "")}${rndid}`,
       class: isDark(extraArgs.req) ? "table-dark" : undefined,
-      style: { height: height || "100%" },
+      style: { height: auto_pagination_size && pagination_enabled ? "400px" : height || "100%" },
     })
   );
 };
@@ -2251,7 +2312,7 @@ const createBasicView = async ({
 
   if (template_view && all_views_created.Edit) {
     copy_cfg(
-      "fit responsiveLayout hideColsBtn hide_null_columns addRowBtn selectable remove_unselected_btn download_csv header_filters pagination_enabled pagination_size movable_cols history persistent dropdown_frozen vert_col_headers reset_persistent_btn def_order_descending column_visibility_presets presets min_role_preset_edit tree_field selected_rows_action group_true_label group_false_label group_null_label group_order_desc header_wrap override_stylesheet ajax_load confirm_edits disable_edit_if row_color_formula select_range height"
+      "fit responsiveLayout hideColsBtn hide_null_columns addRowBtn selectable remove_unselected_btn download_csv header_filters pagination_enabled pagination_size auto_pagination_size movable_cols history persistent dropdown_frozen vert_col_headers reset_persistent_btn def_order_descending column_visibility_presets presets min_role_preset_edit tree_field selected_rows_action group_true_label group_false_label group_null_label group_order_desc header_wrap override_stylesheet ajax_load confirm_edits disable_edit_if row_color_formula select_range height"
     );
   }
   return configuration;
