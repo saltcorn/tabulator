@@ -822,14 +822,6 @@ const view_configuration_workflow = (req) =>
                 tab: "Layout",
               },
               {
-                name: "pagination_size",
-                label: "Pagination size",
-                type: "Integer",
-                default: 20,
-                tab: "Layout",
-                showIf: { pagination_enabled: true },
-              },
-              {
                 name: "auto_pagination_size",
                 label: "Auto pagination size",
                 sublabel:
@@ -837,6 +829,14 @@ const view_configuration_workflow = (req) =>
                 type: "Bool",
                 tab: "Layout",
                 showIf: { pagination_enabled: true },
+              },
+              {
+                name: "pagination_size",
+                label: "Pagination size",
+                type: "Integer",
+                default: 20,
+                tab: "Layout",
+                showIf: { pagination_enabled: true, auto_pagination_size: false },
               },
               {
                 name: "selected_rows_action",
@@ -1412,7 +1412,7 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
         paginationSize:${
           !pagination_enabled && ajax_load ? 100 : pagination_size || 20
         },
-        paginationSizeSelector: ${JSON.stringify(paginationSizeChoices)},
+        paginationSizeSelector: ${auto_pagination_size ? false : JSON.stringify(paginationSizeChoices)},
         clipboard:true,
         ${
           select_range
