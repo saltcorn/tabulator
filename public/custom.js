@@ -208,6 +208,16 @@ function optionalImageFormatter(cell, formatterParams, onRendered) {
       break;
   }
 
+  if (formatterParams.fieldview === "Thumbnail" && formatterParams.expand) {
+    const filePath = cell.getValue();
+    const filename = filePath ? filePath.split("/").pop() : "";
+    el.style.cursor = "pointer";
+    el.setAttribute(
+      "onclick",
+      `expand_thumbnail('${filePath}', '${filename}')`,
+    );
+  }
+
   el.addEventListener("load", function () {
     cell.getRow().normalizeHeight();
   });

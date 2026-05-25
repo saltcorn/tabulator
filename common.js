@@ -112,6 +112,7 @@ const typeToGridType = (t, field, header_filters, column, calculators) => {
         urlPrefix:
           `/files/resize/${field.attributes?.width || 50}/` +
           (field.attributes?.height ? `${field.attributes.height}/` : "0/"),
+        expand: column.expand,
       };
       jsgField.editor = false;
     }
