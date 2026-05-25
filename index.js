@@ -1356,6 +1356,11 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       const { server_path } = parent.saltcorn.data.state.getState().mobileConfig;
       return \`\${server_path}\${path}\`;
     };
+    window.addEventListener("resize", function(event) {
+      if (document.getElementsByClassName("tabulator-editing").length) {
+        event.stopImmediatePropagation();
+      }
+    }, true);
     window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname.replaceAll(
         " ",
         ""
@@ -1528,7 +1533,12 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
         });
       });
       var _tab_resize_timer_${rndid};
+      var _tab_editing_${rndid} = false;
+      _tab.on("cellEditing", function() { _tab_editing_${rndid} = true; });
+      _tab.on("cellEditCancelled", function() { _tab_editing_${rndid} = false; });
+      _tab.on("cellEdited", function() { _tab_editing_${rndid} = false; });
       const _tab_on_resize_${rndid} = function() {
+        if (_tab_editing_${rndid}) return;
         clearTimeout(_tab_resize_timer_${rndid});
         _tab_resize_timer_${rndid} = setTimeout(function() {
           const h = _tab_fill_h();
@@ -1539,7 +1549,6 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       };
       window.addEventListener("resize", _tab_on_resize_${rndid});
       if (window.visualViewport) {
-        console.log({visualViewport: window.visualViewport})
         window.visualViewport.addEventListener("resize", _tab_on_resize_${rndid});
       }
     })();
