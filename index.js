@@ -1356,6 +1356,11 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       const { server_path } = parent.saltcorn.data.state.getState().mobileConfig;
       return \`\${server_path}\${path}\`;
     };
+    window.addEventListener("resize", function(event) {
+      if (document.getElementsByClassName("tabulator-editing").length) {
+        event.stopImmediatePropagation();
+      }
+    }, true);
     window.tabulator_table_${rndid} = new Tabulator("#tabgrid${viewname.replaceAll(
         " ",
         ""
@@ -1490,7 +1495,8 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
       const _tabEl = document.getElementById("tabgrid${viewname.replaceAll(" ", "")}${rndid}");
       function _tab_fill_h() {
         if (!_tabEl) return 400;
-        return Math.max(200, Math.floor(window.innerHeight - _tabEl.getBoundingClientRect().top - 10));
+        const viewH = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+        return Math.max(200, Math.floor(viewH - _tabEl.getBoundingClientRect().top - 10));
       }
       function _tab_calc_sz() {
         const holder = _tabEl ? _tabEl.querySelector('.tabulator-tableholder') : null;
@@ -1501,6 +1507,13 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
         const h = _tab_fill_h();
         _tabEl.style.height = h + "px";
         _tab.setHeight(h);
+        const vhPx = (window.visualViewport ? window.visualViewport.height : window.innerHeight) + "px";
+        document.documentElement.style.height = vhPx;
+        document.documentElement.style.maxHeight = vhPx;
+        document.documentElement.style.overflow = "hidden";
+        document.body.style.height = vhPx;
+        document.body.style.maxHeight = vhPx;
+        document.body.style.overflow = "hidden";
       });
       var _tab_adjusting_${rndid} = false;
       _tab.on("renderComplete", function() {
@@ -1520,7 +1533,12 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
         });
       });
       var _tab_resize_timer_${rndid};
-      window.addEventListener("resize", function() {
+      var _tab_editing_${rndid} = false;
+      _tab.on("cellEditing", function() { _tab_editing_${rndid} = true; });
+      _tab.on("cellEditCancelled", function() { _tab_editing_${rndid} = false; });
+      _tab.on("cellEdited", function() { _tab_editing_${rndid} = false; });
+      const _tab_on_resize_${rndid} = function() {
+        if (_tab_editing_${rndid}) return;
         clearTimeout(_tab_resize_timer_${rndid});
         _tab_resize_timer_${rndid} = setTimeout(function() {
           const h = _tab_fill_h();
@@ -1528,7 +1546,11 @@ const run = async (table_id, viewname, cfg, state, extraArgs, queriesObj) => {
           _tab.setHeight(h);
           _tab.setPageSize(_tab_calc_sz());
         }, 150);
-      });
+      };
+      window.addEventListener("resize", _tab_on_resize_${rndid});
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", _tab_on_resize_${rndid});
+      }
     })();
     `
         : ""
